@@ -1,8 +1,7 @@
-# Sample Samply Project
+# Sample Locator Rest Project
 
 
-This is just a general project. Please update this text to your needs.
-
+This is the REST Interface for the Sample Locator Project
 
 Use maven to build the jar:
 

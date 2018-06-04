@@ -10,7 +10,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>de.samply</groupId>
-        <version>10.0</version>
+        <version>10.1</version>
     </parent>
 
     <dependencies>
