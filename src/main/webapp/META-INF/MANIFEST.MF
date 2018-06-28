@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Implementation-Title: Samply Share Broker
+Implementation-Version: 1.3.3-SNAPSHOT
+Built-By: deniz
+Specification-Title: Samply Share Broker
+Implementation-Vendor-Id: de.samply
+Samply-Project-Context: samply
+Created-By: Apache Maven 3.3.9
+Build-Jdk: 1.8.0_151
+Specification-Version: 1.3.3-SNAPSHOT
+
