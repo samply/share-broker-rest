@@ -1,0 +1,38 @@
+{delpackage ActivateProjectContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for an activate project information mail.
+ * @param? locale The locale of the mail
+ * @param projectName The name/label of the project
+ * @param projectNr The application number of the project
+ * @param? months How many months will the project be active?
+ * @param end_planned when is the planned date when the project will end?
+ * @param partners a concatenated string of sites that are project partners
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            {\n}{\n}
+            wir freuen uns Ihnen mitzuteilen, dass Ihr Projekt "{$projectName}" (Antragsnummer {$projectNr}) aktiviert wurde.{sp}
+            {if $months}
+                Die Projektlaufzeit beträgt {$months} Monate mit dem {$end_planned} als geplantes Projektende.{sp}
+            {else}
+                Das geplante Projektende ist der {$end_planned}.{sp}
+            {/if}
+            An folgenden DKTK-Standorten befinden sich Ihre Kooperationspartner:
+            {\n}{\n}
+            
+            {$partners}
+            {\n}{\n}
+            
+            Bitte senden Sie uns jährlich einen Bericht über den Fortschritt Ihres Projekts zu. Zum Projektende senden Sie uns bitte einen Abschlussbericht.{sp}
+            Sollten die Ergebnisse Ihres Projektes in einer wissenschaftlichen Publikation veröffentlicht werden, so genügt der Literaturnachweis als Abschlussbericht.
+            {\n}{\n}      
+        
+            Bei Fragen oder anderen Anliegen können Sie sich jederzeit an uns wenden: ccp@dkfz.de
+            {\n}{\n}
+                Wir wünschen Ihnen viel Erfolg bei Ihrem Projekt!
+        {default}
+    {/switch}
+{/deltemplate}

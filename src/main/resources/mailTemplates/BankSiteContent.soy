@@ -1,0 +1,20 @@
+{delpackage BankSiteContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for a user site assignment mail.
+ * @param? locale The locale of the mail
+ * @param bankMail The mail address of the requesting bank
+ * @param bankId The bank id in the db
+ * @param siteId The DB id of the site
+ * @param siteName the name of the site
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            Der Teiler "{$bankMail}" (DB id {$bankId}) möchte dem Standort {$siteName} (id: {$siteId}) zugeordnet werden.
+            {\n}{\n}
+            Bitte prüfen Sie diese Zuordnung.
+        {default}
+    {/switch}
+{/deltemplate}

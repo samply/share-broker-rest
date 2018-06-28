@@ -1,0 +1,24 @@
+{delpackage AssessmentContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for an assessment information mail.
+ * @param? locale The locale of the mail
+ * @param projectName The name/label of the project
+ * @param projectNr The application number of the project
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            {\r}{\n}
+                vielen Dank für die Zusendung Ihres Projektvorschlags. 
+                Wir freuen uns Ihnen mitzuteilen, dass Ihr Projektvorschlag "{$projectName}" (Antragsnummer {$projectNr}) für eine erste Begutachtung an die Gutachter weitergeleitet wurde.
+            {\n}{\n}
+                Die Begutachtung Ihres Antrags wird ca. 10 Tage in Anspruch nehmen. Über eine Entscheidung sowie das weitere Vorgehen werden wir Sie sobald wie möglich informieren.            
+            {\n}{\n}
+                Bei Fragen oder anderen Anliegen können Sie sich jederzeit an uns wenden: ccp@dkfz.de
+            {\n}{\n}
+                Wir wünschen Ihnen für die Begutachtung viel Erfolg!
+        {default}
+    {/switch}
+{/deltemplate}

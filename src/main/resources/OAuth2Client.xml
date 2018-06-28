@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<p:oAuth2Client xmlns:p="http://schema.samply.de/config/OAuth2Client" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.samply.de/config/OAuth2Client OAuth2Client.xsd ">
+  <p:host>https://dev02.imbei.uni-mainz.de/auth</p:host>
+  <p:hostPublicKey>MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAqsKP8wpfQSF4/vAdPrRbrTvKqzeEMuwTRJOeZ/VpyivgvQfmRaQD7fQ9mIVbDjc12Zrh8XNrwJm+17Y/lrgeRJ+ohJErGszHiXWwlGI+yl2Naje/FN+i6Hky4wpij+q1ow2wm+VC46re9Rmggsgq4plyex5uHMCOscMAvLG8bCf/LrYz3a4x44u1e3NgTXSstlrmVn8n44uyEPLAZjIwD9szquespHUV9g1VviZaUngARxesxT2mGh/AtUP2xrFS6W593rxo3hMiTOB5FQpj4pbQ2OjghUet9ZvyjIAbdxHPPY3qtA05ELNHxa6Ehq1sJGEGwtsI+MGPeV5nsUOrVra5gGNCTP0n2uZ9QYxRrAzFduv3GSFDPMFUHzXSz3jhjKqDkYgFUU6u6H7n18iG91cXqqc+uiVLI+rDD1kS+x/Kzy1yFFW58IKvWzH9AJQqPNCiqa1Ei1xRS43rktjBLmbdU4K6dg6tGx0ohMZTlRS+rredncyvvY0cdLa+uIGM69SNJGy/S6Q05DammOn7unYILzuUMW7bFhmXvfQBc1ukAiG0EtiviM87iok32A3SYO8odI9q6PBorL2xjrl+IOKFCkhScmBG9UCUTIPN2D90WdC07YjxTLIHpO4u5O+yty63God4ZG/Ynbgt3iM4PtQOYD8l5EoPLRnPtarRhSECAwEAAQ==</p:hostPublicKey>
+  <p:clientId>70t3nm62p5mceth3170n23mu26nnnl2c76blp3fcsuds7i85j7ehc7op28dn03m4mlhkip1ij2lb7p4qj16861ei5bsvvm5hcs4fu2</p:clientId>
+  <p:clientSecret>2ndro3268v3g7rsok4ss003qahkrt1vhonp762hk64cqut3v1fqqn7jbfa872gmtuedpk6llb97nrgg0t8be3jmcipas4qha4udj8p2</p:clientSecret>
+</p:oAuth2Client>

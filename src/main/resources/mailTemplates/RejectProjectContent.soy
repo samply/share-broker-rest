@@ -1,0 +1,36 @@
+{delpackage RejectProjectContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for a reject project mail.
+ * @param? locale The locale of the mail
+ * @param projectName The name/label of the project
+ * @param projectNr The application number of the project
+ * @param? assessment Was a prior assessment done externally?
+ * @param? message the message entered by the ccp office on the webinterface
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            {\r}{\n}
+            {if $assessment}
+                wir bedauern Ihnen mitteilen zu müssen, dass Ihr Projektvorschlag "{$projectName}" (Antragsnummer {$projectNr}) abgelehnt wurde.{sp}
+                Die Entscheidungen der Gutachter können Sie im Suchbroker bei Ihrem Projektvorschlag einsehen.
+            {else}
+                wir bedauern Ihnen mitteilen zu müssen, dass wir Ihren Projektvorschlag "{$projectName}" (Antragsnummer {$projectNr}) ablehnen müssen.
+            {/if}
+            {\n}{\n}
+            
+            {if $message}
+                {$message}{\n}{\n}
+            {/if}         
+            
+            Wir freuen uns, wenn Sie Ihren Projektvorschlag bearbeiten und erneut einreichen möchten.
+            {\n}{\n}   
+        
+            Bei Fragen oder anderen Anliegen können Sie sich jederzeit an uns wenden: ccp@dkfz.de
+            {\n}{\n}
+                Wir wünschen Ihnen bei Ihren künftigen Projekten viel Erfolg!
+        {default}
+    {/switch}
+{/deltemplate}

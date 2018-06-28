@@ -1,0 +1,21 @@
+{delpackage NewProjectProposalContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for a new project proposal mail.
+ * @param? locale The locale of the mail
+ * @param? modified If the proposal was already sent earlier but was modified
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            {if $modified}
+                Ein Projektantrag wurde geändert und ist erneut eingegangen. 
+            {else}
+                Ein neuer Projektantrag ist eingegangen. 
+            {/if}
+            {sp}Bitte prüfen Sie diesen.
+        {default}
+            A new project proposal was received. Please check it.
+    {/switch}
+{/deltemplate}

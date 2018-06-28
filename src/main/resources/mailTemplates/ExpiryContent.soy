@@ -1,0 +1,19 @@
+{delpackage ExpiryContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for an expiry warning mail.
+ * @param? locale The locale of the mail
+ * @param? inquiryName The name/label of the expiring inquiry
+ * @param? expiryDate The last day the inquiry will be distributed
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            <p>Ihre Kollaborationsanfrage <i>{$inquiryName}</i> läuft am {$expiryDate} ab. Danach wird die Anfrage nicht mehr an anfragende Clients verteilt.</p>
+            <p>Sie können Ihre Kollaborationsanfrage jederzeit verlängern - sie wird nicht gelöscht.</p>
+        {default}
+            <p>Your inquiry <i>{$inquiryName}</i> expires at {$expiryDate}. After that day it will not be distributed to any clients.</p>
+            <p>You can extend the lifetime of your inquiry any time - it will not be deleted.</p>
+    {/switch}
+{/deltemplate}
