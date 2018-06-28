@@ -76,7 +76,7 @@
                             <validationAnnotations>false</validationAnnotations>
                         </generate>
                         <target>
-                            <packageName>model</packageName>
+                            <packageName>de.samply.share.broker.rest.model.db</packageName>
                             <directory>src/main/java</directory>
                         </target>
                     </generator>
