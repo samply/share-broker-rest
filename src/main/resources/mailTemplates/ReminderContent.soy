@@ -1,0 +1,18 @@
+{delpackage ReminderContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for a reminder mail.
+ * @param? locale The locale of the mail
+ * @param reminder The reminder text
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            Sie haben sich für heute eine Erinnerung gesetzt:
+        {default}
+            You set yourself a reminder for today:
+    {/switch}
+    {\n}{\n}
+    {$reminder}
+{/deltemplate}
