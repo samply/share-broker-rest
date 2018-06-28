@@ -20,7 +20,7 @@ import java.util.HashMap;
 import static de.samply.common.http.HttpConnector.*;
 
 public class Proxy {
-    private static final Logger logger = LogManager.getLogger(de.samply.share.broker.listener.Proxy.class);
+    private static final Logger logger = LogManager.getLogger(de.samply.share.broker.rest.listener.Proxy.class);
     private static final String COMMON_CONFIG_FILENAME_SUFFIX = "_common_config.xml";
     public static HttpConnector getHttpConnector() {
         try {
