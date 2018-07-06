@@ -1,0 +1,28 @@
+{delpackage CallbackProjectContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for a callback project mail.
+ * @param? locale The locale of the mail
+ * @param projectName The name/label of the project
+ * @param projectNr The application number of the project
+ * @param? message the message entered by the ccp office on the webinterface
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            {\r}{\n}
+            wir melden uns bei Ihnen bezüglich der Begutachtung Ihres Projektvorschlags "{$projectName}" (Antragsnummer {$projectNr}).{sp}
+            Bei der Prüfung Ihres Projektvorschlags ergaben sich folgende Rückfragen:
+            {\n}{\n}
+            
+            {if $message}
+                {$message}{\n}{\n}
+            {/if}
+            
+            Sobald wir Ihre Rückmeldung erhalten haben, kann Ihr Projektvorschlag weiter bearbeitet werden.{\n}{\n}       
+        
+            Bei Fragen oder anderen Anliegen können Sie sich jederzeit an uns wenden: ccp@dkfz.de
+        {default}
+    {/switch}
+{/deltemplate}

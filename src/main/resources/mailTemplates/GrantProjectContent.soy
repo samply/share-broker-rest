@@ -1,0 +1,42 @@
+{delpackage GrantProjectContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for a grant project information mail.
+ * @param? locale The locale of the mail
+ * @param projectName The name/label of the project
+ * @param projectNr The application number of the project
+ * @param? assessment Was a prior assessment done externally?
+ * @param? message the message entered by the ccp office on the webinterface
+ * @param sites a concatenated string of sites to which the inquiry will be sent
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            {\r}{\n}
+            {if $assessment}
+                wir freuen uns Ihnen mitzuteilen, dass Ihr Projektvorschlag "{$projectName}" (Antragsnummer {$projectNr}) vom zentralen Entscheidungsgremium positiv begutachtet wurde.{sp}
+                Ihr Antrag wird in Kürze und entsprechend Ihrer Anfrage an folgende DKTK-Standorte weitergeleitet:
+            {else}
+                vielen Dank für die Zusendung Ihres Projektvorschlags "{$projectName}" (Antragsnummer {$projectNr}).{sp}
+                Wir freuen uns Ihnen mitzuteilen, dass Ihr Projektvorschlag entsprechend Ihrer Anfrage an folgende DKTK-Standorte weitergeleitet wird:
+            {/if}
+            {\n}{\n}
+            
+            {$sites}
+            {\n}{\n}
+            
+            Dort wird Ihr Antrag von den lokalen Entscheidungsgremien begutachtet. Die Entscheidung wird ein wenig Zeit in Anspruch nehmen.{sp}
+            Wir werden Sie sobald wie möglich über die Entscheidungen informieren.
+            {\n}{\n}
+            
+            {if $message}
+                {$message}{\n}{\n}
+            {/if}            
+        
+            Bei Fragen oder anderen Anliegen können Sie sich jederzeit an uns wenden: ccp@dkfz.de
+            {\n}{\n}
+                Wir wünschen Ihnen viel Erfolg!
+        {default}
+    {/switch}
+{/deltemplate}

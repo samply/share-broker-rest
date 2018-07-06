@@ -1,0 +1,22 @@
+{delpackage NewRegistrationContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for a new registration mail.
+ * @param? locale The locale of the mail
+ * @param? token The activation token
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            Vielen Dank für Ihre Registrierung.
+            {\n}{\n}
+            Bitte geben Sie den folgenden Aktivierungscode in der Eingabemaske Ihres Teilers ein:
+        {default}
+            Thank you for registering with the decentral searchbroker.
+            {\n}{\n}
+            Please enter the following activation code in your share client:
+    {/switch}
+    {\n}{\n}
+    {$token}
+{/deltemplate}
