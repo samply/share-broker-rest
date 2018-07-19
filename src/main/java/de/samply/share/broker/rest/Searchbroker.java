@@ -132,6 +132,19 @@ public class Searchbroker {
         return Response.ok().header("reply", reply).build();
     }
 
+    /**
+     * Get the count of the sites
+     * @param id Inquiry ID
+     * @return the count of the sites
+     */
+    @GET
+    @Path("/getSize")
+    @Consumes(MediaType.TEXT_PLAIN)
+    public Response getSize(@QueryParam("id") int id){
+        int size=InquirySiteUtil.fetchInquirySitesForInquiryId(id).size();
+        return Response.ok().header("size",size).build();
+    }
+
 
     /**
      * Handle registration and activation of a new bank.
