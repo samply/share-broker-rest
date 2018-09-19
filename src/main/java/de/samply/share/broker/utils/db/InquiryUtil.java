@@ -531,11 +531,27 @@ public final class InquiryUtil {
 
     public static void deleteSimpleResultInquiry(){
         int affectedRows = 0;
-
+        //TODO: change ID from user?
         try (Connection conn = ResourceManager.getConnection()) {
             DSLContext create = ResourceManager.getDSLContext(conn);
             affectedRows = create.delete(Tables.INQUIRY_SITE)
                     .where(Tables.INQUIRY_SITE.INQUIRY_ID.in(
+                            select(Tables.INQUIRY.ID)
+                                    .from(Tables.INQUIRY)
+                                    .where(DSL.currentTimestamp().greaterThan(DSL.timestampAdd(Tables.INQUIRY.CREATED, 1, org.jooq.DatePart.DAY)))
+                                    .and(Tables.INQUIRY.AUTHOR_ID.eq(1))
+                    ))
+                    .execute();
+            affectedRows = create.delete(Tables.DOCUMENT)
+                    .where(Tables.DOCUMENT.INQUIRY_ID.in(
+                            select(Tables.INQUIRY.ID)
+                                    .from(Tables.INQUIRY)
+                                    .where(DSL.currentTimestamp().greaterThan(DSL.timestampAdd(Tables.INQUIRY.CREATED, 1, org.jooq.DatePart.DAY)))
+                                    .and(Tables.INQUIRY.AUTHOR_ID.eq(1))
+                    ))
+                    .execute();
+            affectedRows = create.delete(Tables.REPLY)
+                    .where(Tables.REPLY.INQUIRY_ID.in(
                             select(Tables.INQUIRY.ID)
                                     .from(Tables.INQUIRY)
                                     .where(DSL.currentTimestamp().greaterThan(DSL.timestampAdd(Tables.INQUIRY.CREATED, 1, org.jooq.DatePart.DAY)))
