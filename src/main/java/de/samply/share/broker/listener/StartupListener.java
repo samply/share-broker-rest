@@ -36,6 +36,7 @@ import java.util.Enumeration;
 
 import javax.servlet.ServletContextEvent;
 
+import de.samply.share.broker.job.DbCleanupJob;
 import de.samply.share.broker.utils.db.Migration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,6 +48,12 @@ import de.samply.share.broker.utils.ScheduledMailSending;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.web.mdrFaces.MdrContext;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
+
+import static org.quartz.CronScheduleBuilder.cronSchedule;
+import static org.quartz.JobBuilder.newJob;
+import static org.quartz.TriggerBuilder.newTrigger;
 
 /**
  * The listener interface for receiving startup events.
@@ -92,13 +99,31 @@ public class StartupListener implements javax.servlet.ServletContextListener {
         LOGGER.debug("Listener to the web application startup is running. Checking configuration...");
         Config c = Config.instance;
         ProjectInfo.INSTANCE.setConfig(c);
-
         Migration.doUpgrade();
-        
         String mdrUrl = c.getProperty("mdr.url");
         HttpConnector httpConnector = Proxy.getHttpConnector();
         MdrClient mdrClient = new MdrClient(mdrUrl, httpConnector.getJerseyClient(mdrUrl));
         MdrContext.getMdrContext().init(mdrClient);
+        spawnSchedulerJobs();
+    }
+
+    private void spawnSchedulerJobs() {
+        try {
+            SchedulerFactory sf = new StdSchedulerFactory();
+            Scheduler sched = null;
+            sched = sf.getScheduler();
+            sched.start();
+            JobDetail job = newJob(DbCleanupJob.class)
+                    .withIdentity("dbCleanup", "group1")
+                    .build();
+            CronTrigger trigger = newTrigger()
+                    .withIdentity("trigger1", "group1")
+                    .withSchedule(cronSchedule("0 0 2 * * ?"))
+                    .build();
+            sched.scheduleJob(job, trigger);
+        } catch (SchedulerException e) {
+            e.printStackTrace();
+        }
     }
 
 }

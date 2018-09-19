@@ -38,6 +38,7 @@ import de.samply.share.broker.model.db.tables.pojos.Project;
 import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.common.utils.SamplyShareUtils;
+import javafx.scene.control.Tab;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
@@ -46,7 +47,7 @@ import org.jooq.SQLDialect;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
-
+import static org.jooq.impl.DSL.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -526,5 +527,30 @@ public final class InquiryUtil {
             e.printStackTrace();
         }
         return inquiries;
+    }
+
+    public static void deleteSimpleResultInquiry(){
+        int affectedRows = 0;
+
+        try (Connection conn = ResourceManager.getConnection()) {
+            DSLContext create = ResourceManager.getDSLContext(conn);
+            affectedRows = create.delete(Tables.INQUIRY_SITE)
+                    .where(Tables.INQUIRY_SITE.INQUIRY_ID.in(
+                            select(Tables.INQUIRY.ID)
+                                    .from(Tables.INQUIRY)
+                                    .where(DSL.currentTimestamp().greaterThan(DSL.timestampAdd(Tables.INQUIRY.CREATED, 1, org.jooq.DatePart.DAY)))
+                                    .and(Tables.INQUIRY.AUTHOR_ID.eq(1))
+                    ))
+                    .execute();
+            affectedRows = create.delete(Tables.INQUIRY)
+                    .where(DSL.currentTimestamp().greaterThan(DSL.timestampAdd(Tables.INQUIRY.CREATED, 1, org.jooq.DatePart.DAY)))
+                    .and(Tables.INQUIRY.AUTHOR_ID.eq(1))
+                    .execute();
+        } catch (SQLException e) {
+            logger.error("Caught SQL Exception while trying to delete old inquiries. " + e);
+        } catch (DataAccessException dae) {
+            logger.error("Caught Data Access Exception while trying to delete old inquiries. " + dae);
+        }
+        logger.info("Deleted " + affectedRows + " old  inquiries");
     }
 }
