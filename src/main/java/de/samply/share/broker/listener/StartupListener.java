@@ -69,6 +69,7 @@ public class StartupListener implements javax.servlet.ServletContextListener {
 
     /** The Constant logger. */
     private static final Logger LOGGER = LogManager.getLogger(StartupListener.class);
+    private SchedulerFactory sf = new StdSchedulerFactory();
 
     /* (non-Javadoc)
      * @see javax.servlet.ServletContextListener#contextDestroyed(javax.servlet.ServletContextEvent)
@@ -82,8 +83,13 @@ public class StartupListener implements javax.servlet.ServletContextListener {
             try {
                 DriverManager.deregisterDriver(driver);
                 LOGGER.info("Deregistering jdbc driver: " + driver);
+                    for(Scheduler scheduler: sf.getAllSchedulers()) {
+                        scheduler.shutdown();
+                    }
             } catch (SQLException e) {
                 LOGGER.fatal("Error deregistering driver:" + driver + "\n" + e.getMessage());
+            } catch (SchedulerException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -109,7 +115,6 @@ public class StartupListener implements javax.servlet.ServletContextListener {
 
     private void spawnSchedulerJobs() {
         try {
-            SchedulerFactory sf = new StdSchedulerFactory();
             Scheduler sched = null;
             sched = sf.getScheduler();
             sched.start();
