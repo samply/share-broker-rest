@@ -555,7 +555,6 @@ public class SearchController extends AbstractSearchController {
      */
 
     public static int releaseQuery(String xmlQuery, User loggedUser) throws JAXBException {
-        logger.info("Releasing query...");
         Query query = QueryConverter.xmlToQuery(xmlQuery);
         InquiryHandler inquiryHandler = new InquiryHandler();
         int inquiryId = inquiryHandler.storeAndRelease(query, loggedUser.getId(), "", "", -1, -1, new ArrayList<String>(), true);
