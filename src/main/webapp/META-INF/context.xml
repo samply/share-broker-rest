@@ -3,7 +3,7 @@
     <Resource name="jdbc/postgres/samply.share.broker" auth="Container"
               type="javax.sql.DataSource" driverClassName="org.postgresql.Driver"
               url="jdbc:postgresql://localhost:5432/broker"
-              username="samplyweb" password="samplyweb" maxActive="100" maxIdle="30"
+              username="postgres" password="UmfragenEindruck" maxActive="100" maxIdle="30"
               maxWait="30000" removeAbandoned="true" removeAbandonedTimeout="120" logAbandoned="true"
               testOnBorrow="true" validationQuery="select 1"/>
 </Context>
