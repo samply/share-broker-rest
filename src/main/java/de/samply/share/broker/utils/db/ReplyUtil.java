@@ -47,7 +47,7 @@ public class ReplyUtil {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            return size < size2 ? 1 : size == size2 ? 0 : -1;
+            return size > size2 ? 1 : size == size2 ? 0 : -1;
         }
     }
 }
