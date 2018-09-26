@@ -531,7 +531,7 @@ public final class InquiryUtil {
 
     public static void deleteSimpleResultInquiry(){
         int affectedRows = 0;
-        //TODO: change ID from user?
+        //TODO: if necessary change ID from user? The searchbroker user in the DB has the ID 1
         try (Connection conn = ResourceManager.getConnection()) {
             DSLContext create = ResourceManager.getDSLContext(conn);
             affectedRows = create.delete(Tables.INQUIRY_SITE)
