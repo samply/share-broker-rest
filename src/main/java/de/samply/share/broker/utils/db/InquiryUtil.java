@@ -38,7 +38,6 @@ import de.samply.share.broker.model.db.tables.pojos.Project;
 import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.common.utils.SamplyShareUtils;
-import javafx.scene.control.Tab;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
@@ -47,11 +46,13 @@ import org.jooq.SQLDialect;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
-import static org.jooq.impl.DSL.*;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static org.jooq.impl.DSL.select;
 
 /**
  * This class provides static methods for CRUD operations for Inquiry Objects
