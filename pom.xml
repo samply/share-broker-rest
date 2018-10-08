@@ -17,9 +17,9 @@
         <!--         <samply.project.context>osse</samply.project.context> -->
         <samply.project.context>samply</samply.project.context>
 
-        <database.username>samplyshare</database.username>
-        <database.password>samplyshare</database.password>
-        <database.url>jdbc:postgresql://localhost:5432/samplyshare</database.url>
+        <database.username>samply</database.username>
+        <database.password>samply</database.password>
+        <database.url>jdbc:postgresql://localhost:5432/samply.broker</database.url>
         <database.schema>samply</database.schema>
 
         <!-- Samply dependencies -->

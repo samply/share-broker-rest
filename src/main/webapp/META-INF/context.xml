@@ -2,8 +2,8 @@
 <Context path="/">
     <Resource name="jdbc/postgres/samply.share.broker" auth="Container"
               type="javax.sql.DataSource" driverClassName="org.postgresql.Driver"
-              url="jdbc:postgresql://localhost:5432/broker"
-              username="postgres" password="UmfragenEindruck" maxActive="100" maxIdle="30"
+              url="jdbc:postgresql://localhost:5432/samply.broker"
+              username="samply" password="samply" maxActive="100" maxIdle="30"
               maxWait="30000" removeAbandoned="true" removeAbandonedTimeout="120" logAbandoned="true"
               testOnBorrow="true" validationQuery="select 1"/>
 </Context>
