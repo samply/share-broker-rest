@@ -86,4 +86,7 @@ that tomcat may write to the specified directory in the log4j config file. The p
 <Property name="logDir">/var/log/samply/</Property>
 ```
 
+### Test
+
+http://localhost:8083/rest/test/inquiries/1
 

@@ -1,17 +1,12 @@
 package de.samply.share.broker.control;
 
+import javax.annotation.PostConstruct;
+import javax.faces.context.FacesContext;
 import java.util.Locale;
 
-import javax.annotation.PostConstruct;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
-import javax.faces.context.FacesContext;
-
 /**
- * A JSF Managed Bean that is used for internationalization
+ * internationalization
  */
-@ManagedBean(name = "localeController")
-@SessionScoped
 public class LocaleController {
 
     private Locale locale;

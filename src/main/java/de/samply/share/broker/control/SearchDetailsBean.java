@@ -29,6 +29,19 @@
  */
 package de.samply.share.broker.control;
 
+import de.samply.share.broker.messages.Messages;
+import de.samply.share.broker.model.db.enums.DocumentType;
+import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.utils.ProjectInfo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.omnifaces.util.Ajax;
+import org.omnifaces.util.Faces;
+
+import javax.annotation.PostConstruct;
+import javax.faces.application.FacesMessage;
+import javax.servlet.http.Part;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -36,37 +49,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-import javax.faces.application.FacesMessage;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ManagedProperty;
-import javax.faces.bean.SessionScoped;
-import javax.servlet.http.Part;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.omnifaces.util.Ajax;
-import org.omnifaces.util.Faces;
-
-import de.samply.share.broker.messages.Messages;
-import de.samply.share.broker.model.db.enums.DocumentType;
-import de.samply.share.broker.model.db.tables.pojos.Document;
-import de.samply.share.broker.model.db.tables.pojos.Inquiry;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.model.db.tables.pojos.User;
-import de.samply.share.broker.model.db.tables.pojos.UserSite;
-import de.samply.share.broker.utils.db.DocumentUtil;
-import de.samply.share.broker.utils.db.InquiryUtil;
-import de.samply.share.broker.utils.db.SiteUtil;
-import de.samply.share.broker.utils.db.UserSiteUtil;
-import de.samply.share.broker.utils.db.UserUtil;
-import de.samply.share.common.utils.ProjectInfo;
-
 /**
- * A JSF Managed Bean that holds all details linked with an inquiry
+ *  holds all details linked with an inquiry
  */
-@ManagedBean(name = "searchDetailsBean")
-@SessionScoped
 public class SearchDetailsBean implements Serializable {
 
     private static final long serialVersionUID = -4671575946697123638L;
@@ -96,7 +81,6 @@ public class SearchDetailsBean implements Serializable {
 
     private String serializedQuery;
 
-    @ManagedProperty(value = "#{loginController}")
     private LoginController loginController;
 
     @PostConstruct

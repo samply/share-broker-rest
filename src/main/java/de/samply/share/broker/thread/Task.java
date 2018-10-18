@@ -32,7 +32,7 @@ package de.samply.share.broker.thread;
 import java.util.concurrent.Callable;
 
 /**
- * Auto-Logging task to be queued in the Application class.
+ * Auto-Logging task to be queued in the ApplicationController class.
  */
 public abstract class Task implements Callable<TaskResult> {
 

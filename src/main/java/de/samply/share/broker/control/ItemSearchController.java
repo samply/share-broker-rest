@@ -29,33 +29,12 @@
  */
 package de.samply.share.broker.control;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ViewScoped;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import de.samply.common.mdrclient.domain.*;
-import de.samply.config.util.FileFinderUtil;
-import de.samply.share.common.utils.SamplyShareUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.omnifaces.util.Ajax;
-
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
-
 import de.samply.common.mdrclient.MdrConnectionException;
 import de.samply.common.mdrclient.MdrInvalidResponseException;
+import de.samply.common.mdrclient.domain.*;
+import de.samply.config.util.FileFinderUtil;
 import de.samply.jsf.MdrUtils;
 import de.samply.share.broker.utils.Config;
 import de.samply.share.broker.utils.Utils;
@@ -64,16 +43,31 @@ import de.samply.share.common.model.uiquerybuilder.MenuItem;
 import de.samply.share.common.model.uiquerybuilder.MenuItemTreeManager;
 import de.samply.share.common.utils.MdrIdDatatype;
 import de.samply.share.common.utils.ProjectInfo;
+import de.samply.share.common.utils.SamplyShareUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.omnifaces.util.Ajax;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
 /**
  * The MDR item search panel controller.
  */
-@ManagedBean(name = "ItemSearchController")
-@ViewScoped
 public class ItemSearchController extends AbstractItemSearchController {
 
     private static final long serialVersionUID = -8930281571767592989L;
@@ -466,13 +460,6 @@ public class ItemSearchController extends AbstractItemSearchController {
                 continue;
             }
 
-            List<String> blacklist = Utils.getAB().getMdrKeyBlacklist();
-
-            if (blacklist != null && blacklist.contains(r.getId())) {
-                logger.debug(r.getId() + " is marked as unsupported. Skipping...");
-                continue;
-            }
-
             filterList.add(r);
         }
 
@@ -517,10 +504,6 @@ public class ItemSearchController extends AbstractItemSearchController {
             logger.trace("Menu " + parent.getDesignation() + ", " + parent.getMdrId() + " clicked.");
 
             for (Result r : getGroupMembers(mdrId)) {
-                if (Utils.getAB().getMdrKeyBlacklist().contains(r.getId())) {
-                    logger.debug(r.getId() + " is marked as unsupported. Skipping...");
-                    continue;
-                }
                 MenuItem menuItem = MenuItemTreeManager.buildMenuItem(r.getId(), EnumElementType.valueOf(r.getType()),
                         MdrUtils.getDesignation(r.getDesignations()),
                         MdrUtils.getDefinition(r.getDesignations()), new ArrayList<MenuItem>(), parent);

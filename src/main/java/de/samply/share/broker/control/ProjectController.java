@@ -29,28 +29,22 @@
  */
 package de.samply.share.broker.control;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ManagedProperty;
-import javax.faces.bean.ViewScoped;
-import javax.faces.event.AjaxBehaviorEvent;
-import javax.servlet.http.Part;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-
+import com.itextpdf.text.DocumentException;
+import de.samply.share.broker.model.EnumProjectType;
+import de.samply.share.broker.model.db.enums.ActionType;
+import de.samply.share.broker.model.db.enums.DocumentType;
+import de.samply.share.broker.model.db.enums.InquiryStatus;
+import de.samply.share.broker.model.db.enums.ProjectStatus;
+import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.rest.InquiryHandler;
+import de.samply.share.broker.utils.MailUtils;
+import de.samply.share.broker.utils.PdfUtils;
+import de.samply.share.broker.utils.Utils;
+import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.model.uiquerybuilder.QueryItem;
 import de.samply.share.common.utils.QueryTreeUtil;
 import de.samply.share.common.utils.SamplyShareUtils;
+import de.samply.share.model.common.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.omnifaces.model.tree.ListTreeModel;
@@ -58,36 +52,22 @@ import org.omnifaces.model.tree.TreeModel;
 import org.omnifaces.util.Ajax;
 import org.omnifaces.util.Faces;
 
-import com.itextpdf.text.DocumentException;
-
-import de.samply.share.broker.model.EnumProjectType;
-import de.samply.share.broker.model.db.enums.ActionType;
-import de.samply.share.broker.model.db.enums.DocumentType;
-import de.samply.share.broker.model.db.enums.InquiryStatus;
-import de.samply.share.broker.model.db.enums.ProjectStatus;
-import de.samply.share.broker.model.db.tables.pojos.Action;
-import de.samply.share.broker.model.db.tables.pojos.Document;
-import de.samply.share.broker.model.db.tables.pojos.Inquiry;
-import de.samply.share.broker.model.db.tables.pojos.Project;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.rest.InquiryHandler;
-import de.samply.share.broker.utils.MailUtils;
-import de.samply.share.broker.utils.PdfUtils;
-import de.samply.share.broker.utils.Utils;
-import de.samply.share.broker.utils.db.ActionUtil;
-import de.samply.share.broker.utils.db.DocumentUtil;
-import de.samply.share.broker.utils.db.InquiryUtil;
-import de.samply.share.broker.utils.db.NoteUtil;
-import de.samply.share.broker.utils.db.ProjectUtil;
-import de.samply.share.broker.utils.db.SiteUtil;
-import de.samply.share.common.model.uiquerybuilder.QueryItem;
-import de.samply.share.model.common.Query;
+import javax.annotation.PostConstruct;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.event.AjaxBehaviorEvent;
+import javax.servlet.http.Part;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
 
 /**
- * A JSF Managed Bean that is used for most of the project management tasks
+ * for most of the project management tasks
  */
-@ManagedBean(name = "ProjectController")
-@ViewScoped
 public class ProjectController implements Serializable {
 
     private static final long serialVersionUID = 876573067329775658L;

@@ -25,23 +25,20 @@
  */
 package de.samply.share.broker.control;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.faces.application.FacesMessage;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ManagedProperty;
-import javax.faces.bean.ViewScoped;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.xml.bind.JAXBException;
-
+import com.google.common.base.Joiner;
+import de.samply.share.broker.messages.Messages;
+import de.samply.share.broker.model.db.enums.InquiryStatus;
 import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.rest.InquiryHandler;
+import de.samply.share.broker.utils.Config;
+import de.samply.share.broker.utils.MailUtils;
+import de.samply.share.broker.utils.Utils;
 import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.control.uiquerybuilder.AbstractSearchController;
+import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.QueryTreeUtil;
 import de.samply.share.common.utils.SamplyShareUtils;
+import de.samply.share.model.common.Query;
 import de.samply.share.utils.QueryConverter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -52,23 +49,19 @@ import org.jooq.tools.json.JSONParser;
 import org.jooq.tools.json.ParseException;
 import org.omnifaces.util.Faces;
 
-import com.google.common.base.Joiner;
-
-import de.samply.share.broker.messages.Messages;
-import de.samply.share.broker.model.db.enums.InquiryStatus;
-import de.samply.share.broker.rest.InquiryHandler;
-import de.samply.share.broker.utils.Config;
-import de.samply.share.broker.utils.MailUtils;
-import de.samply.share.broker.utils.Utils;
-import de.samply.share.common.control.uiquerybuilder.AbstractSearchController;
-import de.samply.share.common.utils.ProjectInfo;
-import de.samply.share.model.common.Query;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * A JSF Managed Bean that is valid for the lifetime of a view. It holds methods and information necessary to create and display queries
+ * holds methods and information necessary to create and display queries
  */
-@ManagedBean(name = "SearchController")
-@ViewScoped
+
 public class SearchController extends AbstractSearchController {
 
     private static final String VALIDATION_FAILED_RELEASE = "validationFailedRelease";
@@ -79,10 +72,8 @@ public class SearchController extends AbstractSearchController {
 
     private static final String CCP_OFFICE_MAIL = "mail.receiver.ccpoffice";
 
-    @ManagedProperty(value = "#{loginController}")
     private LoginController loginController;
 
-    @ManagedProperty(value = "#{searchDetailsBean}")
     private SearchDetailsBean searchDetailsBean;
 
     private static final Logger logger = LogManager.getLogger(SearchController.class);

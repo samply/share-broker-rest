@@ -29,6 +29,28 @@
  */
 package de.samply.share.broker.control;
 
+import com.itextpdf.text.DocumentException;
+import de.samply.share.broker.messages.Messages;
+import de.samply.share.broker.model.db.enums.InquiryStatus;
+import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.utils.PdfUtils;
+import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.model.uiquerybuilder.QueryItem;
+import de.samply.share.common.utils.QueryTreeUtil;
+import de.samply.share.model.common.Query;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.omnifaces.model.tree.ListTreeModel;
+import org.omnifaces.model.tree.TreeModel;
+import org.omnifaces.util.Faces;
+
+import javax.annotation.PostConstruct;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.context.FacesContext;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -37,41 +59,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import javax.annotation.PostConstruct;
-import javax.faces.application.FacesMessage;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ManagedProperty;
-import javax.faces.bean.ViewScoped;
-import javax.faces.context.FacesContext;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-
-import com.itextpdf.text.DocumentException;
-import de.samply.share.broker.model.db.tables.pojos.BankSite;
-import de.samply.share.broker.model.db.tables.pojos.Reply;
-import de.samply.share.broker.utils.PdfUtils;
-import de.samply.share.broker.utils.db.*;
-import de.samply.share.common.utils.QueryTreeUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.omnifaces.model.tree.ListTreeModel;
-import org.omnifaces.model.tree.TreeModel;
-
-import de.samply.share.broker.messages.Messages;
-import de.samply.share.broker.model.db.enums.InquiryStatus;
-import de.samply.share.broker.model.db.tables.pojos.Inquiry;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.model.db.tables.pojos.User;
-import de.samply.share.common.model.uiquerybuilder.QueryItem;
-import de.samply.share.model.common.Query;
-import org.omnifaces.util.Faces;
-
-/**
- * A JSF Managed Bean that is valid for the lifetime of a view.
- */
-@ManagedBean(name = "inquiryController")
-@ViewScoped
 public class InquiryController implements Serializable {
 
     /** The Constant serialVersionUID. */

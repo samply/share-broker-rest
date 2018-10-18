@@ -29,6 +29,34 @@
  */
 package de.samply.share.broker.control;
 
+import com.google.common.base.Joiner;
+import de.samply.auth.client.jwt.JWTAccessToken;
+import de.samply.auth.client.jwt.JWTException;
+import de.samply.auth.client.jwt.JWTIDToken;
+import de.samply.auth.rest.*;
+import de.samply.jsf.JsfUtils;
+import de.samply.jsf.LoggedUser;
+import de.samply.share.broker.jdbc.ResourceManager;
+import de.samply.share.broker.messages.Messages;
+import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.utils.Utils;
+import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.utils.ProjectInfo;
+import de.samply.share.common.utils.oauth2.OAuthConfig;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.omnifaces.context.OmniPartialViewContext;
+import org.omnifaces.util.Faces;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -39,53 +67,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import javax.faces.application.FacesMessage;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
-import javax.faces.context.FacesContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import de.samply.auth.rest.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.omnifaces.context.OmniPartialViewContext;
-import org.omnifaces.util.Faces;
-
-import com.google.common.base.Joiner;
-
-import de.samply.auth.client.jwt.JWTAccessToken;
-import de.samply.auth.client.jwt.JWTException;
-import de.samply.auth.client.jwt.JWTIDToken;
-import de.samply.jsf.JsfUtils;
-import de.samply.jsf.LoggedUser;
-import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.messages.Messages;
-import de.samply.share.broker.model.db.tables.pojos.Consent;
-import de.samply.share.broker.model.db.tables.pojos.Contact;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.model.db.tables.pojos.User;
-import de.samply.share.broker.model.db.tables.pojos.UserSite;
-import de.samply.share.broker.utils.Utils;
-import de.samply.share.broker.utils.db.ContactUtil;
-import de.samply.share.broker.utils.db.DocumentUtil;
-import de.samply.share.broker.utils.db.SiteUtil;
-import de.samply.share.broker.utils.db.UserConsentUtil;
-import de.samply.share.broker.utils.db.UserSiteUtil;
-import de.samply.share.broker.utils.db.UserUtil;
-import de.samply.share.common.utils.ProjectInfo;
-import de.samply.share.common.utils.oauth2.OAuthConfig;
-
 /**
- * A JSF Managed Bean that is existent for a whole session. It handles user access.
+ * handles user access.
  */
-@ManagedBean(name = "loginController")
-@SessionScoped
 public class LoginController implements Serializable {
 
     /** The Constant serialVersionUID. */

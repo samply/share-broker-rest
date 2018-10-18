@@ -1,41 +1,25 @@
 package de.samply.share.broker.control;
 
+import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.utils.Utils;
+import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.model.dto.SiteInfo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.faces.component.UIInput;
+import javax.faces.event.ValueChangeEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ViewScoped;
-import javax.faces.component.UIInput;
-import javax.faces.event.ValueChangeEvent;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import de.samply.share.broker.model.db.tables.pojos.Bank;
-import de.samply.share.broker.model.db.tables.pojos.BankSite;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.model.db.tables.pojos.User;
-import de.samply.share.broker.model.db.tables.pojos.UserSite;
-import de.samply.share.broker.utils.Utils;
-import de.samply.share.broker.utils.db.BankSiteUtil;
-import de.samply.share.broker.utils.db.BankUtil;
-import de.samply.share.broker.utils.db.SiteUtil;
-import de.samply.share.broker.utils.db.UserSiteUtil;
-import de.samply.share.broker.utils.db.UserUtil;
-import de.samply.share.common.model.dto.SiteInfo;
-
 /**
- * A JSF Managed Bean that is used for the admin view.
- *
- * It holds methods to assign users and banks to a site.
+ *  used for the admin view and holds methods to assign users and banks to a site.
  */
-@ManagedBean(name = "assignmentBean")
-@ViewScoped
-public class AssignmentBean implements Serializable {
-    
-    private static final Logger logger = LogManager.getLogger(AssignmentBean.class);
+public class AssignmentController implements Serializable {
+
+    private static final Logger logger = LogManager.getLogger(AssignmentController.class);
 
     private List<User> users;
     private List<Bank> banks;
