@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>war</packaging>
     <artifactId>share.broker.rest</artifactId>
-    <version>1.1.5-SNAPSHOT</version>
-
+    <version>1.1.6-SNAPSHOT</version>
+    <name>Searchbroker</name>
     <parent>
         <groupId>de.samply</groupId>
         <artifactId>parent</artifactId>
@@ -14,13 +14,13 @@
     </parent>
 
     <properties>
-        <!-- <samply.project.context>osse</samply.project.context> -->
-        <samply.project.context>samply</samply.project.context>
+        <!-- <project.context>dktk</project.context> -->
+        <project.context>samply</project.context>
 
-        <database.username>samply</database.username>
-        <database.password>samply</database.password>
-        <database.url>jdbc:postgresql://localhost:5432/samply.broker</database.url>
-        <database.schema>samply</database.schema>
+        <database.username>${project.context}</database.username>
+        <database.password>${project.context}</database.password>
+        <database.url>jdbc:postgresql://localhost:5432/${project.context}.broker</database.url>
+        <database.schema>${project.context}</database.schema>
 
         <!-- Samply dependencies -->
         <common-mailing.version>2.0.0</common-mailing.version>
@@ -139,7 +139,7 @@
                         <schema>${database.schema}</schema>
                     </schemas>
                     <locations>
-                        <location>filesystem:src/main/resources/db/migration/samply</location>
+                        <location>filesystem:src/main/resources/db/migration/${project.context}</location>
                     </locations>
                 </configuration>
             </plugin>
@@ -149,7 +149,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Samply-Project-Context>${samply.project.context}</Samply-Project-Context>
+                            <Samply-Project-Context>${project.context}</Samply-Project-Context>
                         </manifestEntries>
                     </archive>
                 </configuration>
