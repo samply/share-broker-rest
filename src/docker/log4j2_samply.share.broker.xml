@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Properties>
+        <Property name="logDir">/var/log/samply/</Property>
+        <Property name="fileBaseName">samply.share.broker</Property>
+        <Property name="fileNameSuffix">.log</Property>
+        <Property name="monitor">monitor</Property>
+        <Property name="http">http</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <RollingFile name="RollingFile" fileName="${logDir}${fileBaseName}${fileNameSuffix}"
+                     filePattern="${logDir}$${date:yyyy-MM}/${fileBaseName}-%d{yyyy-MM-dd}-%i${fileNameSuffix}.gz">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy max="10">
+                <Delete basePath="${logDir}" maxDepth="2">
+                    <IfFileName glob="*/samply.share.broker-*.log*"/>
+                    <IfLastModified age="30d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <RollingFile name="RollingFileMonitoring"
+                     fileName="${logDir}${fileBaseName}_${monitor}${fileNameSuffix}"
+                     filePattern="${logDir}$${date:yyyy-MM}/${fileBaseName}_${monitor}-%d{yyyy-MM-dd}-%i${fileNameSuffix}.gz">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n
+                </Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy max="2">
+                <Delete basePath="${logDir}" maxDepth="2">
+                    <IfFileName glob="*/*_monitor-*.log*"/>
+                    <IfLastModified age="2d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <RollingFile name="RollingFileHttp"
+                     fileName="${logDir}${fileBaseName}_${http}${fileNameSuffix}"
+                     filePattern="${logDir}$${date:yyyy-MM}/${fileBaseName}_${http}-%d{yyyy-MM-dd}-%i${fileNameSuffix}.gz">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n
+                </Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy max="2">
+                <Delete basePath="${logDir}" maxDepth="2">
+                    <IfFileName glob="*/*_http-*.log*"/>
+                    <IfLastModified age="7d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Root>
+        <Logger name="org.apache" level="debug" additivity="false">
+            <AppenderRef ref="RollingFileHttp"/>
+        </Logger>
+        <Logger name="de.samply.share.broker.rest.Searchbroker" level="info" additivity="false">
+            <AppenderRef ref="RollingFileMonitoring"/>
+        </Logger>
+        <Logger name="de.samply.share.broker.rest.Monitoring" level="info" additivity="false">
+            <AppenderRef ref="RollingFileMonitoring"/>
+        </Logger>
+        <Logger name="de.samply.config.util.FileFinderUtil" level="info"/>
+        <Logger name="org.jooq.tools" level="info"/>
+    </Loggers>
+</Configuration>

@@ -352,4 +352,11 @@
             <version>${quartz.version}</version>
         </dependency>
     </dependencies>
+    <repositories>
+        <repository>
+            <id>samply-maven-oss-releases</id>
+            <name>Samply Maven Builds</name>
+            <url>https://maven.samply.de/nexus/content/repositories/oss-releases</url>
+        </repository>
+    </repositories>
 </project>

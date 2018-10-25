@@ -1,0 +1,22 @@
+version: 2
+jobs:
+  build:
+    docker:
+    - image: circleci/openjdk:8-jdk
+    - image: postgres:9.6
+      environment:
+        POSTGRES_USER: samply
+        POSTGRES_PASSWORD: samply
+        POSTGRES_DB: samply.broker
+
+    working_directory: ~/repo
+
+    steps:
+    - checkout
+
+    - run: mvn -B package
+
+    - setup_remote_docker
+    - run: docker build -t akiel/samply-searchbroker .
+    - run: docker login -u akiel -p "${DOCKER_HUB_PASSWD}"
+    - run: docker push akiel/samply-searchbroker
