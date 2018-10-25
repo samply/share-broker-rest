@@ -1,18 +1,37 @@
 # Samply Share Broker
 
+## General information
+
 Samply Share Broker is a vital part of the decentral search infrastructure.
 It allows to create and distribute decentral search inquiries based on dataelements in the metadata repository.
 
+#### Conventions
 
-# Build
+Create a database with:
+username = samply
+password = samply
+port = 5432
+name = samply.broker
 
-Simply execute the maven goal
+Run in Tomcat 8.5 under http://localhost:8083 so you can use standard configuration files.
+Except you are behind a PROXY: edit samply_common_config.xml
+
+for details see https://wiki.mitro.dkfz.de/x/RIAHAw
+
+#### Configuration files
 
 ```
-mvn clean package
+- samply.share.broker.conf
+- samply_common_config.xml
+- log4j2_samply.share.broker.xml
+- OAuth2Client.xml (Deprecated)
+- context.xml (goes to tomcat dir)
 ```
 
-### Database Connection
+You can save these files local to "C:\/Users/\%username%/\.config/\samply/\"
+This will of course fully override the WEB-INF fallback directory, so your configurations are stable.
+
+#### Database Connection
 
 The database connection uses a connection pool, for which the datasource is defined in
  _src/main/webapp/META-INF/context.xml_ or the context.xml from your tomcat installation. Usually, the definition
@@ -66,8 +85,8 @@ Also, adapt _pom.xml_ accordingly. The respective parameters there are:
     (...)
 </properties>
 ```
- 
-### Logging
+
+#### Logging
 
 Copy the example _log4j2.xml_ file from _/src/main/resources_ to the place defined in the corresponding
 parameter in your _web.xml_. By default, the parameter in _web.xml_ is set to.
@@ -85,5 +104,15 @@ that tomcat may write to the specified directory in the log4j config file. The p
 ```
 <Property name="logDir">/var/log/samply/</Property>
 ```
+
+## Build
+
+Simply execute the maven goal
+
+```
+mvn clean package
+```
+
+
 
 
