@@ -99,7 +99,7 @@
     </context-param>
     <context-param>
         <param-name>log4jConfiguration</param-name>
-        <param-value>file:///C:/ProgramData/DKTK/conf/log4j2_samply.share.broker.xml</param-value>
+        <param-value>file:///etc/samply/log4j2_samply.share.broker.xml</param-value>
     </context-param>
     <mime-mapping>
         <extension>woff</extension>

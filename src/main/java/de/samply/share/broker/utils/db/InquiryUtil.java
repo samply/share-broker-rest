@@ -52,6 +52,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static org.jooq.impl.DSL.select;
+
 /**
  * This class provides static methods for CRUD operations for Inquiry Objects
  *
@@ -526,5 +528,46 @@ public final class InquiryUtil {
             e.printStackTrace();
         }
         return inquiries;
+    }
+
+    public static void deleteSimpleResultInquiry(){
+        int affectedRows = 0;
+        //TODO: if necessary change ID from user? The searchbroker user in the DB has the ID 1
+        try (Connection conn = ResourceManager.getConnection()) {
+            DSLContext create = ResourceManager.getDSLContext(conn);
+            affectedRows = create.delete(Tables.INQUIRY_SITE)
+                    .where(Tables.INQUIRY_SITE.INQUIRY_ID.in(
+                            select(Tables.INQUIRY.ID)
+                                    .from(Tables.INQUIRY)
+                                    .where(DSL.currentTimestamp().greaterThan(DSL.timestampAdd(Tables.INQUIRY.CREATED, 1, org.jooq.DatePart.DAY)))
+                                    .and(Tables.INQUIRY.AUTHOR_ID.eq(1))
+                    ))
+                    .execute();
+            affectedRows = create.delete(Tables.DOCUMENT)
+                    .where(Tables.DOCUMENT.INQUIRY_ID.in(
+                            select(Tables.INQUIRY.ID)
+                                    .from(Tables.INQUIRY)
+                                    .where(DSL.currentTimestamp().greaterThan(DSL.timestampAdd(Tables.INQUIRY.CREATED, 1, org.jooq.DatePart.DAY)))
+                                    .and(Tables.INQUIRY.AUTHOR_ID.eq(1))
+                    ))
+                    .execute();
+            affectedRows = create.delete(Tables.REPLY)
+                    .where(Tables.REPLY.INQUIRY_ID.in(
+                            select(Tables.INQUIRY.ID)
+                                    .from(Tables.INQUIRY)
+                                    .where(DSL.currentTimestamp().greaterThan(DSL.timestampAdd(Tables.INQUIRY.CREATED, 1, org.jooq.DatePart.DAY)))
+                                    .and(Tables.INQUIRY.AUTHOR_ID.eq(1))
+                    ))
+                    .execute();
+            affectedRows = create.delete(Tables.INQUIRY)
+                    .where(DSL.currentTimestamp().greaterThan(DSL.timestampAdd(Tables.INQUIRY.CREATED, 1, org.jooq.DatePart.DAY)))
+                    .and(Tables.INQUIRY.AUTHOR_ID.eq(1))
+                    .execute();
+        } catch (SQLException e) {
+            logger.error("Caught SQL Exception while trying to delete old inquiries. " + e);
+        } catch (DataAccessException dae) {
+            logger.error("Caught Data Access Exception while trying to delete old inquiries. " + dae);
+        }
+        logger.info("Deleted " + affectedRows + " old  inquiries");
     }
 }
