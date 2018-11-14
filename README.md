@@ -28,7 +28,9 @@ for details see https://wiki.mitro.dkfz.de/x/RIAHAw
 - context.xml (goes to tomcat dir)
 ```
 
-You can save these files local to "C:\/Users/\%username%/\.config/\samply/\"
+You can save these files local to 
+WINDOWS: "C:\/Users/\%username%/\.config/\samply/\"
+LINUX: "/etc/samply/"
 This will of course fully override the WEB-INF fallback directory, so your configurations are stable.
 
 #### Database Connection
