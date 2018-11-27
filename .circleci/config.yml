@@ -17,6 +17,6 @@ jobs:
     - run: mvn -B package
 
     - setup_remote_docker
-    - run: docker build -t akiel/samply-searchbroker .
+    - run: docker build -t akiel/samply-searchbroker:GBAITC-533 .
     - run: docker login -u akiel -p "${DOCKER_HUB_PASSWD}"
-    - run: docker push akiel/samply-searchbroker
+    - run: docker push akiel/samply-searchbroker:GBAITC-533
