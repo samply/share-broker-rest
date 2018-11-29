@@ -69,7 +69,7 @@
     </properties>
 
     <build>
-        <finalName>Samply.Share.Broker-${project.version}</finalName>
+        <finalName>broker</finalName>
         <resources>
             <resource>
                 <directory>src/main/java</directory>
@@ -332,6 +332,12 @@
             <groupId>de.samply</groupId>
             <artifactId>share-common</artifactId>
             <version>${share-common.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>jsr311-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>de.samply</groupId>

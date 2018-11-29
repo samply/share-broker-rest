@@ -1,6 +1,6 @@
 FROM tomcat:8.5.32-jre8-alpine
 
-ADD target/*.war /usr/local/tomcat/webapps/broker.war
+ADD target/broker /usr/local/tomcat/webapps/broker/
 ADD src/docker/samply.share.broker.conf /etc/samply/
 ADD src/docker/log4j2_samply.share.broker.xml /etc/samply/
 ADD src/docker/context.xml /usr/local/tomcat/conf/Catalina/localhost/broker.xml
