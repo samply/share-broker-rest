@@ -5,7 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>war</packaging>
     <artifactId>share.broker.rest</artifactId>
-    <version>1.1.5-SNAPSHOT</version>
+    <version>1.2.1-SNAPSHOT</version>
+    <name>Searchbroker</name>
 
     <parent>
         <groupId>de.samply</groupId>
@@ -13,15 +14,34 @@
         <version>10.1</version>
     </parent>
 
+    <profiles>
+        <!-- ${project.context} also defines the folder where flyway looks for sql files -->
+        <profile>
+            <id>samply</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <project.context>samply</project.context>
+                <database.username>${project.context}</database.username>
+                <database.password>${project.context}</database.password>
+                <database.url>jdbc:postgresql://localhost:5432/${project.context}.broker</database.url>
+                <database.schema>${project.context}</database.schema>
+            </properties>
+        </profile>
+        <profile>
+            <id>dktk</id>
+            <properties>
+                <project.context>dktk</project.context>
+                <database.username>samplyweb</database.username>
+                <database.password>samplyweb</database.password>
+                <database.url>jdbc:postgresql://localhost:5432/broker</database.url>
+                <database.schema>samply</database.schema>
+            </properties>
+        </profile>
+    </profiles>
+
     <properties>
-        <!--         <samply.project.context>osse</samply.project.context> -->
-        <samply.project.context>samply</samply.project.context>
-
-        <database.username>samply</database.username>
-        <database.password>samply</database.password>
-        <database.url>jdbc:postgresql://localhost:5432/samply.broker</database.url>
-        <database.schema>samply</database.schema>
-
         <!-- Samply dependencies -->
         <common-mailing.version>2.0.0</common-mailing.version>
         <common-http.version>5.0.0</common-http.version>
@@ -48,7 +68,7 @@
     </properties>
 
     <build>
-        <finalName>Samply.Share.Broker-${project.version}</finalName>
+        <finalName>broker</finalName>
         <resources>
             <resource>
                 <directory>src/main/java</directory>
@@ -61,13 +81,52 @@
             </resource>
         </resources>
         <plugins>
-            <!-- JOOQ Plugin - Generate Java Classes from Database -->
+            <!-- Flyway Plugin - Create Database from SQL files - Always place here before JOOQ -->
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${version.flyway}</version>
+                <!-- The Flyway plugin is executed in the generate-sources phase, prior to compilation -->
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>migrate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <url>${database.url}</url>
+                    <user>${database.username}</user>
+                    <password>${database.password}</password>
+                    <schemas>
+                        <schema>${database.schema}</schema>
+                    </schemas>
+                    <locations>
+                        <location>filesystem:src/main/resources/db/migration/${project.context}</location>
+                    </locations>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Samply-Project-Context>${project.context}</Samply-Project-Context>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <!-- JOOQ Plugin - Generate Java Classes from Database - Always place here after Flyway -->
             <plugin>
                 <groupId>org.jooq</groupId>
                 <artifactId>jooq-codegen-maven</artifactId>
                 <version>${version.jooq}</version>
+                <!-- The jOOQ code generation plugin is executed in the generate-sources phase, prior to compilation -->
                 <executions>
                     <execution>
+                        <phase>generate-sources</phase>
                         <goals>
                             <goal>generate</goal>
                         </goals>
@@ -109,37 +168,17 @@
                         </generate>
                         <target>
                             <packageName>de.samply.share.broker.model.db</packageName>
-                            <directory>src/main/java</directory>
+                            <directory>target/generated-sources/jooq</directory>
                         </target>
                     </generator>
                 </configuration>
             </plugin>
-            <!-- Flyway Plugin - Create Database from SQL files -->
-            <plugin>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-                <version>${version.flyway}</version>
-                <configuration>
-                    <url>${database.url}</url>
-                    <user>${database.username}</user>
-                    <password>${database.password}</password>
-                    <schemas>
-                        <schema>${database.schema}</schema>
-                    </schemas>
-                    <locations>
-                        <location>filesystem:src/main/resources/db/migration/samply</location>
-                    </locations>
-                </configuration>
-            </plugin>
+            <!-- Skip tests because of jenkins error-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
+                <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Samply-Project-Context>${samply.project.context}</Samply-Project-Context>
-                        </manifestEntries>
-                    </archive>
+                    <skipTests>true</skipTests>
                 </configuration>
             </plugin>
         </plugins>
@@ -284,6 +323,12 @@
             <groupId>de.samply</groupId>
             <artifactId>share-common</artifactId>
             <version>${share-common.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>jsr311-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>de.samply</groupId>
@@ -307,4 +352,11 @@
             <version>${quartz.version}</version>
         </dependency>
     </dependencies>
+    <repositories>
+        <repository>
+            <id>samply-maven-oss-releases</id>
+            <name>Samply Maven Builds</name>
+            <url>https://maven.samply.de/nexus/content/repositories/oss-releases</url>
+        </repository>
+    </repositories>
 </project>
