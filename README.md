@@ -55,7 +55,7 @@ Use like this: docker run  --name=searchbroker --net=broker -p 8083:8080 e6a8653
 
 * `MAIL_HOST` - eg. relay2int1.klinik.uni.de
 * `MAIL_PORT` - eg. 25
-* `MAIL_PROTOCO`L - eg. smtp
+* `MAIL_PROTOCOL` - eg. smtp
 * `MAIL_FROM_ADDRESS` - eg. Searchbroker@samply.de
 * `MAIL_FROM_NAME` - eg. Lokal Samply Searchbroker
 

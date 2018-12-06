@@ -63,7 +63,7 @@ public class AssignmentController implements Serializable {
         User user = (User) ((UIInput) vcEvent.getSource()).getAttributes().get("user");
         Boolean approved = (Boolean) vcEvent.getNewValue();
         logger.debug("setting assignment for user " + user.getId() + " to " + approved);
-        
+
         UserSite userSite = UserSiteUtil.fetchUserSiteByUser(user);
         if (userSite != null) {
             userSite.setApproved(approved);
@@ -80,7 +80,7 @@ public class AssignmentController implements Serializable {
         Bank bank = (Bank) ((UIInput) vcEvent.getSource()).getAttributes().get("bank");
         Boolean approved = (Boolean) vcEvent.getNewValue();
         logger.debug("setting assignment for bank " + bank.getId() + " to " + approved);
-        
+
         BankSite bankSite = BankSiteUtil.fetchBankSiteByBank(bank);
         if (bankSite != null) {
             bankSite.setApproved(approved);
@@ -132,7 +132,7 @@ public class AssignmentController implements Serializable {
         try {
             Site site = UserUtil.getSiteForUser(user);
             UserSite userSite = UserSiteUtil.fetchUserSiteByUser(user);
-            
+
             SiteInfo siteInfo = Utils.siteToSiteInfo(site);
             siteInfo.setApproved(userSite != null ? userSite.getApproved() : null);
             return siteInfo;
@@ -151,7 +151,7 @@ public class AssignmentController implements Serializable {
         try {
             Site site = BankUtil.getSiteForBank(bank);
             BankSite bankSite = BankSiteUtil.fetchBankSiteByBank(bank);
-            
+
             SiteInfo siteInfo = Utils.siteToSiteInfo(site);
             siteInfo.setApproved(bankSite != null ? bankSite.getApproved() : null);
             return siteInfo;
@@ -159,7 +159,6 @@ public class AssignmentController implements Serializable {
             return new SiteInfo();
         }
     }
-
     /**
      * @return the users
      */

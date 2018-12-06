@@ -48,17 +48,12 @@
         <share-common.version>3.1.0</share-common.version>
 
         <!-- general dependencies -->
-        <!-- We must keep the older mojarra version as the opening of elements
-             in the search_query.xhtml is not working, otherwise. -->
-        <version.mojarra>2.2.13</version.mojarra>
-
         <version.flyway>4.2.0</version.flyway>
         <version.jooq>3.9.5</version.jooq>
         <el-impl.version>2.2</el-impl.version>
         <jstl.version>1.2</jstl.version>
         <simple-jndi.version>0.17.2</simple-jndi.version>
         <commons-fileupload.version>1.3.3</commons-fileupload.version>
-        <omnifaces.version>1.14.1</omnifaces.version>
         <log4j.version>2.8</log4j.version>
         <jcifs.version>1.3.17</jcifs.version>
         <jackson-core-asl.version>1.9.13</jackson-core-asl.version>
@@ -262,11 +257,6 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.omnifaces</groupId>
-            <artifactId>omnifaces</artifactId>
-            <version>${omnifaces.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
