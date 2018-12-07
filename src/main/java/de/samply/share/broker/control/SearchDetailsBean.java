@@ -75,8 +75,6 @@ public class SearchDetailsBean implements Serializable {
 
     private String serializedQuery;
 
-    private LoginController loginController;
-
     @PostConstruct
     public void init() {
         selectedSites = new ArrayList<>();
@@ -227,7 +225,8 @@ public class SearchDetailsBean implements Serializable {
      * @return true, if the user sends the inquiry to his own site only
      */
     private boolean needExpose() {
-        User loggedUser = loginController.getUser();
+        //TODO replace new User()
+        User loggedUser = new User();
         if (loggedUser == null) {
             return true;
         }

@@ -65,11 +65,6 @@ Use like this: docker run  --name=searchbroker --net=broker -p 8083:8080 e6a8653
 * `POSTGRES_USER` - the database username, defaults to samply
 * `POSTGRES_PASS` - the database password
 
-* `AUTH_HOST` - eg. https://auth.dev.germanbiobanknode.de
-* `AUTH_PUBLIC_KEY` - eg. base64DerFormat of https://auth.dev.germanbiobanknode.de/oauth2/certs
-* `AUTH_CLIENT_ID` - eg. aun53c97n41iu
-* `AUTH_CLIENT_SECRET` - eg. 65r9umrs4koi5c6325nflbb63hduko5t6nbu02o54mf841cdmfcfc41ob7fqjhgkm1ut0qconbd3dgo1ihu21n73k1vvid0pi8geqt
-
 * `PROXY_HOST` - the URL of the HTTP proxy to use for outgoing connections; enables proxy usage if set
 * `PROXY_PORT` - the port of the HTTP proxy to use for outgoing connections; enables proxy usage if set
 

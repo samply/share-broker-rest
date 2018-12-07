@@ -32,7 +32,6 @@ package de.samply.share.broker.rest;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.itextpdf.awt.geom.misc.Messages;
-import com.itextpdf.text.DocumentException;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
 import de.samply.share.broker.model.db.enums.ActionType;
@@ -45,7 +44,6 @@ import de.samply.share.broker.model.db.tables.daos.ReplyDao;
 import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.*;
-import de.samply.share.broker.utils.PdfUtils;
 import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
@@ -258,13 +256,6 @@ public class InquiryHandler {
                 int inquiryId = inquiry.getId();
                 Integer exposeId = DocumentUtil.getExposeIdByInquiryId(inquiryId);
 
-                if (appNr > 0 && exposeId > 0) {
-                    try {
-                        PdfUtils.injectApplicationNumber(exposeId, appNr, DocumentUtil.getDocumentOutputStreamById(exposeId));
-                    } catch (IOException | DocumentException e) {
-                        e.printStackTrace();
-                    }
-                }
                 DocumentUtil.setProjectIdForDocumentByInquiryId(inquiryId, projectId);
 
             } else {
@@ -353,15 +344,6 @@ public class InquiryHandler {
             int appNr = record.getValue(Tables.PROJECT.APPLICATION_NUMBER);
             int inquiryId = inquiry.getId();
             int exposeId = DocumentUtil.getExposeIdByInquiryId(inquiryId);
-            if (appNr > 0 && exposeId > 0) {
-                try {
-                    PdfUtils.injectApplicationNumber(exposeId, appNr, DocumentUtil.getDocumentOutputStreamById(exposeId));
-                } catch (IOException e) {
-                    logger.debug("IOException caught: " + e);
-                } catch (DocumentException e) {
-                    logger.debug("DocumentException caught: " + e);
-                }
-            }
             DocumentUtil.setProjectIdForDocumentByInquiryId(inquiryId, projectId);
         } catch (SQLException e) {
             logger.debug("Sql exception caught: " + e);

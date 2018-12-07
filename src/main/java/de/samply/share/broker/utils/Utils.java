@@ -36,7 +36,6 @@ import de.samply.auth.rest.LocationDTO;
 import de.samply.auth.rest.LocationListDTO;
 import de.samply.auth.rest.UserDTO;
 import de.samply.share.broker.control.LocaleController;
-import de.samply.share.broker.control.LoginController;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
 import de.samply.share.broker.model.db.tables.pojos.Site;
@@ -52,11 +51,9 @@ import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.common.utils.oauth2.OAuthConfig;
 import de.samply.share.common.utils.oauth2.OAuthUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 
@@ -193,16 +190,6 @@ public class Utils {
     }
 
     /**
-     * Gets the login controller
-     *
-     * @return the LoginController
-     */
-    public static LoginController getLoginController() {
-        return (LoginController) FacesContext.getCurrentInstance().getApplication().getELResolver()
-                .getValue(FacesContext.getCurrentInstance().getELContext(), null, "loginController");
-    }
-
-    /**
      * Gets the locale controller.
      *
      * @return the locale controller
@@ -243,19 +230,6 @@ public class Utils {
         try (InputStream input = part.getInputStream()) {
             Files.copy(input, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
-        return file;
-    }
-
-    /**
-     * Save a byte array to a temporary file
-     *
-     * @param prefix the prefix of the temp file
-     * @param buf the byte array to save
-     * @return the resulting temp file
-     */
-    public static File saveByteArrayToTmpFile(String prefix, byte[] buf, FormDataContentDisposition contentDispositionHeader) throws IOException {
-        File file = Files.createTempFile(prefix, contentDispositionHeader.getFileName()).toFile();
-        FileUtils.writeByteArrayToFile(file, buf);
         return file;
     }
 

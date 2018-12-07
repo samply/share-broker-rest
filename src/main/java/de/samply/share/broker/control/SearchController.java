@@ -59,15 +59,11 @@ import java.util.List;
 
 public class SearchController extends AbstractSearchController {
 
-    private static final String VALIDATION_FAILED_RELEASE = "validationFailedRelease";
 
     private static final long serialVersionUID = 3998468782378633859L;
 
-    private static final String TEMPLATE_FILENAME = "antrag_template.pdf";
-
     private static final String CCP_OFFICE_MAIL = "mail.receiver.ccpoffice";
 
-    private LoginController loginController;
 
     private SearchDetailsBean searchDetailsBean;
 
@@ -129,14 +125,13 @@ public class SearchController extends AbstractSearchController {
             voteId = -1;
         }
 
-        int inquiryId = inquiryHandler.store(query, loginController.getUser().getId(), searchDetailsBean.getInquiryName(), searchDetailsBean.getInquiryDescription(), exposeId, voteId, searchDetailsBean.getResultTypes());
+        //TODO replace userid=1
+        int inquiryId = inquiryHandler.store(query, 1, searchDetailsBean.getInquiryName(), searchDetailsBean.getInquiryDescription(), exposeId, voteId, searchDetailsBean.getResultTypes());
         inquiryHandler.setSitesForInquiry(inquiryId, searchDetailsBean.getSelectedSites());
 
         logger.debug("Inquiry stored.");
         searchDetailsBean.clearStuff();
 
-        FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "OK", Messages.getString("inquiryStoredAsDraft"));
-        org.omnifaces.util.Messages.addFlashGlobal(msg);
         return "drafts?faces-redirect=true";
     }
 
@@ -149,14 +144,9 @@ public class SearchController extends AbstractSearchController {
         logger.info("Storing and releasing inquiry...");
         Query query = QueryTreeUtil.treeToQuery(queryTree);
 
-        if (!QueryTreeUtil.isQueryValid(queryTree)) {
-            FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, Messages.getString("query_empty"), Messages.getString("query_empty"));
-            org.omnifaces.util.Messages.addGlobal(msg);
-            return "";
-        }
-
         InquiryHandler inquiryHandler = new InquiryHandler();
-        User loggedUser = loginController.getUser();
+        //TODO replace new User()
+        User loggedUser = new User();
         Integer loggedUserSiteId = UserUtil.getSiteIdForUser(loggedUser);
         UserSite userSite = UserSiteUtil.fetchUserSiteByUser(loggedUser);
 
@@ -177,8 +167,8 @@ public class SearchController extends AbstractSearchController {
             logger.debug("No vote found");
             voteId = -1;
         }
-
-        int inquiryId = inquiryHandler.storeAndRelease(query, loginController.getUser().getId(), searchDetailsBean.getInquiryName(), searchDetailsBean.getInquiryDescription(), exposeId, voteId, searchDetailsBean.getResultTypes(), bypassExamination);
+//TODO replace userid=1
+        int inquiryId = inquiryHandler.storeAndRelease(query, 1, searchDetailsBean.getInquiryName(), searchDetailsBean.getInquiryDescription(), exposeId, voteId, searchDetailsBean.getResultTypes(), bypassExamination);
         inquiryHandler.setSitesForInquiry(inquiryId, searchDetailsBean.getSelectedSites());
 
         logger.debug("Inquiry stored and released.");
@@ -275,7 +265,8 @@ public class SearchController extends AbstractSearchController {
             return "";
         }
 
-        User loggedUser = loginController.getUser();
+        //TODO replace new User()
+        User loggedUser = new User();
         Integer loggedUserSiteId = UserUtil.getSiteIdForUser(loggedUser);
         UserSite userSite = UserSiteUtil.fetchUserSiteByUser(loggedUser);
 
@@ -325,7 +316,8 @@ public class SearchController extends AbstractSearchController {
         }
         InquiryUtil.updateInquiry(inquiry);
         if (projectId != null && projectId > 0) {
-            ActionUtil.addInquiryEditActionToProject(loginController.getUser(), projectId);
+            //TODO replace new User()
+            ActionUtil.addInquiryEditActionToProject(new User(), projectId);
             hadProjectBefore = true;
         }
 
@@ -357,7 +349,8 @@ public class SearchController extends AbstractSearchController {
     private void spawnProjectIfNeeded(boolean bypassExamination, Inquiry inquiry, boolean hadProjectBefore, InquiryHandler inquiryHandler) {
         if (ProjectInfo.INSTANCE.getProjectName().equalsIgnoreCase("dktk") && !bypassExamination) {
             logger.debug("Spawning project and sending mail to ccp office");
-            inquiryHandler.spawnProjectIfNeeded(inquiry, searchDetailsBean.getResultTypes(), loginController.getUser().getId());
+            //TODO replace userid
+            inquiryHandler.spawnProjectIfNeeded(inquiry, searchDetailsBean.getResultTypes(), 1);
             if (hadProjectBefore) {
                 MailUtils.sendModifiedProjectProposalMail(Config.instance.getProperty(CCP_OFFICE_MAIL));
             } else {
@@ -383,7 +376,8 @@ public class SearchController extends AbstractSearchController {
 
         boolean isDktk = ProjectInfo.INSTANCE.getProjectName().equalsIgnoreCase("dktk");
 
-        User loggedUser = loginController.getUser();
+        //TODO replace new User()
+        User loggedUser = new User();
         Integer loggedUserSiteId = UserUtil.getSiteIdForUser(loggedUser);
         UserSite userSite = UserSiteUtil.fetchUserSiteByUser(loggedUser);
 
