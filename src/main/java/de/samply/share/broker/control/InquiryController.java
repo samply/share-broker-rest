@@ -29,12 +29,10 @@
  */
 package de.samply.share.broker.control;
 
-import com.itextpdf.text.DocumentException;
-import de.samply.share.broker.messages.Messages;
-import de.samply.share.broker.model.db.enums.InquiryStatus;
-import de.samply.share.broker.model.db.tables.pojos.*;
-import de.samply.share.broker.utils.PdfUtils;
-import de.samply.share.broker.utils.db.*;
+import de.samply.share.broker.model.db.tables.pojos.Inquiry;
+import de.samply.share.broker.model.db.tables.pojos.User;
+import de.samply.share.broker.utils.db.InquiryUtil;
+import de.samply.share.broker.utils.db.UserUtil;
 import de.samply.share.common.model.uiquerybuilder.QueryItem;
 import de.samply.share.common.utils.QueryTreeUtil;
 import de.samply.share.model.common.Query;
@@ -42,16 +40,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.omnifaces.model.tree.ListTreeModel;
 import org.omnifaces.model.tree.TreeModel;
-import org.omnifaces.util.Faces;
 
 import javax.annotation.PostConstruct;
-import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
@@ -98,156 +93,6 @@ public class InquiryController implements Serializable {
 
     @ManagedProperty(value = "#{ProjectController}")
     private ProjectController projectController;
-
-    public List<Inquiry> getInquiryDrafts() {
-        return inquiryDrafts;
-    }
-
-    public void setInquiryDrafts(List<Inquiry> inquiryDrafts) {
-        this.inquiryDrafts = inquiryDrafts;
-    }
-
-    /**
-     * Gets the list of inquiries.
-     *
-     * @return the list of inquiries
-     */
-    public List<Inquiry> getReleasedInquiries() {
-        return releasedInquiries;
-    }
-
-    /**
-     * Sets the list of inquiries.
-     *
-     * @param releasedInquiries the new list of inquiries
-     */
-    public void setReleasedInquiries(List<Inquiry> releasedInquiries) {
-        this.releasedInquiries = releasedInquiries;
-    }
-
-    /**
-     * Sets the list of inquiries that are associated with a project.
-     *
-     * @param releasedInquiriesWithProjects the new list of inquiries
-     */
-    public void setReleasedInquiriesWithProjects(List<Inquiry> releasedInquiriesWithProjects) {
-        this.releasedInquiriesWithProjects = releasedInquiriesWithProjects;
-    }
-
-    /**
-     * Gets the list of inquiries that are associated with a project.
-     *
-     * @return the list of inquiries
-     */
-    public List<Inquiry> getReleasedInquiriesWithProjects() {
-        return releasedInquiriesWithProjects;
-    }
-
-    public List<Inquiry> getOutdatedInquiries() {
-        return outdatedInquiries;
-    }
-
-    public void setOutdatedInquiries(List<Inquiry> outdatedInquiries) {
-        this.outdatedInquiries = outdatedInquiries;
-    }
-
-    /**
-     * Gets the selected inquiry.
-     *
-     * @return the selected inquiry
-     */
-    public Inquiry getSelectedInquiry() {
-        return selectedInquiry;
-    }
-
-    /**
-     * Sets the selected inquiry.
-     *
-     * @param selectedInquiry the new selected inquiry
-     */
-    public void setSelectedInquiry(Inquiry selectedInquiry) {
-        this.selectedInquiry = selectedInquiry;
-    }
-
-    /**
-     * Gets the id of the selected inquiry.
-     *
-     * @return the id of the selected inquiry
-     */
-    public int getSelectedInquiryId() {
-        return selectedInquiryId;
-    }
-
-    /**
-     * Sets the id of the selected inquiry.
-     *
-     * @param selectedInquiryId the new id of the selected inquiry
-     */
-    public void setSelectedInquiryId(int selectedInquiryId) {
-        this.selectedInquiryId = selectedInquiryId;
-    }
-
-    /**
-     * Check if the selected inquiry has an expose stored. Used to control whether a link shall be displayed or not
-     * 
-     * @return true if the selected inquiry has an associated expose,
-     *         false otherwise
-     */
-    public boolean isSelectedInquiryHasExpose() {
-        return selectedInquiryHasExpose;
-    }
-
-    /**
-     * Gets the criteria tree.
-     *
-     * @return the criteria tree
-     */
-    public TreeModel<QueryItem> getCriteriaTree() {
-        return criteriaTree;
-    }
-
-    /**
-     * Sets the criteria tree.
-     *
-     * @param criteriaTree the new criteria tree
-     */
-    public void setCriteriaTree(TreeModel<QueryItem> criteriaTree) {
-        this.criteriaTree = criteriaTree;
-    }
-
-    /**
-     * Gets the login controller.
-     *
-     * @return the login controller
-     */
-    public LoginController getLoginController() {
-        return loginController;
-    }
-
-    /**
-     * Sets the login controller.
-     *
-     * @param loginController the new login controller
-     */
-    public void setLoginController(LoginController loginController) {
-        this.loginController = loginController;
-    }
-
-    public SearchDetailsBean getSearchDetailsBean() {
-        return searchDetailsBean;
-    }
-
-    public void setSearchDetailsBean(SearchDetailsBean searchDetailsBean) {
-        this.searchDetailsBean = searchDetailsBean;
-    }
-
-    public ProjectController getProjectController() {
-        return projectController;
-    }
-
-    public void setProjectController(ProjectController projectController) {
-        this.projectController = projectController;
-    }
 
     /**
      * Initializes the Inquiry Controller by loading the list of inquiries from the database.
@@ -296,30 +141,6 @@ public class InquiryController implements Serializable {
     }
 
     /**
-     * Load the inquiry with the id that was previously set via query parameter and redirect to the query builder
-     * 
-     * @return the navigation outcome to the query details page
-     */
-    public String editInquiry() {
-        User user = loginController.getUser();
-        if (user == null) {
-            logger.warn("Unknown user");
-            return "dashboard";
-        }
-        loadInquiry();
-        
-        if (selectedInquiry == null || (!selectedInquiry.getAuthorId().equals(user.getId())) ) {
-            if (selectedInquiry == null) {
-                logger.error("selectedInquiry is null");
-            } else {
-                logger.error("User has no access to inquiry. inquiryId=" + selectedInquiryId + " inquiry.authorid=" + selectedInquiry.getAuthorId() + " loggedUser.id=" + user.getId());
-            }
-            return "dashboard";
-        }
-        return searchDetailsBean.editQueryGotoStep1(String.valueOf(selectedInquiryId));
-    }
-
-    /**
      * Populate the criteria tree for the currently selected inquiry.
      */
     private void populateCriteriaTree() {
@@ -340,81 +161,5 @@ public class InquiryController implements Serializable {
            throw new RuntimeException("Error populating criteria tree", ex);
         }
     }
-    
-    /**
-     * Delete the selected inquiry from the database (only allowed for drafts)
-     * 
-     * @return the navigation outcome to the drafts page
-     */
-    public String deleteSelectedInquiry() {
-        FacesMessage msg;
-        if (!InquiryUtil.deleteInquiryDraft(selectedInquiry)) {
-            msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", Messages.getString("inquiryDraftDeleteError"));
-            org.omnifaces.util.Messages.addGlobal(msg);
-            return "";            
-        } else {
-            msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "OK", Messages.getString("inquiryDraftDeleted"));
-            org.omnifaces.util.Messages.addFlashGlobal(msg);
-            return "drafts?faces-redirect=true";
-        }
-    }
 
-    public List<Site> getSitesForSelectedInquiry() {
-        return SiteUtil.fetchSitesForInquiry(selectedInquiryId);
-    }
-
-    public List<Site> getPartnersForSelectedInquiry() {
-        return InquiryUtil.fetchPartnersForInquiry(selectedInquiryId);
-    }
-
-    public void extendSelectedInquiry() {
-        InquiryUtil.extendInquiryById(selectedInquiryId);
-        selectedInquiry = InquiryUtil.fetchInquiryById(selectedInquiryId);
-    }
-
-    public void expireSelectedInquiry() {
-        InquiryUtil.expireInquiryById(selectedInquiryId);
-        selectedInquiry = InquiryUtil.fetchInquiryById(selectedInquiryId);
-    }
-    
-    public boolean isDeleteable() {
-        if (selectedInquiry == null) {
-            return false;
-        }
-        if (selectedInquiry.getStatus() != InquiryStatus.IS_DRAFT) {
-            return false;
-        }
-        Integer projectId = selectedInquiry.getProjectId();
-        return projectId == null || projectId <= 0;
-    }
-
-    /**
-     * Export the inquiry info of as pdf and send it to the user
-     */
-    public void exportInquiry() throws IOException, DocumentException {
-        logger.debug("Export Inquiry called for inquiry " + selectedInquiry.getId());
-        ByteArrayOutputStream bos =  PdfUtils.createPdfOutputstream(selectedInquiry);
-        String filename = "Unbenannt";
-        if (selectedInquiry.getLabel() != null) {
-            filename = selectedInquiry.getLabel();
-        }
-        Faces.sendFile(bos.toByteArray(), filename + PdfUtils.FILENAME_SUFFIX_PDF, true);
-    }
-
-    public ArrayList<List<Object>> getReply(List<Site> sites) {
-        ArrayList<List<Object>> result = new ArrayList<>();
-        List<Reply> reply = ReplyUtil.getReplyforInquriy(selectedInquiryId);
-        for (Reply replyTmp : reply) {
-            BankSite bankSite = BankSiteUtil.fetchBankSiteByBankId(replyTmp.getBankId());
-            for (Site siteTmp : sites) {
-                if (Objects.equals(bankSite.getSiteId(), siteTmp.getId())) {
-                    List<Object> tmp = new ArrayList<>();
-                    tmp.add(siteTmp.getName());
-                    tmp.add(replyTmp.getContent());
-                    result.add(tmp);
-                }
-            }
-        }
-        return result;
-    }
 }

@@ -40,34 +40,4 @@ public class TaskResult {
 	/** The message to be logged. */
 	private String messageToBeLogged;
 
-	/**
-	 * Instantiates a new task result.
-	 *
-	 * @param errorCode
-	 *            the error code
-	 * @param messageToBeLogged
-	 *            the message to be logged
-	 */
-	public TaskResult(int errorCode, String messageToBeLogged) {
-		this.errorCode = errorCode;
-		this.messageToBeLogged = messageToBeLogged;
-	}
-
-	/**
-	 * Gets the error code.
-	 *
-	 * @return the error code
-	 */
-	public int getErrorCode() {
-		return errorCode;
-	}
-
-	/**
-	 * Gets the message to be logged.
-	 *
-	 * @return the message to be logged
-	 */
-	public String getMessageToBeLogged() {
-		return messageToBeLogged;
-	}
 }

@@ -16,16 +16,8 @@ public class LocaleController {
         locale = FacesContext.getCurrentInstance().getExternalContext().getRequestLocale();
     }
 
-    public Locale getLocale() {
-        return locale;
-    }
-
     public String getLanguage() {
         return locale.getLanguage();
     }
 
-    public void setLanguage(String language) {
-        locale = new Locale(language);
-        FacesContext.getCurrentInstance().getViewRoot().setLocale(locale);
-    }
 }

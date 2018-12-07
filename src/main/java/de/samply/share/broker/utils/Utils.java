@@ -37,7 +37,6 @@ import de.samply.auth.rest.LocationListDTO;
 import de.samply.auth.rest.UserDTO;
 import de.samply.share.broker.control.LocaleController;
 import de.samply.share.broker.control.LoginController;
-import de.samply.share.broker.control.SearchDetailsBean;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
 import de.samply.share.broker.model.db.tables.pojos.Site;
@@ -68,10 +67,10 @@ import javax.servlet.http.Part;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -106,8 +105,6 @@ public class Utils {
 
     public static final String PROXY_HTTP_HOST = "proxy.http.host";
 
-    public static final String USER_AGENT = "http.useragent";
-
     public static final String XML_NAMESPACE_BASEURL = "http://schema.samply.de/";
 
     /**
@@ -119,31 +116,6 @@ public class Utils {
     public static String getRealPath(String relativeWebPath) {
         ServletContext sc = ProjectInfo.INSTANCE.getServletContext();
         return sc.getRealPath(relativeWebPath);
-    }
-
-    /**
-     * Save to file.
-     *
-     * @param uploadedInputStream the uploaded input stream
-     * @param uploadedFileLocation the uploaded file location
-     */
-    public static void saveToFile(InputStream uploadedInputStream, String uploadedFileLocation) {
-
-        try {
-            OutputStream out;
-            int read;
-            byte[] bytes = new byte[1024];
-
-            out = new FileOutputStream(new File(uploadedFileLocation));
-            while ((read = uploadedInputStream.read(bytes)) != -1) {
-                out.write(bytes, 0, read);
-            }
-            out.flush();
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 
     /**
@@ -241,16 +213,6 @@ public class Utils {
     }
 
     /**
-     * Gets the search details bean.
-     *
-     * @return the search details bean.
-     */
-    public static SearchDetailsBean getSearchDetailsBean() {
-        return (SearchDetailsBean) FacesContext.getCurrentInstance().getApplication().getELResolver()
-                .getValue(FacesContext.getCurrentInstance().getELContext(), null, "searchDetailsBean");
-    }
-
-    /**
      * Gets the file name of a file part
      *
      * @param filePart the file part
@@ -270,17 +232,6 @@ public class Utils {
     }
 
     /**
-     * Gets the pub key from a file in the config directory
-     *
-     * @return the pub key string
-     */
-    public static String getPubKeyString() throws IOException {
-        String path = SamplyShareUtils.addTrailingFileSeparator(ProjectInfo.INSTANCE.getConfig().getConfigPath()) + "key.pub";
-        byte[] encoded = Files.readAllBytes(Paths.get(path));
-        return new String(encoded, StandardCharsets.US_ASCII);
-    }
-
-    /**
      * Save a file part to a temporary file
      *
      * @param prefix the prefix of the temp file
@@ -292,19 +243,6 @@ public class Utils {
         try (InputStream input = part.getInputStream()) {
             Files.copy(input, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
-        return file;
-    }
-
-    /**
-     * Save an input stream to a temporary file
-     *
-     * @param prefix the prefix of the temp file
-     * @param inputStream the input stream to save
-     * @return the resulting temp file
-     */
-    public static File saveInputstreamToTmpFile(String prefix, InputStream inputStream, FormDataContentDisposition contentDispositionHeader) throws IOException {
-        File file = Files.createTempFile(prefix, contentDispositionHeader.getFileName()).toFile();
-        Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
         return file;
     }
 

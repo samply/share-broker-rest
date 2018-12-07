@@ -29,42 +29,27 @@
  */
 package de.samply.share.broker.control;
 
-import com.google.common.base.Joiner;
-import de.samply.auth.client.jwt.JWTAccessToken;
-import de.samply.auth.client.jwt.JWTException;
-import de.samply.auth.client.jwt.JWTIDToken;
-import de.samply.auth.rest.*;
 import de.samply.jsf.JsfUtils;
 import de.samply.jsf.LoggedUser;
 import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.messages.Messages;
-import de.samply.share.broker.model.db.tables.pojos.*;
-import de.samply.share.broker.utils.Utils;
+import de.samply.share.broker.model.db.tables.pojos.Contact;
+import de.samply.share.broker.model.db.tables.pojos.Site;
+import de.samply.share.broker.model.db.tables.pojos.User;
+import de.samply.share.broker.model.db.tables.pojos.UserSite;
 import de.samply.share.broker.utils.db.*;
-import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.oauth2.OAuthConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.omnifaces.context.OmniPartialViewContext;
 import org.omnifaces.util.Faces;
 
-import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 
 /**
@@ -137,25 +122,6 @@ public class LoginController implements Serializable {
     }
 
     /**
-     * Gets the contact.
-     *
-     * @return the contact
-     */
-    public Contact getContact() {
-        return contact;
-    }
-
-    /**
-     * Sets the contact.
-     *
-     * @param contact
-     *            the new contact
-     */
-    public void setContact(Contact contact) {
-        this.contact = contact;
-    }
-
-    /**
      * @return the userSite
      */
     public UserSite getUserSite() {
@@ -169,70 +135,12 @@ public class LoginController implements Serializable {
         this.userSite = userSite;
     }
 
-    /**
-     * @return the newSite
-     */
-    public int getNewSiteId() {
-        return newSiteId;
-    }
-
-    /**
-     * @param newSiteId the newSiteId to set
-     */
-    public void setNewSiteId(int newSiteId) {
-        this.newSiteId = newSiteId;
-    }
-
-    public boolean isUserConsent() {
-        return userConsent;
-    }
-
     public void setUserConsent(boolean userConsent) {
         this.userConsent = userConsent;
     }
 
-    public String getCurrentPass() {
-        return currentPass;
-    }
-
-    public void setCurrentPass(String currentPass) {
-        this.currentPass = currentPass;
-    }
-
-    public String getNewPass() {
-        return newPass;
-    }
-
-    public void setNewPass(String newPass) {
-        this.newPass = newPass;
-    }
-
-    public String getNewPassRepeat() {
-        return newPassRepeat;
-    }
-
-    public void setNewPassRepeat(String newPassRepeat) {
-        this.newPassRepeat = newPassRepeat;
-    }
-
     public String getCode() {
         return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
-    }
-
-    public Consent getLatestConsent() {
-        return UserConsentUtil.getLatestConsent();
     }
 
     /**
@@ -282,139 +190,6 @@ public class LoginController implements Serializable {
     }
 
     /**
-     * Handle the login response from the authentication service
-     *
-     * @return the navigation case
-     */
-    public String onLoginResponse() {
-        logger.debug("Processing authentication server's response...");
-        String projectName = ProjectInfo.INSTANCE.getProjectName();
-        List<String> roles = new ArrayList<>();
-        String rolesConcat;
-        boolean isCcpOffice = false;
-        
-        if (error != null) {
-            return "/errors/error.xhtml?faces-redirect=true&error=" + error;
-        }
-
-        AccessTokenRequestDTO accessTokenRequest = new AccessTokenRequestDTO();
-        accessTokenRequest.setClientId(OAuthConfig.getOAuth2Client(projectName).getClientId());
-        accessTokenRequest.setClientSecret(OAuthConfig.getOAuth2Client(projectName).getClientSecret());
-        accessTokenRequest.setCode(getCode());
-
-        JWTAccessToken jwtAccesstoken;
-        JWTIDToken jwtIdToken;
-        try {
-            Client client = ClientBuilder.newClient();
-            Invocation.Builder invocationBuilder = client.target(OAuthConfig.getOAuth2Client(projectName).getHost() + "/oauth2/access_token").request("application/json").
-                    accept(MediaType.APPLICATION_JSON);
-
-            Response response = invocationBuilder.post(Entity.entity(accessTokenRequest, MediaType.APPLICATION_JSON_TYPE));
-
-            AccessTokenDTO accessToken = response.readEntity(AccessTokenDTO.class);
-            jwtAccesstoken = new JWTAccessToken(OAuthConfig.getOAuth2Client(projectName), accessToken.getAccessToken());
-            jwtIdToken = new JWTIDToken(OAuthConfig.getOAuth2Client(projectName), accessToken.getIdToken());
-
-            if (jwtAccesstoken.isValid() && jwtIdToken.isValid()) {
-                User loggedUser = UserUtil.fetchUserByAuthId(jwtIdToken.getSubject());
-                if (loggedUser == null) {
-                    logger.debug("user not known...creating");
-                    loggedUser = UserUtil.createOrUpdateUser(jwtIdToken, accessToken);
-                    FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_INFO, Messages.getString("welcome"), Messages.getString("newUserCreated"));
-                    org.omnifaces.util.Messages.addFlashGlobal(msg);
-                }
-                UserSiteUtil.createUserSiteAssociation(user);
-
-                for (RoleDTO roleDTO : jwtIdToken.getRoles()) {
-                    String role = roleDTO.getIdentifier();
-                    if (role.equalsIgnoreCase(CCP_OFFICE_ROLEIDENTIFIER)) {
-                        logger.info("CCP Office rights granted");
-                        isCcpOffice = true;
-                        roles.add(ROLE_CCP_OFFICE);
-                    }
-                    if (role.equalsIgnoreCase(ADMIN_ROLEIDENTIFIER)) {
-                        logger.info("Admin rights granted");
-                        roles.add(ROLE_ADMIN);
-                    }
-                }
-                
-                if (roles.isEmpty()) {
-                    rolesConcat = ROLE_RESEARCHER;
-                } else {
-                    rolesConcat = Joiner.on(',').join(roles);
-                }
-                
-                logger.info("user: " + loggedUser.getUsername() + " ( " + loggedUser.getAuthid() + " ) signed in");
-                login(loggedUser);
-                // set the session
-                HttpServletRequest request = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
-                Map<String, String> requestParameterMap = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
-                request.getSession().setAttribute(SESSION_USERNAME, loggedUser.getAuthid());
-
-                StringBuilder stringBuilder = new StringBuilder();
-
-                if (requestParameterMap != null) {
-                    String requestedPage = requestParameterMap.get("requestedPage");
-                    if (requestedPage != null && !requestedPage.contains("loginRedirect")) {
-                        stringBuilder.append(requestedPage);
-                        stringBuilder.append(".xhtml");
-                        
-                        // Check if redirect contains inquiry reference
-                        String inquiryId = requestParameterMap.get("inquiryId");
-                        if (inquiryId != null && inquiryId.length() > 0) {
-                            stringBuilder.append("?inquiryId=");
-                            stringBuilder.append(inquiryId);
-                            stringBuilder.append("&faces-redirect=true");
-                        } else {
-                            stringBuilder.append("?faces-redirect=true");
-                        }
-                        
-                        // Check if redirect contains project reference
-                        if (isCcpOffice) {
-                            String projectId = requestParameterMap.get("projectId");
-                            if (projectId != null && projectId.length() > 0) {
-                                stringBuilder.append("?projectId=");
-                                stringBuilder.append(projectId);
-                                stringBuilder.append("&faces-redirect=true");
-                            } else {
-                                stringBuilder.append("?faces-redirect=true");
-                            }
-                        }
-                    }
-                }
-
-                if (projectName.equalsIgnoreCase("osse")) {
-                    LocationListDTO locationList = Utils.getLocationList(accessToken);
-                    SiteUtil.insertSites(locationList);
-
-                    List<LocationDTO> userLocations = jwtIdToken.getLocations();
-                    UserSiteUtil.updateUserLocations(user, userLocations);
-                }
-                
-                request.getSession().setAttribute(SESSION_ROLES, rolesConcat);
-                
-                if (projectName.equalsIgnoreCase("dktk") && isCcpOffice) {
-                    if (stringBuilder.length() > 0) {
-                        return stringBuilder.toString();
-                    }
-                    return "ccpoffice_success";
-                } else {
-                    if (stringBuilder.length() > 0) {
-                        return stringBuilder.toString();
-                    }
-                    return "success";
-                }
-            } else {
-                logger.debug("token is invalid");
-                return "/errors/error.xhtml?faces-redirect=true&error=invalidToken";
-            }
-        } catch (JWTException e) {
-            logger.debug("Error on the processing of the access and id tokens: " + e);
-        }
-        return "failed";
-    }
-
-    /**
      * Transform a User object to a LoggedUser object
      *
      * @param user the user to transform
@@ -459,26 +234,6 @@ public class LoginController implements Serializable {
     }
 
     /**
-     * Update contact.
-     */
-    public void updateContact() {
-        FacesMessage facesMessage;
-        String returnValue = ContactUtil.updateContact(contact);
-        if (returnValue.equalsIgnoreCase("success")) {
-            facesMessage = new FacesMessage(FacesMessage.SEVERITY_INFO, "Ok", Messages.getString("contactUpdated"));
-        } else {
-            facesMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, Messages.getString("error"), Messages.getString("contactUpdateFailed"));
-        }
-
-        updateConsent();
-        if (userSite == null || !userSite.getApproved()) {
-            updateSite();
-        }
-
-        FacesContext.getCurrentInstance().addMessage(null, facesMessage);
-    }
-
-    /**
      * Update consent for a given user
      */
     private void updateConsent() {
@@ -493,34 +248,6 @@ public class LoginController implements Serializable {
             Site newSite = SiteUtil.fetchSiteById(newSiteId);
             UserSite newUserSite = UserSiteUtil.setSiteForUser(user, newSite, false);
             setUserSite(newUserSite);
-        }
-    }
-
-    /**
-     * Get the list of all sites that are in the database
-     *
-     * @return list of all sites
-     */
-    public List<Site> getSites() {
-        return SiteUtil.fetchSites();
-    }
-
-    /**
-     * Get the (extended) name of the site associated with the current user
-     *
-     * @return the extended name of the site, or the short name of the site, or "-" if none is available
-     */
-    public String getUserSiteName() {
-        Site siteForUser = UserUtil.getSiteForUser(user);
-        if (siteForUser != null) {
-            String nameExtended = siteForUser.getNameExtended();
-            if (nameExtended != null && nameExtended.length() > 0) {
-                return nameExtended;
-            } else {
-                return siteForUser.getName();
-            }
-        } else {
-            return "-";
         }
     }
 

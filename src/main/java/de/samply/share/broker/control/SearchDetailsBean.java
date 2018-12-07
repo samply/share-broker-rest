@@ -30,20 +30,14 @@
 package de.samply.share.broker.control;
 
 import de.samply.share.broker.messages.Messages;
-import de.samply.share.broker.model.db.enums.DocumentType;
 import de.samply.share.broker.model.db.tables.pojos.*;
 import de.samply.share.broker.utils.db.*;
-import de.samply.share.common.utils.ProjectInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.omnifaces.util.Ajax;
-import org.omnifaces.util.Faces;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.servlet.http.Part;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,76 +87,28 @@ public class SearchDetailsBean implements Serializable {
         return inquiryName;
     }
 
-    public void setInquiryName(String inquiryName) {
-        this.inquiryName = inquiryName;
-    }
-
     public String getInquiryDescription() {
         return inquiryDescription;
-    }
-
-    public void setInquiryDescription(String inquiryDescription) {
-        this.inquiryDescription = inquiryDescription;
     }
 
     public List<String> getSelectedSites() {
         return selectedSites;
     }
 
-    public void setSelectedSites(List<String> selectedSites) {
-        this.selectedSites = selectedSites;
-    }
-
     public List<String> getResultTypes() {
         return resultTypes;
-    }
-
-    public void setResultTypes(List<String> resultTypes) {
-        this.resultTypes = resultTypes;
     }
 
     public Inquiry getInquiry() {
         return inquiry;
     }
 
-    public void setInquiry(Inquiry inquiry) {
-        this.inquiry = inquiry;
-    }
-
     public Document getExpose() {
         return expose;
     }
 
-    public void setExpose(Document expose) {
-        this.expose = expose;
-    }
-
-    public Part getNewExpose() {
-        return newExpose;
-    }
-
-    public void setNewExpose(Part newExpose) {
-        this.newExpose = newExpose;
-    }
-
     public Document getVote() {
         return vote;
-    }
-
-    public void setVote(Document vote) {
-        this.vote = vote;
-    }
-
-    public Part getNewVote() {
-        return newVote;
-    }
-
-    public void setNewVote(Part newVote) {
-        this.newVote = newVote;
-    }
-
-    public boolean isCooperationAvailable() {
-        return cooperationAvailable;
     }
 
     public void setCooperationAvailable(boolean cooperationAvailable) {
@@ -173,32 +119,12 @@ public class SearchDetailsBean implements Serializable {
         return edit;
     }
 
-    public void setEdit(boolean edit) {
-        this.edit = edit;
-    }
-
-    public boolean isValidationActive() {
-        return validationActive;
-    }
-
-    public void setValidationActive(boolean validationActive) {
-        this.validationActive = validationActive;
-    }
-
     public String getSerializedQuery() {
         return serializedQuery;
     }
 
     public void setSerializedQuery(String serializedQuery) {
         this.serializedQuery = serializedQuery;
-    }
-
-    public LoginController getLoginController() {
-        return loginController;
-    }
-
-    public void setLoginController(LoginController loginController) {
-        this.loginController = loginController;
     }
 
     public List<Site> getSites() {
@@ -221,87 +147,6 @@ public class SearchDetailsBean implements Serializable {
         if (inquiry != null) {
             vote = DocumentUtil.fetchVoteByInquiry(inquiry);
             setCooperationAvailable( (vote != null) && (vote.getId() >=0) );
-        }
-    }
-
-    /**
-     * Load the expose with the given expose_id
-     *
-     * The id is transmitted via http request parameter
-     */
-    public void loadExposeWithId() {
-        String id_string = Faces.getRequestParameter("expose_id");
-        try {
-            int id = Integer.parseInt(id_string);
-            expose = DocumentUtil.getDocumentById(id);
-            Ajax.oncomplete(createEventhandlers, hideExposeFileinput);
-        } catch (NumberFormatException e) {
-            logger.debug("Couldn't parse expose id" + id_string);
-        }
-    }
-
-    /**
-     * Load the vote with the given expose_id
-     *
-     * The id is transmitted via http request parameter
-     */
-    public void loadVoteWithId() {
-        String id_string = Faces.getRequestParameter("vote_id");
-        try {
-            int id = Integer.parseInt(id_string);
-            vote = DocumentUtil.getDocumentById(id);
-            Ajax.oncomplete(createEventhandlers, hideVoteFileinput);
-        } catch (NumberFormatException e) {
-            logger.debug("Couldn't parse vote id" + id_string);
-        }
-    }
-
-    /**
-     * Export the expose of the current inquiry
-     */
-    public void exportExpose() throws IOException {
-        if (expose != null && expose.getId() > 0) {
-            ByteArrayOutputStream bos =  DocumentUtil.getDocumentOutputStreamById(expose.getId());
-            Faces.sendFile(bos.toByteArray(), "Exposee_" + inquiry + ".pdf", true);
-        } else {
-            logger.warn("Tried to export expose but couldn't find it");
-        }
-    }
-
-    /**
-     * Export the vote of the current inquiry
-     */
-    public void exportVote() throws IOException {
-        if (vote != null && vote.getId() > 0) {
-            ByteArrayOutputStream bos =  DocumentUtil.getDocumentOutputStreamById(vote.getId());
-            Faces.sendFile(bos.toByteArray(), "vote_" + inquiry + ".pdf", true);
-        } else {
-            logger.warn("Tried to export vote but couldn't find it");
-        }
-    }
-
-    /**
-     * Delete a document with the given elementId
-     *
-     * The id is transmitted via http request parameter
-     */
-    public void deleteDocument() {
-        String documentIdString = Faces.getRequestParameter("elementId");
-        try {
-            int documentId = Integer.parseInt(documentIdString);
-            DocumentType documentType = DocumentUtil.deleteDocument(documentId);
-            if (documentType == DocumentType.DT_EXPOSE) {
-                expose = null;
-                Ajax.oncomplete(resetExposeFileinput, createEventhandlers, showExposeFileinput);
-            } else if (documentType == DocumentType.DT_VOTE) {
-                vote = null;
-                Ajax.oncomplete(resetVoteFileinput, createEventhandlers, showVoteFileinput);
-            } else {
-                logger.debug("unknown document type");
-            }
-            logger.debug("Deleted document with id: " + documentId + " (type: " + documentType + ")");
-        } catch (NumberFormatException e) {
-            logger.warn("Could not parse expose id: " + documentIdString);
         }
     }
 
@@ -366,22 +211,6 @@ public class SearchDetailsBean implements Serializable {
     }
 
     /**
-     * Clear all variables and go to the create inquiry details page
-     *
-     * This is the standard action when the new inquiry link is clicked
-     *
-     * @return navigation to the first page of the inquiry creation process
-     */
-    public String clearSerializedQueryAndGotoStep1() {
-        clearStuff();
-        // Pre-fill all the sites
-        for (Site site : getSites()) {
-            selectedSites.add(Integer.toString(site.getId()));
-        }
-        return "search_details?faces-redirect=true";
-    }
-
-    /**
      * Load an inquiry and go to the inquiry details page
      *
      * @param inquiryId the id of the inquiry to load
@@ -408,43 +237,6 @@ public class SearchDetailsBean implements Serializable {
             return true;
         } else {
             return !(selectedSites != null && selectedSites.size() == 1 && selectedSites.contains(Integer.toString(loggedUserSiteId)));
-        }
-    }
-
-    /**
-     * Check if all necessary details on the inquiry details page are filled and navigate to the query builder
-     *
-     * @return navigation to query builder if all fields are filled
-     */
-    public String goToQueryBuilder() {
-        boolean showError = false;
-        boolean isDktk = ProjectInfo.INSTANCE.getProjectName().equalsIgnoreCase("dktk");
-        
-        if (getExpose() == null && needExpose()) {
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, Messages.getString("noExpose"), Messages.getString("noExposeDetail"));
-            org.omnifaces.util.Messages.addGlobal(message);
-            showError = true;
-        }
-        if (isDktk && (getVote() == null && cooperationAvailable)) {
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, Messages.getString("noVote"), Messages.getString("noVoteDetail"));
-            org.omnifaces.util.Messages.addGlobal(message);
-            showError = true;
-        }
-        if (isDktk && (resultTypes == null || resultTypes.size() < 1)) {
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, Messages.getString("resultTypeRequired"), Messages.getString("resultTypeRequiredDetail"));
-            org.omnifaces.util.Messages.addGlobal(message);
-            showError = true;
-        }
-        if (selectedSites == null || selectedSites.size() < 1) {
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, Messages.getString("siteRequired"), Messages.getString("siteRequired"));
-            org.omnifaces.util.Messages.addGlobal(message);
-            showError = true;
-        }
-
-        if (showError) {
-            return "";            
-        } else {
-            return "search_query?faces-redirect=true";
         }
     }
 

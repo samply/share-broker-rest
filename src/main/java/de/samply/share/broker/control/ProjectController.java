@@ -29,37 +29,32 @@
  */
 package de.samply.share.broker.control;
 
-import com.itextpdf.text.DocumentException;
-import de.samply.share.broker.model.EnumProjectType;
-import de.samply.share.broker.model.db.enums.ActionType;
 import de.samply.share.broker.model.db.enums.DocumentType;
-import de.samply.share.broker.model.db.enums.InquiryStatus;
-import de.samply.share.broker.model.db.enums.ProjectStatus;
 import de.samply.share.broker.model.db.tables.pojos.*;
-import de.samply.share.broker.rest.InquiryHandler;
-import de.samply.share.broker.utils.MailUtils;
-import de.samply.share.broker.utils.PdfUtils;
 import de.samply.share.broker.utils.Utils;
-import de.samply.share.broker.utils.db.*;
+import de.samply.share.broker.utils.db.ActionUtil;
+import de.samply.share.broker.utils.db.DocumentUtil;
+import de.samply.share.broker.utils.db.ProjectUtil;
+import de.samply.share.broker.utils.db.SiteUtil;
 import de.samply.share.common.model.uiquerybuilder.QueryItem;
 import de.samply.share.common.utils.QueryTreeUtil;
-import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.model.common.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.omnifaces.model.tree.ListTreeModel;
 import org.omnifaces.model.tree.TreeModel;
 import org.omnifaces.util.Ajax;
-import org.omnifaces.util.Faces;
 
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedProperty;
-import javax.faces.event.AjaxBehaviorEvent;
 import javax.servlet.http.Part;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
@@ -75,7 +70,6 @@ public class ProjectController implements Serializable {
     /** The Constant logger. */
     private static final Logger logger = LogManager.getLogger(ProjectController.class);
 
-    private static final String resetFileinputAndCreatePopovers = "$('#documentBoxForm .fileinput-remove-button').trigger('click'); createEventhandlers();";
     private static final String resetFileinput = "$('#documentBoxForm .fileinput-remove-button').trigger('click');";
     private static final String createEventhandlers = "createEventhandlers();";
     private static final String BELL_ICON = "fa-bell";
@@ -108,184 +102,8 @@ public class ProjectController implements Serializable {
     private Date newReminderExternalDate;
     private List<DocumentType> documentTypes;
 
-    public LoginController getLoginController() {
-        return loginController;
-    }
-
-    public void setLoginController(LoginController loginController) {
-        this.loginController = loginController;
-    }
-
-    public List<Project> getProjects() {
-        return projects;
-    }
-
-    public void setProjects(List<Project> projects) {
-        this.projects = projects;
-    }
-
-    public Project getSelectedProject() {
-        return selectedProject;
-    }
-
-    public void setSelectedProject(Project selectedProject) {
-        this.selectedProject = selectedProject;
-    }
-
-    public int getSelectedProjectId() {
-        return selectedProjectId;
-    }
-
     public void setSelectedProjectId(int selectedProjectId) {
         this.selectedProjectId = selectedProjectId;
-    }
-
-    public TreeModel<QueryItem> getCriteriaTree() {
-        return criteriaTree;
-    }
-
-    public void setCriteriaTree(TreeModel<QueryItem> criteriaTree) {
-        this.criteriaTree = criteriaTree;
-    }
-
-    public String getNewNote() {
-        return newNote;
-    }
-
-    public void setNewNote(String newNote) {
-        this.newNote = newNote;
-    }
-
-    public String getProjectName() {
-        return projectName;
-    }
-
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
-
-    public List<String> getSelectedSites() {
-        return selectedSites;
-    }
-
-    public void setSelectedSites(List<String> selectedSites) {
-        this.selectedSites = selectedSites;
-    }
-
-    public List<String> getProjectPartners() {
-        return projectPartners;
-    }
-
-    public void setProjectPartners(List<String> projectPartners) {
-        this.projectPartners = projectPartners;
-    }
-
-    public Date getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(Date startDate) {
-        this.startDate = startDate;
-    }
-
-    public Date getEndDateEstimated() {
-        return endDateEstimated;
-    }
-
-    public void setEndDateEstimated(Date endDateEstimated) {
-        this.endDateEstimated = endDateEstimated;
-    }
-
-    public Date getEndDateActual() {
-        return endDateActual;
-    }
-
-    public void setEndDateActual(Date endDateActual) {
-        this.endDateActual = endDateActual;
-    }
-
-    public Part getNewDocument() {
-        return newDocument;
-    }
-
-    public void setNewDocument(Part newDocument) {
-        this.newDocument = newDocument;
-    }
-
-    public List<Document> getDocuments() {
-        return documents;
-    }
-
-    public void setDocuments(List<Document> documents) {
-        this.documents = documents;
-    }
-
-    public List<Action> getReminders() {
-        return reminders;
-    }
-
-    public void setReminders(List<Action> reminders) {
-        this.reminders = reminders;
-    }
-
-    public List<Action> getRemindersExternal() {
-        return remindersExternal;
-    }
-
-    public void setRemindersExternal(List<Action> remindersExternal) {
-        this.remindersExternal = remindersExternal;
-    }
-
-    public List<Action> getCallbacks() {
-        return callbacks;
-    }
-
-    public void setCallbacks(List<Action> callbacks) {
-        this.callbacks = callbacks;
-    }
-
-    public Action getNewReminder() {
-        return newReminder;
-    }
-
-    public void setNewReminder(Action newReminder) {
-        this.newReminder = newReminder;
-    }
-
-    public Action getNewReminderExternal() {
-        return newReminderExternal;
-    }
-
-    public void setNewReminderExternal(Action newReminderExternal) {
-        this.newReminderExternal = newReminderExternal;
-    }
-
-    public Date getNewReminderDate() {
-        return newReminderDate;
-    }
-
-    public void setNewReminderDate(Date newReminderDate) {
-        this.newReminderDate = newReminderDate;
-    }
-
-    public Date getNewReminderExternalDate() {
-        return newReminderExternalDate;
-    }
-
-    public void setNewReminderExternalDate(Date newReminderExternalDate) {
-        this.newReminderExternalDate = newReminderExternalDate;
-    }
-
-    public List<DocumentType> getDocumentTypes() {
-        return documentTypes;
-    }
-
-    public void setDocumentTypes(List<DocumentType> documentTypes) {
-        this.documentTypes = documentTypes;
-    }
-
-    public List<Site> getSites() {
-        return SiteUtil.fetchSites();
     }
 
     @PostConstruct
@@ -331,14 +149,6 @@ public class ProjectController implements Serializable {
         } else {
             logger.error("No Project Partners");
         }
-    }
-
-    /**
-     * Load all projects with a given type
-     * @param projectType the project type to load
-     */
-    public void loadProjects(EnumProjectType projectType) {
-        projects = ProjectUtil.fetchProjectsByType(projectType);
     }
 
     /**
@@ -423,250 +233,6 @@ public class ProjectController implements Serializable {
     }
 
     /**
-     * Export the expose for the selected project to pdf and send it to the user
-     *
-     * @param projectId the id of the project of which the expose shall be exported
-     */
-    public void exportExposee(int projectId) throws IOException {
-        Inquiry firstInquiryForProject = ProjectUtil.fetchFirstInquiryForProject(projectId);
-        if (firstInquiryForProject != null) {
-            int inquiryId = firstInquiryForProject.getId();
-            int applicationNumber = ProjectUtil.fetchProjectById(projectId).getApplicationNumber();
-            ByteArrayOutputStream bos = DocumentUtil.getExposeOutputStreamByInquiryId(inquiryId);
-            if (applicationNumber > 0) {
-                Faces.sendFile(bos.toByteArray(), "Antrag_" + applicationNumber + PdfUtils.FILENAME_SUFFIX_PDF, true);
-            } else {
-                Faces.sendFile(bos.toByteArray(), "Antrag_unbekannt" + projectId + PdfUtils.FILENAME_SUFFIX_PDF, true);
-            }
-        } else {
-            logger.error("Inquiry is null");
-        }
-    }
-
-    /**
-     * Export the project info of the selected project as pdf and send it to the user
-     */
-    public void exportProject() throws IOException, DocumentException {
-        logger.debug("Export Project called for project " + selectedProject.getId());
-        Inquiry inquiry = ProjectUtil.fetchFirstInquiryForProject(selectedProjectId);
-        ByteArrayOutputStream bos =  PdfUtils.createPdfOutputstream(inquiry);
-        Faces.sendFile(bos.toByteArray(), ProjectUtil.getProjectTitleById(selectedProjectId) + PdfUtils.FILENAME_SUFFIX_PDF, true);
-    }
-
-    /**
-     * Send the document with the given id to the user
-     *
-     * @param documentId the id of the document to send
-     */
-    public void exportDocument(int documentId) throws IOException {
-        logger.debug("Export Document called for document id " + documentId);
-        Document document = DocumentUtil.getDocumentById(documentId);
-        ByteArrayOutputStream bos =  new ByteArrayOutputStream();
-        bos.write(document.getData());
-        bos.close();
-        Faces.sendFile(bos.toByteArray(), document.getFilename(), true);
-    }
-
-    /**
-     * Accept a project proposal, allowing the inquiry to be downloaded by clients
-     *
-     * @return a navigation case to redirect to the pending projects list
-     */
-    public String grantProject() {
-        int userId = loginController.getUser().getId();
-        NoteUtil.addNoteToProject(newNote, userId, selectedProjectId);
-        selectedProject.setApproved(SamplyShareUtils.getCurrentSqlTimestamp());
-        selectedProject.setStatus(ProjectStatus.PS_OPEN_DISTRIBUTION);
-        ProjectUtil.updateProject(selectedProject);
-        
-        MailUtils.sendProjectGrantedInfo(selectedProject, newNote, selectedSites);
-
-        Action action = new Action();
-        action.setProjectId(selectedProjectId);
-        action.setMessage("Kollaborationsanfrage freigegeben");
-        action.setType(ActionType.AT_PROJECT_OPENED);
-        action.setTime(SamplyShareUtils.getCurrentTime());
-        action.setUserId(userId);
-        ActionUtil.insertAction(action);
-        InquiryHandler inquiryHandler = new InquiryHandler();
-        Inquiry inquiry = ProjectUtil.fetchFirstInquiryForProject(selectedProjectId);
-        if (inquiry != null) {
-            inquiryHandler.setSitesForInquiry(inquiry.getId(), selectedSites);
-        } else {
-            logger.error("Inquiry is null");
-        }
-        
-        return "projects_pending?faces-redirect=true";
-    }
-
-    /**
-     * Reject a project proposal
-     *
-     * @return a navigation case to redirect to the dashboard
-     */
-    public String rejectProject() {
-        int userId = loginController.getUser().getId();
-        NoteUtil.addNoteToProject(newNote, userId, selectedProjectId);
-        selectedProject.setStatus(ProjectStatus.PS_REJECTED);
-        ProjectUtil.updateProject(selectedProject);
-        
-        // If a project is rejected, consider the inquiry outdated
-        Inquiry inquiry = ProjectUtil.fetchFirstInquiryForProject(selectedProjectId);
-        if (inquiry != null) {
-            inquiry.setStatus(InquiryStatus.IS_OUTDATED);
-            InquiryUtil.updateInquiry(inquiry);
-        }
-        
-        MailUtils.sendProjectRejectedInfo(selectedProject, newNote);
-
-        Action action = new Action();
-        action.setProjectId(selectedProjectId);
-        action.setMessage("Kollaborationsanfrage abgelehnt");
-        action.setType(ActionType.AT_PROJECT_REJECTED);
-        action.setTime(SamplyShareUtils.getCurrentTime());
-        action.setUserId(userId);
-        ActionUtil.insertAction(action);
-        return "dashboard?faces-redirect=true";
-    }
-
-    /**
-     * Post a call back to the inquirer in order to ask for further information
-     *
-     * @return a navigation case to redirect to the pending projects list
-     */
-    public String callbackProject() {
-        int userId = loginController.getUser().getId();
-        NoteUtil.addNoteToProject(newNote, loginController.getUser().getId(), selectedProjectId);
-        selectedProject.setStatus(ProjectStatus.PS_OPEN_MOREINFO_NEEDED);
-        ProjectUtil.updateProject(selectedProject);
-        
-        MailUtils.sendProjectCallbackInfo(selectedProject, newNote);
-        
-        Inquiry inquiry = ProjectUtil.fetchFirstInquiryForProject(selectedProjectId);
-        if (inquiry != null) {
-            inquiry.setStatus(InquiryStatus.IS_DRAFT);
-            InquiryUtil.updateInquiry(inquiry);
-        }
-
-        Action action = new Action();
-        action.setProjectId(selectedProjectId);
-        action.setMessage(newNote);
-        action.setType(ActionType.AT_PROJECT_CALLBACK_SENT);
-        action.setTime(SamplyShareUtils.getCurrentTime());
-        action.setUserId(userId);
-        ActionUtil.insertAction(action);
-        return "projects_pending?faces-redirect=true";
-    }
-
-    /**
-     * Activate a project that was spawned by a previously distributed inquiry
-     *
-     * @return a navigation case to redirect to the active projects list
-     */
-    public String activateProject() {
-        int userId = loginController.getUser().getId();
-        selectedProject.setStatus(ProjectStatus.PS_ACTIVE);
-        selectedProject.setName(projectName);
-        java.sql.Date sqlDate;
-        if (startDate != null) {
-            sqlDate = new java.sql.Date(startDate.getTime());
-            selectedProject.setStarted(sqlDate);
-        }
-        if (endDateEstimated != null) {
-            sqlDate = new java.sql.Date(endDateEstimated.getTime());
-            selectedProject.setEndEstimated(sqlDate);
-        }
-        ProjectUtil.updateProject(selectedProject);
-        
-        MailUtils.sendProjectActivatedInfo(selectedProject, projectPartners);
-
-        Action action = new Action();
-        action.setProjectId(selectedProjectId);
-        action.setMessage("Projekt aktiviert");
-        action.setType(ActionType.AT_PROJECT_ACTIVATED);
-        action.setTime(SamplyShareUtils.getCurrentTime());
-        action.setUserId(userId);
-        ActionUtil.insertAction(action);
-        ProjectUtil.setProjectPartnersForProject(selectedProjectId, projectPartners);
-        return "projects_active?faces-redirect=true";
-    }
-
-    /**
-     * Close a project when it's finished
-     *
-     * @return a navigation case to redirect to the archived projects list
-     */
-    public String closeProject() {
-        int userId = loginController.getUser().getId();
-        selectedProject.setStatus(ProjectStatus.PS_CLOSED);
-        java.sql.Date sqlDate;
-        if (endDateActual != null) {
-            sqlDate = new java.sql.Date(endDateActual.getTime());
-            selectedProject.setEndActual(sqlDate);
-        }
-        ProjectUtil.updateProject(selectedProject);
-        
-        MailUtils.sendProjectArchivedInfo(selectedProject, newNote, DocumentUtil.fetchFinalReportByProjectId(selectedProjectId) != null);
-        
-        // If a project is closed, consider the inquiry outdated
-        Inquiry inquiry = ProjectUtil.fetchFirstInquiryForProject(selectedProjectId);
-        if (inquiry != null) {
-            inquiry.setStatus(InquiryStatus.IS_OUTDATED);
-            InquiryUtil.updateInquiry(inquiry);
-        }
-
-        Action action = new Action();
-        action.setProjectId(selectedProjectId);
-        action.setMessage("Projekt als abgeschlossen markiert.");
-        action.setType(ActionType.AT_PROJECT_ARCHIVED);
-        action.setTime(SamplyShareUtils.getCurrentTime());
-        action.setUserId(userId);
-        ActionUtil.insertAction(action);
-        return "projects_archive?faces-redirect=true";
-    }
-
-    /**
-     * Handle the upload of a document from the client
-     *
-     * @param event the ajax event associated with this listener
-     */
-    public void handleDocumentUpload(AjaxBehaviorEvent event) {
-        logger.debug("file size: " + newDocument.getSize());
-        logger.debug("file type: " + newDocument.getContentType());
-        logger.debug("file info: " + newDocument.getHeader("Content-Disposition"));
-        try {
-            File documentFile = save(newDocument);
-            InquiryHandler inquiryHandler = new InquiryHandler();
-            // By default, new documents are declared as "other". The selection of the document type follows later
-            inquiryHandler.addDocument(selectedProjectId, null, loginController.getUser().getId(), documentFile, SamplyShareUtils.getFilenameFromContentDisposition(newDocument.getHeader("Content-Disposition")), newDocument.getContentType(), DocumentType.DT_OTHER);
-            loadDocuments();
-            documentFile.delete();
-            newDocument = null;
-             Ajax.oncomplete(resetFileinput, createEventhandlers);
-        } catch (IOException e) {
-            e.printStackTrace();
-            logger.error("Document upload failed.");
-        }
-    }
-
-    /**
-     * Delete a reminder and re-bind the eventhandlers
-     */
-    public void deleteReminder() {
-        String reminderIdString = Faces.getRequestParameter("elementId");
-        try {
-            int reminderId = Integer.parseInt(reminderIdString);
-            ActionUtil.deleteReminder(reminderId);
-            loadReminders();
-            loadRemindersExternal();
-            logger.debug("Deleted reminder with id: " + reminderId);
-            Ajax.oncomplete(createEventhandlers);
-        } catch (NumberFormatException e) {
-            logger.warn("Could not parse reminder id: " + reminderIdString);
-        }
-    }
-
-    /**
      * Reset the new reminder fields and re-bind the eventhandlers
      */
     public void resetNewReminder() {
@@ -685,70 +251,6 @@ public class ProjectController implements Serializable {
     }
 
     /**
-     * Store the new reminder and re-bind the eventhandlers
-     */
-    public void storeNewReminder() {
-        newReminder.setDate(new java.sql.Date(newReminderDate.getTime()));
-        newReminder.setProjectId(selectedProjectId);
-        newReminder.setType(ActionType.AT_REMINDER);
-        newReminder.setUserId(loginController.getUser().getId());
-        newReminder.setIcon(BELL_ICON);
-        ActionUtil.insertAction(newReminder);
-        loadReminders();
-        Ajax.oncomplete(createEventhandlers);
-        resetNewReminder();
-    }
-
-    /**
-     * Store the new external reminder and re-bind the eventhandlers
-     */
-    public void storeNewReminderExternal() {
-        newReminderExternal.setDate(new java.sql.Date(newReminderExternalDate.getTime()));
-        newReminderExternal.setProjectId(selectedProjectId);
-        newReminderExternal.setType(ActionType.AT_REMINDER_EXTERNAL);
-        newReminderExternal.setUserId(loginController.getUser().getId());
-        newReminderExternal.setIcon(MAIL_ICON);
-        ActionUtil.insertAction(newReminderExternal);
-        loadRemindersExternal();
-        Ajax.oncomplete(createEventhandlers);
-        resetNewReminderExternal();
-    }
-
-    /**
-     * Delete the selected document and re-bind the eventhandlers
-     */
-    public void deleteDocument() {
-        String documentIdString = Faces.getRequestParameter("elementId");
-        try {
-            int documentId = Integer.parseInt(documentIdString);
-            DocumentUtil.deleteDocument(documentId);
-            loadDocuments();
-            logger.debug("Deleted document with id: " + documentId);
-            Ajax.oncomplete(createEventhandlers);
-        } catch (NumberFormatException e) {
-            logger.warn("Could not parse document id: " + documentIdString);
-        }
-    }
-
-    /**
-     * Send a mail, informing the inquirer that his request was forwarded for external assessment
-     */
-    public void sendAssessmentMail() {
-        MailUtils.sendAssessmentInfo(selectedProject);
-        selectedProject.setExternalAssessment(true);
-        ProjectUtil.updateProject(selectedProject);
-        
-        int userId = loginController.getUser().getId();
-        Action action = new Action();
-        action.setProjectId(selectedProjectId);
-        action.setMessage("Mail bzgl. Begutachtung verschickt.");
-        action.setType(ActionType.AT_USER_MESSAGE);
-        action.setTime(SamplyShareUtils.getCurrentTime());
-        action.setUserId(userId);
-        ActionUtil.insertAction(action);
-    }
-
-    /**
      * Save a file part received from the client
      *
      * @param part the file part to save
@@ -759,29 +261,6 @@ public class ProjectController implements Serializable {
     }
 
     /**
-     * Change the document type for a given document id and refresh the list of documents afterwards
-     *
-     * @param docId the id of the document to change
-     * @param documentType the new document type
-     */
-    public void setDocType(int docId, DocumentType documentType) {
-        Document document = DocumentUtil.getDocumentById(docId);
-        document.setDocumentType(documentType);
-        DocumentUtil.updateDocument(document);
-        loadDocuments();
-    }
-
-    /**
-     * Check if there is a final report available for the given project
-     *
-     * @param projectId the project for which to check
-     * @return true if there is a final report available, false if not
-     */
-    public boolean projectHasFinalReport(int projectId) {
-        return (getFinalReport(projectId) != null);
-    }
-
-    /**
      * Get the final report
      *
      * @param projectId the id of the project for which the final report shall be received
@@ -789,15 +268,6 @@ public class ProjectController implements Serializable {
      */
     public Document getFinalReport(int projectId) {
         return DocumentUtil.fetchFinalReportByProjectId(projectId);
-    }
-
-    /**
-     * Check if the selected project has a local vote
-     *
-     * @return true if it has a vote, false otherwise
-     */
-    public boolean selectedProjectHasVote() {
-        return !SamplyShareUtils.isNullOrEmpty(DocumentUtil.getDocumentsForProject(selectedProjectId, DocumentType.DT_VOTE));
     }
 
 }

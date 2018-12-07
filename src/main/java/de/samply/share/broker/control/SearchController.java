@@ -47,14 +47,9 @@ import org.codehaus.jettison.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
 import org.jooq.tools.json.ParseException;
-import org.omnifaces.util.Faces;
 
 import javax.faces.application.FacesMessage;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
 import javax.xml.bind.JAXBException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,22 +72,6 @@ public class SearchController extends AbstractSearchController {
     private SearchDetailsBean searchDetailsBean;
 
     private static final Logger logger = LogManager.getLogger(SearchController.class);
-
-    public LoginController getLoginController() {
-        return loginController;
-    }
-
-    public void setLoginController(LoginController loginController) {
-        this.loginController = loginController;
-    }
-
-    public SearchDetailsBean getSearchDetailsBean() {
-        return searchDetailsBean;
-    }
-
-    public void setSearchDetailsBean(SearchDetailsBean searchDetailsBean) {
-        this.searchDetailsBean = searchDetailsBean;
-    }
 
     /**
      * Depending on the active page, either store or edit an inquiry
@@ -122,18 +101,6 @@ public class SearchController extends AbstractSearchController {
         } else {
             return storeAndReleaseInquiry();
         }
-    }
-
-    /**
-     * When logout is triggered by a session timeout, store the current inquiry as draft first
-     */
-    public void onStoreAndLogut() throws UnsupportedEncodingException {
-        if (searchDetailsBean.isEdit()) {
-            editInquiry();
-        } else {
-            storeInquiry();
-        }
-        loginController.logout();
     }
 
     /**
@@ -400,75 +367,6 @@ public class SearchController extends AbstractSearchController {
     }
 
     /**
-     * Release the inquiry with the given id
-     *
-     * Release may be held back if confirmation by project management is needed
-     *
-     * @param inquiryId the id of the inquiry to release
-     * @return navigation to dashboard
-     */
-    public String releaseInquiry(int inquiryId) {
-        searchDetailsBean.loadFromDb(inquiryId);
-        Inquiry inquiry = searchDetailsBean.getInquiry();
-        FacesMessage msg;
-
-        if (inquiry == null) {
-            logger.error("No inquiry selected.");
-            msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, VALIDATION_FAILED_RELEASE, "Internal Error.");
-            org.omnifaces.util.Messages.addGlobal(msg);
-            return "";
-        }
-        logger.debug("Release inquiry called for inquiry id " + inquiry.getId());
-        User loggedUser = loginController.getUser();
-        Integer loggedUserSiteId = UserUtil.getSiteIdForUser(loggedUser);
-        UserSite userSite = UserSiteUtil.fetchUserSiteByUser(loggedUser);
-
-        boolean bypassExamination = userSite != null && userSite.getApproved() && Utils.onlySelf(searchDetailsBean.getSelectedSites(), loggedUserSiteId);
-
-        List<String> validationMessages = validateInquiry(inquiry);
-        if (validationMessages != null && validationMessages.size() > 0) {
-            logger.debug("Inquiry NOT released. Id " + inquiry.getId());
-            msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, VALIDATION_FAILED_RELEASE, Joiner.on(",").join(validationMessages));
-            org.omnifaces.util.Messages.addGlobal(msg);
-            return "";
-        } else {
-            inquiry.setStatus(InquiryStatus.IS_RELEASED);
-            java.sql.Date expiryDate = new java.sql.Date(SamplyShareUtils.getCurrentDate().getTime() + InquiryUtil.INQUIRY_TTL);
-            inquiry.setExpires(expiryDate);
-            java.sql.Timestamp currentDate = new java.sql.Timestamp(SamplyShareUtils.getCurrentDate().getTime());
-            inquiry.setCreated(currentDate);
-
-            // Increment the revision if a project is linked to it
-            Integer projectId = inquiry.getProjectId();
-            boolean hadProjectBefore = false;
-
-            if ((projectId != null && projectId > 0) || inquiry.getRevision() == 0) {
-                inquiry.setRevision(inquiry.getRevision() + 1);
-
-                if (projectId != null && projectId > 0) {
-                    hadProjectBefore = true;
-                }
-            }
-            InquiryUtil.updateInquiry(inquiry);
-
-            InquiryHandler inquiryHandler = new InquiryHandler();
-            inquiryHandler.setSitesForInquiry(inquiry.getId(), searchDetailsBean.getSelectedSites());
-
-            spawnProjectIfNeeded(bypassExamination, inquiry, hadProjectBefore, inquiryHandler);
-
-            logger.debug("Inquiry released. Id " + inquiry.getId());
-            if (bypassExamination) {
-                msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "OK", Messages.getString("inquiryReleased"));
-            } else {
-                msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "OK", Messages.getString("inquirySentToExamination"));
-            }
-            org.omnifaces.util.Messages.addFlashGlobal(msg);
-            return "dashboard?faces-redirect=true";
-        }
-
-    }
-
-    /**
      * Validate inquiry.
      *
      * @param inquiry the inquiry
@@ -580,16 +478,6 @@ public class SearchController extends AbstractSearchController {
         return jsonArray.toString();
     }
 
-    /**
-     * Serialize the query from the tree object to an xml string and redirect to the search details page
-     *
-     * @return navigation to the search details page
-     */
-    public String serializeQueryAndGoToDetails() {
-        serializeQuery();
-        return "search_details?faces-redirect=true";
-    }
-
     @Override
     public String getSerializedQuery() {
         return searchDetailsBean.getSerializedQuery();
@@ -600,16 +488,4 @@ public class SearchController extends AbstractSearchController {
         searchDetailsBean.setSerializedQuery(serializedQuery);
     }
 
-    /**
-     * Export the application form template
-     */
-    public void exportTemplate() throws IOException {
-        ExternalContext ec = FacesContext.getCurrentInstance().getExternalContext();
-        Faces.sendFile(ec.getResourceAsStream("/WEB-INF/classes/" + TEMPLATE_FILENAME), TEMPLATE_FILENAME, true);
-    }
-
-    public String serializeQueryAndGoToViewFieldSelection() {
-        serializeQuery();
-        return "search_viewfields?faces-redirect=true";
-    }
 }

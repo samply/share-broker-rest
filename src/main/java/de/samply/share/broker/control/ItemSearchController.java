@@ -107,11 +107,6 @@ public class ItemSearchController extends AbstractItemSearchController {
     private final String GBA_NAMESPACE = "mdr16";
 
     /**
-     * The namespace of the ADT.
-     */
-    private final String ADT_NAMESPACE = "adt";
-
-    /**
      * The namespace of DKTK.
      */
     private final String DKTK_NAMESPACE = "dktk";
@@ -511,46 +506,6 @@ public class ItemSearchController extends AbstractItemSearchController {
             }
             MenuItemTreeManager.setItemAndParentsOpen(parent);
             Ajax.update(getItemNavigationPanel().getClientId());
-        }
-
-    }
-
-    /**
-     * Event called when the user clicks on a catalogue group. Load a menu item children list. The handling differs from DataElement Groups
-     *
-     * @param mdrId the MDR ID of the parent catalogue group
-     */
-    public void onCatalogueGroupClick(final String mdrId) {
-        logger.debug("Loading subcodes...");
-        MenuItem parent = MenuItemTreeManager.getMenuItem(menuItems, mdrId);
-
-        if (MenuItemTreeManager.isItemOpen(parent)) { // just let javascript close the drawer
-            MenuItemTreeManager.cleanMenuItemStyleClass(parent);
-        } else {
-            MenuItemTreeManager.cleanMenuItemsStyleClass(menuItems);
-            MenuItemTreeManager.clearMenuItemChildren(parent);
-
-            Optional<Code> clickedCodeOptional = Iterables.tryFind(getDktkCatalogue().getCodes(), new CodeUrnPredicate(mdrId));
-            if (clickedCodeOptional.isPresent()) {
-                Code clickedCode = clickedCodeOptional.get();
-                for (Object obj : clickedCode.getSubCodes()) {
-                    Optional<Code> subCodeOptional = Iterables.tryFind(getDktkCatalogue().getCodes(), new CodePredicate((String) obj));
-                    visitSubCodes(parent, obj, subCodeOptional);
-                }
-                MenuItemTreeManager.setItemAndParentsOpen(parent);
-                Ajax.update(getItemNavigationPanel().getClientId());
-
-            } else if (mdrId.equalsIgnoreCase(getDktkCatalogue().getRoot().getIdentification().getUrn())) {
-                // The root node was clicked
-                for (Object obj : getDktkCatalogue().getRoot().getSubCodes()) {
-                    Optional<Code> subCodeOptional = Iterables.tryFind(getDktkCatalogue().getCodes(), new CodePredicate((String) obj));
-                    visitSubCodes(parent, obj, subCodeOptional);
-                    MenuItemTreeManager.setItemAndParentsOpen(parent);
-                    Ajax.update(getItemNavigationPanel().getClientId());
-                }
-            } else {
-                logger.warn("Clicked Code URN not found in catalogue: " + mdrId);
-            }
         }
 
     }

@@ -23,8 +23,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -36,8 +34,6 @@ import java.util.concurrent.TimeUnit;
  * Relay version information from attached clients to Icinga
  */
 public class IcingaConnector {
-
-    private static final Logger logger = LogManager.getLogger(IcingaConnector.class);
 
     public static final String CFG_ICINGA_HOST = "icinga.host";
     public static final String CFG_ICINGA_PATH = "icinga.path";
@@ -192,18 +188,6 @@ public class IcingaConnector {
      * @param statusReportItems the list of status report items
      */
     public static void reportStatusItems(String sitename, List<StatusReportItem> statusReportItems) throws IcingaConnectorException {
-        for (StatusReportItem statusReportItem : statusReportItems) {
-            sendReport(sitename, statusReportItem);
-        }
-    }
-
-    /**
-     * Report a list of status report items to icinga
-     *
-     * @param sitename the name of the site that sent the report
-     * @param statusReportItems the list of status report items
-     */
-    public static void reportPerformanceData(String sitename, List<StatusReportItem> statusReportItems) throws IcingaConnectorException {
         for (StatusReportItem statusReportItem : statusReportItems) {
             sendReport(sitename, statusReportItem);
         }

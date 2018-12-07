@@ -29,15 +29,6 @@
  */
 package de.samply.share.broker.utils;
 
-import java.io.UnsupportedEncodingException;
-import java.sql.Date;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 import de.samply.common.mdrclient.MdrClient;
 import de.samply.common.mdrclient.MdrConnectionException;
 import de.samply.common.mdrclient.MdrInvalidResponseException;
@@ -59,6 +50,15 @@ import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.common.utils.oauth2.OAuthConfig;
 import de.samply.web.mdrFaces.MdrContext;
+
+import java.io.UnsupportedEncodingException;
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Utilities that are made available via the webutils taglib
@@ -218,45 +218,6 @@ public final class WebUtils {
             return "in " + Math.abs(dateDiff) + " Tagen";
         }
 
-    }
-
-    /**
-     * Convert a time difference between the current timestamp and a given timestamp to human readable format
-     *
-     * @param time the timestamp to get the difference
-     * @return the difference between the given timestamp and today in human readable format
-     */
-    public static String convertTimedifference(Timestamp time) {
-        if (time == null)
-            return "";
-        long timeDiff = time.getTime() - SamplyShareUtils.getCurrentSqlTimestamp().getTime();
-        if (timeDiff <= 0) {
-            return Messages.getString("tu_past");
-        } else if (timeDiff < ONE_MINUTE_IN_MS) {
-            return Messages.getString("tu_now");
-        } else if (timeDiff < (2 * ONE_MINUTE_IN_MS) ) {
-            return "in " + timeDiff / ONE_MINUTE_IN_MS  + " " + Messages.getString("tu_minute");
-        } else if (timeDiff < ONE_HOUR_IN_MS) {
-            return "in " + timeDiff / ONE_MINUTE_IN_MS  + " " + Messages.getString("tu_minutes");
-        } else if (timeDiff < (2 * ONE_HOUR_IN_MS) ) {
-            return "in " + timeDiff / ONE_HOUR_IN_MS  + " " + Messages.getString("tu_hour");
-        } else if (timeDiff < ONE_DAY_IN_MS) {
-            return "in " + timeDiff / ONE_HOUR_IN_MS  + " " + Messages.getString("tu_hours");
-        } else if (timeDiff < (2 * ONE_DAY_IN_MS)) {
-            return Messages.getString("tu_tomorrow");
-        } else if (timeDiff < (3 * ONE_DAY_IN_MS)) {
-            return Messages.getString("tu_dayAfterTomorrow");
-        } else {
-            return "in " + timeDiff / ONE_DAY_IN_MS  + " " + Messages.getString("tu_days");
-        }
-
-//        else if (timeDiff < ONE_WEEK_IN_MS) {
-//            return "in " + timeDiff / ONE_DAY_IN_MS  + " " + Messages.getString("tu_days");
-//        } else if (timeDiff < (2 * ONE_WEEK_IN_MS)) {
-//            return "in " + timeDiff / ONE_WEEK_IN_MS  + " " + Messages.getString("tu_week");
-//        } else {
-//            return "in " + timeDiff / ONE_WEEK_IN_MS + " " + Messages.getString("tu_weeks");
-//        }
     }
 
     /**
