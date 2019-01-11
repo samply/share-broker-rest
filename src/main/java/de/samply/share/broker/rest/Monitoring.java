@@ -9,12 +9,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 
+import de.samply.share.broker.model.db.tables.pojos.Project;
 import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.broker.utils.connector.IcingaConnector;
 import de.samply.share.broker.utils.connector.IcingaConnectorException;
 import de.samply.share.broker.utils.db.BankUtil;
 import de.samply.share.broker.utils.db.TokenRequestUtil;
+import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.model.common.*;
 import de.samply.share.utils.QueryConverter;
 import org.apache.logging.log4j.LogManager;
@@ -149,10 +151,15 @@ public class Monitoring {
         Eq eq = new Eq();
         Attribute attribute = new Attribute();
 
-        // TNM-T = 2
-        attribute.setMdrKey("urn:dktk:dataelement:100:*");
-        attribute.setValue(objectFactory.createValue("2"));
+        if(ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("samply")){
+            attribute.setMdrKey("urn:mdr16:dataelement:23:1");
+            attribute.setValue(objectFactory.createValue("female"));
 
+        }else if(ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("dktk")) {
+            // TNM-T = 2
+            attribute.setMdrKey("urn:dktk:dataelement:100:*");
+            attribute.setValue(objectFactory.createValue("2"));
+        }
         eq.setAttribute(attribute);
         and.getAndOrEqOrLike().add(eq);
         where.getAndOrEqOrLike().add(and);
