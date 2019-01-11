@@ -71,7 +71,7 @@ public class IcingaConnector {
             siteSuffix = Config.instance.getProperty(CFG_ICINGA_SITE_SUFFIX);
             String targetHost = Config.instance.getProperty(CFG_ICINGA_HOST);
             targetPath = Config.instance.getProperty(CFG_ICINGA_PATH);
-            HttpConnector httpConnector = Proxy.getHttpConnector();
+            HttpConnector httpConnector = new HttpConnector(Utils.getHttpConfigParams(Config.instance));
             httpHost = SamplyShareUtils.getAsHttpHost(targetHost);
             credentialsProvider = prepareCredentialsProvider(httpHost, username, password);
             httpConnector.setCp(credentialsProvider);
@@ -139,19 +139,19 @@ public class IcingaConnector {
             httpPost.setEntity(new StringEntity(gson.toJson(icingaReportItem), Consts.UTF_8));
 
 
-            //only for local test
-            HttpHost httpHost= new HttpHost("193.174.53.221",3128);
-            SSLContextBuilder builder = new SSLContextBuilder();
-            builder.loadTrustMaterial(null, new TrustStrategy() {
-                    public boolean isTrusted(final X509Certificate[] chain, String authType) {
-                        return true;
-                    }
-                });
-            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
-            CloseableHttpClient httpClient = HttpClients
-                    .custom()
-                    .setSSLSocketFactory(sslsf).setProxy(httpHost).setDefaultCredentialsProvider(credentialsProvider)
-                    .build();
+            // only for local test with proxy
+//            HttpHost httpHost = new HttpHost("193.174.53.221", 3128);
+//            SSLContextBuilder builder = new SSLContextBuilder();
+//            builder.loadTrustMaterial(null, new TrustStrategy() {
+//                public boolean isTrusted(final X509Certificate[] chain, String authType) {
+//                    return true;
+//                }
+//            });
+//            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+//            CloseableHttpClient httpClient = HttpClients
+//                    .custom()
+//                    .setSSLSocketFactory(sslsf).setProxy(httpHost).setDefaultCredentialsProvider(credentialsProvider)
+//                    .build();
 
 
             CloseableHttpResponse response = httpClient.execute(httpPost);
@@ -167,13 +167,13 @@ public class IcingaConnector {
             }
         } catch (URISyntaxException | IOException e) {
             throw new IcingaConnectorException(e);
-        } catch (KeyManagementException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-        }
+//        } catch (KeyManagementException e) {
+//            e.printStackTrace();
+//        } catch (NoSuchAlgorithmException e) {
+//            e.printStackTrace();
+//        } catch (KeyStoreException e) {
+//            e.printStackTrace();
+       }
     }
 
     /**
@@ -211,7 +211,23 @@ public class IcingaConnector {
                     statusReportItem.getParameter_name().equals(StatusReportItem.PARAMETER_REFERENCE_QUERY_RUNTIME) ? IcingaPerformanceData.UnitOfMeasure.MILISECONDS : IcingaPerformanceData.UnitOfMeasure.NONE);
             icingaReportItem.getPerformance_data().add(icingaPerformanceData);
 
-            httpPost.setEntity(new StringEntity(gson.toJson(icingaReportItem), Consts.UTF_8));
+           httpPost.setEntity(new StringEntity(gson.toJson(icingaReportItem), Consts.UTF_8));
+
+           // only for local test with proxy
+//            HttpHost httpHost = new HttpHost("193.174.53.221", 3128);
+//            SSLContextBuilder builder = new SSLContextBuilder();
+//            builder.loadTrustMaterial(null, new TrustStrategy() {
+//                public boolean isTrusted(final X509Certificate[] chain, String authType) {
+//                    return true;
+//                }
+//            });
+//            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+//            CloseableHttpClient httpClient = HttpClients
+//                    .custom()
+//                    .setSSLSocketFactory(sslsf).setProxy(httpHost).setDefaultCredentialsProvider(credentialsProvider)
+//                    .build();
+
+
             CloseableHttpResponse response = httpClient.execute(httpPost);
             EntityUtils.consume(response.getEntity());
         } catch (NoHttpResponseException nhre) {
@@ -225,7 +241,13 @@ public class IcingaConnector {
             }
         } catch (URISyntaxException | IOException e) {
             throw new IcingaConnectorException(e);
-        }
+//        } catch (KeyManagementException e) {
+//            e.printStackTrace();
+//        } catch (NoSuchAlgorithmException e) {
+//            e.printStackTrace();
+//        } catch (KeyStoreException e) {
+//            e.printStackTrace();
+       }
     }
 
     /**
