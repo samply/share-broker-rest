@@ -1,64 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema attributeFormDefault="unqualified" version="1.0"
-	elementFormDefault="qualified" targetNamespace="http://schema.samply.de/config/OAuth2Client"
-	xmlns="http://schema.samply.de/config/OAuth2Client" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:xml="http://www.w3.org/XML/1998/namespace" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
-	jxb:version="2.1">
+            elementFormDefault="qualified" targetNamespace="http://schema.samply.de/config/OAuth2Client"
+            xmlns="http://schema.samply.de/config/OAuth2Client" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xml="http://www.w3.org/XML/1998/namespace" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+            jxb:version="2.1">
 
-	<xsd:annotation>
-		<xsd:appinfo>
-			<jxb:schemaBindings>
-				<jxb:package name="de.samply.common.config" />
-			</jxb:schemaBindings>
-		</xsd:appinfo>
-	</xsd:annotation>
-	<xsd:element name="oAuth2Client" type="oAuth2Client">
-	</xsd:element>
+    <xsd:annotation>
+        <xsd:appinfo>
+            <jxb:schemaBindings>
+                <jxb:package name="de.samply.common.config"/>
+            </jxb:schemaBindings>
+        </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:element name="oAuth2Client" type="oAuth2Client">
+    </xsd:element>
 
-	<xsd:complexType name="oAuth2Client">
-		<xsd:sequence>
-			<xsd:element type="xsd:token" name="host">
-				<xsd:annotation>
-					<xsd:documentation>Der Host, auf dem der OAuth 2 Provider läuft
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element type="xsd:token" name="hostPublicKey"
-				maxOccurs="1" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>Der öffentliche RSA Schlüssel des OAuth 2
-						Providers
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element type="xsd:token" name="clientId">
-				<xsd:annotation>
-					<xsd:documentation>Die Client-ID *dieser* Applikation
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element type="xsd:token" name="clientSecret">
-				<xsd:annotation>
-					<xsd:documentation>Das Client-Secret *dieser* Applikation
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
+    <xsd:complexType name="oAuth2Client">
+        <xsd:sequence>
+            <xsd:element type="xsd:token" name="host">
+                <xsd:annotation>
+                    <xsd:documentation>Der Host, auf dem der OAuth 2 Provider läuft
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element type="xsd:token" name="hostPublicKey"
+                         maxOccurs="1" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Der öffentliche RSA Schlüssel des OAuth 2
+                        Providers
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element type="xsd:token" name="clientId">
+                <xsd:annotation>
+                    <xsd:documentation>Die Client-ID *dieser* Applikation
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element type="xsd:token" name="clientSecret">
+                <xsd:annotation>
+                    <xsd:documentation>Das Client-Secret *dieser* Applikation
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
 
-			<xsd:element name="additionalHostnames" minOccurs="0">
-				<xsd:complexType>
-					<xsd:sequence>
-						<xsd:element minOccurs="0" maxOccurs="unbounded" name="hostname">
-							<xsd:complexType>
-								<xsd:sequence>
-									<xsd:element type="xsd:token" name="host" />
-									<xsd:element type="xsd:token" name="ifServernameEquals" />
-								</xsd:sequence>
-							</xsd:complexType>
-						</xsd:element>
-					</xsd:sequence>
-				</xsd:complexType>
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
+            <xsd:element name="additionalHostnames" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="0" maxOccurs="unbounded" name="hostname">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element type="xsd:token" name="host"/>
+                                    <xsd:element type="xsd:token" name="ifServernameEquals"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
 </xsd:schema>

@@ -1,30 +1,23 @@
 package de.samply.share.broker.rest;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import de.samply.share.broker.model.db.enums.DocumentType;
+import de.samply.share.broker.utils.Utils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-
-
-import de.samply.share.broker.model.db.enums.DocumentType;
-import de.samply.share.broker.utils.Utils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
  * Handle the upload of any documents
@@ -33,7 +26,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 public class FileuploadHandler {
 
     private Logger logger = LogManager.getLogger(this.getClass().getName());
-    
+
     private static final String DOC_TYPE = "documentType";
     private static final String DOC_ID = "documentId";
     private static final String ERROR = "error";
@@ -41,12 +34,12 @@ public class FileuploadHandler {
     /**
      * Accept a file upload from the webinterface
      *
-     * @param userId the id of the user that uploads the file
-     * @param docType the type of the document (expose, vote...)
-     * @param fileInputStream the file itself
+     * @param userId                   the id of the user that uploads the file
+     * @param docType                  the type of the document (expose, vote...)
+     * @param fileInputStream          the file itself
      * @param contentDispositionHeader the content information
      * @return <CODE>200</CODE> on success
-     *         <CODE>500</CODE> on any error
+     * <CODE>500</CODE> on any error
      */
     @POST
     @Path("/user/{userid}/{doctype}")
@@ -66,11 +59,11 @@ public class FileuploadHandler {
         } catch (IOException e1) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        
+
         if (contentDispositionHeader == null) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        
+
         DocumentType documentType = DocumentType.DT_OTHER;
         if (docType.equalsIgnoreCase("expose")) {
             documentType = DocumentType.DT_EXPOSE;
@@ -86,7 +79,7 @@ public class FileuploadHandler {
         logger.debug("name: " + name);
         logger.debug("file type: " + filetype);
         logger.debug("document type: " + documentType);
-        
+
         try {
             File documentFile = Utils.saveByteArrayToTmpFile("document", buf, contentDispositionHeader);
             InquiryHandler inquiryHandler = new InquiryHandler();

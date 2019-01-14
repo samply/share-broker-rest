@@ -29,36 +29,22 @@
  */
 package de.samply.share.broker.utils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
+import com.itextpdf.text.Document;
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.*;
+import de.samply.share.broker.messages.Messages;
+import de.samply.share.broker.model.db.tables.pojos.*;
 import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.model.uiquerybuilder.EnumOperator;
+import de.samply.share.common.model.uiquerybuilder.QueryItem;
 import de.samply.share.common.utils.QueryTreeUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.omnifaces.model.tree.TreeModel;
 
-import com.itextpdf.text.Chunk;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Font;
-import com.itextpdf.text.PageSize;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.pdf.AcroFields;
-import com.itextpdf.text.pdf.PdfCopy;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfStamper;
-import com.itextpdf.text.pdf.PdfWriter;
-
-import de.samply.share.broker.messages.Messages;
-import de.samply.share.broker.model.db.tables.pojos.Contact;
-import de.samply.share.broker.model.db.tables.pojos.Inquiry;
-import de.samply.share.broker.model.db.tables.pojos.Project;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.model.db.tables.pojos.User;
-import de.samply.share.common.model.uiquerybuilder.EnumOperator;
-import de.samply.share.common.model.uiquerybuilder.QueryItem;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 /**
  * Utility class to create PDF files
@@ -67,9 +53,9 @@ public class PdfUtils {
 
     private static final Logger logger = LogManager.getLogger(PdfUtils.class);
 
-    public static final Font titleFont = new Font( Font.FontFamily.HELVETICA, 16, Font.BOLD );
-    public static final Font subtitleFont = new Font( Font.FontFamily.HELVETICA, 12, Font.BOLD );
-    public static final Font contentFont = new Font( Font.FontFamily.HELVETICA, 10, Font.NORMAL );
+    public static final Font titleFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
+    public static final Font subtitleFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+    public static final Font contentFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
     public static final String FILENAME_SUFFIX_PDF = ".pdf";
 
     /**
@@ -106,12 +92,12 @@ public class PdfUtils {
         p.setSpacingAfter(5);
         document.add(p);
         p.clear();
-        
+
         p.setFont(contentFont);
         if (project != null && project.getApplicationNumber() != null && project.getApplicationNumber() > 0) {
-        	p.add("Antragsnummer: " + project.getApplicationNumber());
+            p.add("Antragsnummer: " + project.getApplicationNumber());
         } else {
-        	p.add("Antragsnummer: Unbekannt");
+            p.add("Antragsnummer: Unbekannt");
         }
         p.setSpacingAfter(10);
         document.add(p);
@@ -201,7 +187,7 @@ public class PdfUtils {
     /**
      * Append an expose to a pdf
      *
-     * @param pdfIn the base pdf
+     * @param pdfIn    the base pdf
      * @param exposeId the id of the expose to append
      * @return the base pdf with the expose appended
      */
@@ -255,7 +241,7 @@ public class PdfUtils {
      * Add a query node to a paragraph
      *
      * @param node the query node
-     * @param p the paragraph to add to
+     * @param p    the paragraph to add to
      * @return the paragraph with the attached node
      */
     private static Paragraph addNodeToParagraph(TreeModel<QueryItem> node, Paragraph p) {
@@ -287,12 +273,12 @@ public class PdfUtils {
     /**
      * Inject an application number to the application form
      *
-     * @param exposeId the id of the expose to modify
-     * @param appNr the application to inject
+     * @param exposeId           the id of the expose to modify
+     * @param appNr              the application to inject
      * @param exposeOutputStream the pdf file with the application number
      */
-	public static void injectApplicationNumber(int exposeId, int appNr, ByteArrayOutputStream exposeOutputStream) throws IOException, DocumentException {
-		PdfReader reader = new PdfReader(new ByteArrayInputStream(exposeOutputStream.toByteArray()));
+    public static void injectApplicationNumber(int exposeId, int appNr, ByteArrayOutputStream exposeOutputStream) throws IOException, DocumentException {
+        PdfReader reader = new PdfReader(new ByteArrayInputStream(exposeOutputStream.toByteArray()));
 //		AcroFields acroFields = reader.getAcroFields();
 //		Map<String, Item> fieldItems = acroFields.getFields();
 //		acroFields.setField("Antragsnummer", Integer.toString(appNr));	
@@ -303,12 +289,12 @@ public class PdfUtils {
 //	        System.out.println(pair.getKey() + " = " + pair.getValue());
 //	        it.remove(); // avoids a ConcurrentModificationException			
 //		}
-		ByteArrayOutputStream newOutputStream = new ByteArrayOutputStream();
-		PdfStamper stamper = new PdfStamper(reader, newOutputStream);
-		AcroFields acroFields = stamper.getAcroFields();
-		acroFields.setField("Antragsnummer", Integer.toString(appNr));
-		stamper.close();
-		DocumentUtil.changeExposeData(exposeId, newOutputStream);
-	}
+        ByteArrayOutputStream newOutputStream = new ByteArrayOutputStream();
+        PdfStamper stamper = new PdfStamper(reader, newOutputStream);
+        AcroFields acroFields = stamper.getAcroFields();
+        acroFields.setField("Antragsnummer", Integer.toString(appNr));
+        stamper.close();
+        DocumentUtil.changeExposeData(exposeId, newOutputStream);
+    }
 
 }

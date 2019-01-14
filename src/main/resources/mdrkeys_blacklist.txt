@@ -1,2 +1,0 @@
-urn:adt:dataelement:32:1
-urn:adt:dataelement:33:1

@@ -26,10 +26,13 @@
 
 package de.samply.share.broker.utils.db;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
-
+import de.samply.auth.client.jwt.JWTIDToken;
+import de.samply.share.broker.jdbc.ResourceManager;
+import de.samply.share.broker.model.db.Tables;
+import de.samply.share.broker.model.db.tables.daos.SiteDao;
+import de.samply.share.broker.model.db.tables.daos.UserDao;
+import de.samply.share.broker.model.db.tables.pojos.Site;
+import de.samply.share.broker.model.db.tables.pojos.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
@@ -38,14 +41,8 @@ import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultConfiguration;
 
-import de.samply.auth.client.jwt.JWTIDToken;
-import de.samply.auth.rest.AccessTokenDTO;
-import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.model.db.Tables;
-import de.samply.share.broker.model.db.tables.daos.SiteDao;
-import de.samply.share.broker.model.db.tables.daos.UserDao;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.model.db.tables.pojos.User;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  *  This class provides static methods for CRUD operations for User Objects
@@ -58,25 +55,6 @@ public final class UserUtil {
 
     // Prevent instantiation
     private UserUtil() {
-    }
-    
-    /**
-     * Update user.
-     *
-     * @param user the user to update
-     */
-    public static void updateUser(User user) {
-        UserDao userDao;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-
-            userDao = new UserDao(configuration);
-            userDao.update(user);
-
-        } catch (SQLException e) {
-            logger.error("SQL Exception caught", e);
-        }
     }
 
     /**
@@ -137,10 +115,9 @@ public final class UserUtil {
      * Creates or updates a user.
      *
      * @param jwtIdToken the id token from the auth service
-     * @param accessToken the access token from the auth service
      * @return the created or updated user
      */
-    public static User createOrUpdateUser(JWTIDToken jwtIdToken, AccessTokenDTO accessToken) {
+    public static User createOrUpdateUser(JWTIDToken jwtIdToken) {
         User user = fetchUserByUserNameIgnoreCase(jwtIdToken.getEmail());
         if (user == null) {
             return createUser(jwtIdToken);
@@ -188,31 +165,6 @@ public final class UserUtil {
     }
 
     /**
-     * Get the site of the user
-     *
-     * @param userId the id of the user
-     * @return the id of the site he belongs to
-     */
-    public static Integer getSiteIdForUserId(int userId) {
-        Site site ;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            DSLContext dslContext = ResourceManager.getDSLContext(conn);
-            
-            site = dslContext.select()
-                  .from(Tables.USER.join(Tables.USER_SITE).onKey().join(Tables.SITE).onKey())
-                  .where(Tables.USER.ID.equal(userId))
-                  .fetchOneInto(Site.class);
-            
-            return site.getId();
-            
-        } catch (SQLException e) {
-            logger.error("SQL Exception caught", e);
-        }
-        return null;
-    }
-
-    /**
      * Set the site for a user
      *
      * @param user the user
@@ -237,52 +189,6 @@ public final class UserUtil {
         } catch (SQLException e) {
             logger.error("SQL Exception caught", e);
         }
-    }
-
-    /**
-     * Set the site for a user
-     *
-     * @param userId the id of the user
-     * @param siteId the id of the site
-     * @param approved true if this has been verified before, false if not
-     */
-    public static void setSiteIdForUserId(int userId, int siteId, boolean approved) {
-        User user;
-        UserDao userDao;
-        
-        try (Connection conn = ResourceManager.getConnection() ) {
-            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-            
-            userDao = new UserDao(configuration);
-            user = userDao.fetchOneById(userId);
-            if (user == null) {
-                throw new RuntimeException("User not found");
-            } else {
-                setSiteIdForUser(user, siteId, approved);
-            }
-
-        } catch (SQLException e) {
-            logger.error("SQL Exception caught", e);
-        }
-    }
-
-    /**
-     * Get all users
-     *
-     * @return a list with all users
-     */
-    public static List<User> fetchUsers() {
-        List<User> users = null;
-        UserDao userDao;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-            userDao = new UserDao(configuration);
-            users = userDao.findAll();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return users;
     }
 
     /**

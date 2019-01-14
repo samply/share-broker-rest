@@ -25,23 +25,20 @@
  */
 package de.samply.share.broker.control;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.faces.application.FacesMessage;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ManagedProperty;
-import javax.faces.bean.ViewScoped;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.xml.bind.JAXBException;
-
+import com.google.common.base.Joiner;
+import de.samply.share.broker.messages.Messages;
+import de.samply.share.broker.model.db.enums.InquiryStatus;
 import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.rest.InquiryHandler;
+import de.samply.share.broker.utils.Config;
+import de.samply.share.broker.utils.MailUtils;
+import de.samply.share.broker.utils.Utils;
 import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.control.uiquerybuilder.AbstractSearchController;
+import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.QueryTreeUtil;
 import de.samply.share.common.utils.SamplyShareUtils;
+import de.samply.share.model.common.Query;
 import de.samply.share.utils.QueryConverter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -50,58 +47,27 @@ import org.codehaus.jettison.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
 import org.jooq.tools.json.ParseException;
-import org.omnifaces.util.Faces;
 
-import com.google.common.base.Joiner;
-
-import de.samply.share.broker.messages.Messages;
-import de.samply.share.broker.model.db.enums.InquiryStatus;
-import de.samply.share.broker.rest.InquiryHandler;
-import de.samply.share.broker.utils.Config;
-import de.samply.share.broker.utils.MailUtils;
-import de.samply.share.broker.utils.Utils;
-import de.samply.share.common.control.uiquerybuilder.AbstractSearchController;
-import de.samply.share.common.utils.ProjectInfo;
-import de.samply.share.model.common.Query;
+import javax.faces.application.FacesMessage;
+import javax.xml.bind.JAXBException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * A JSF Managed Bean that is valid for the lifetime of a view. It holds methods and information necessary to create and display queries
+ * holds methods and information necessary to create and display queries
  */
-@ManagedBean(name = "SearchController")
-@ViewScoped
+
 public class SearchController extends AbstractSearchController {
 
-    private static final String VALIDATION_FAILED_RELEASE = "validationFailedRelease";
 
     private static final long serialVersionUID = 3998468782378633859L;
 
-    private static final String TEMPLATE_FILENAME = "antrag_template.pdf";
-
     private static final String CCP_OFFICE_MAIL = "mail.receiver.ccpoffice";
 
-    @ManagedProperty(value = "#{loginController}")
-    private LoginController loginController;
 
-    @ManagedProperty(value = "#{searchDetailsBean}")
     private SearchDetailsBean searchDetailsBean;
 
     private static final Logger logger = LogManager.getLogger(SearchController.class);
-
-    public LoginController getLoginController() {
-        return loginController;
-    }
-
-    public void setLoginController(LoginController loginController) {
-        this.loginController = loginController;
-    }
-
-    public SearchDetailsBean getSearchDetailsBean() {
-        return searchDetailsBean;
-    }
-
-    public void setSearchDetailsBean(SearchDetailsBean searchDetailsBean) {
-        this.searchDetailsBean = searchDetailsBean;
-    }
 
     /**
      * Depending on the active page, either store or edit an inquiry
@@ -134,18 +100,6 @@ public class SearchController extends AbstractSearchController {
     }
 
     /**
-     * When logout is triggered by a session timeout, store the current inquiry as draft first
-     */
-    public void onStoreAndLogut() throws UnsupportedEncodingException {
-        if (searchDetailsBean.isEdit()) {
-            editInquiry();
-        } else {
-            storeInquiry();
-        }
-        loginController.logout();
-    }
-
-    /**
      * Store the inquiry as draft
      *
      * @return navigation case to drafts list
@@ -171,14 +125,13 @@ public class SearchController extends AbstractSearchController {
             voteId = -1;
         }
 
-        int inquiryId = inquiryHandler.store(query, loginController.getUser().getId(), searchDetailsBean.getInquiryName(), searchDetailsBean.getInquiryDescription(), exposeId, voteId, searchDetailsBean.getResultTypes());
+        //TODO replace userid=1
+        int inquiryId = inquiryHandler.store(query, 1, searchDetailsBean.getInquiryName(), searchDetailsBean.getInquiryDescription(), exposeId, voteId, searchDetailsBean.getResultTypes());
         inquiryHandler.setSitesForInquiry(inquiryId, searchDetailsBean.getSelectedSites());
 
         logger.debug("Inquiry stored.");
         searchDetailsBean.clearStuff();
 
-        FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "OK", Messages.getString("inquiryStoredAsDraft"));
-        org.omnifaces.util.Messages.addFlashGlobal(msg);
         return "drafts?faces-redirect=true";
     }
 
@@ -191,14 +144,9 @@ public class SearchController extends AbstractSearchController {
         logger.info("Storing and releasing inquiry...");
         Query query = QueryTreeUtil.treeToQuery(queryTree);
 
-        if (!QueryTreeUtil.isQueryValid(queryTree)) {
-            FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, Messages.getString("query_empty"), Messages.getString("query_empty"));
-            org.omnifaces.util.Messages.addGlobal(msg);
-            return "";
-        }
-
         InquiryHandler inquiryHandler = new InquiryHandler();
-        User loggedUser = loginController.getUser();
+        //TODO replace new User()
+        User loggedUser = new User();
         Integer loggedUserSiteId = UserUtil.getSiteIdForUser(loggedUser);
         UserSite userSite = UserSiteUtil.fetchUserSiteByUser(loggedUser);
 
@@ -219,8 +167,8 @@ public class SearchController extends AbstractSearchController {
             logger.debug("No vote found");
             voteId = -1;
         }
-
-        int inquiryId = inquiryHandler.storeAndRelease(query, loginController.getUser().getId(), searchDetailsBean.getInquiryName(), searchDetailsBean.getInquiryDescription(), exposeId, voteId, searchDetailsBean.getResultTypes(), bypassExamination);
+//TODO replace userid=1
+        int inquiryId = inquiryHandler.storeAndRelease(query, 1, searchDetailsBean.getInquiryName(), searchDetailsBean.getInquiryDescription(), exposeId, voteId, searchDetailsBean.getResultTypes(), bypassExamination);
         inquiryHandler.setSitesForInquiry(inquiryId, searchDetailsBean.getSelectedSites());
 
         logger.debug("Inquiry stored and released.");
@@ -317,7 +265,8 @@ public class SearchController extends AbstractSearchController {
             return "";
         }
 
-        User loggedUser = loginController.getUser();
+        //TODO replace new User()
+        User loggedUser = new User();
         Integer loggedUserSiteId = UserUtil.getSiteIdForUser(loggedUser);
         UserSite userSite = UserSiteUtil.fetchUserSiteByUser(loggedUser);
 
@@ -367,7 +316,8 @@ public class SearchController extends AbstractSearchController {
         }
         InquiryUtil.updateInquiry(inquiry);
         if (projectId != null && projectId > 0) {
-            ActionUtil.addInquiryEditActionToProject(loginController.getUser(), projectId);
+            //TODO replace new User()
+            ActionUtil.addInquiryEditActionToProject(new User(), projectId);
             hadProjectBefore = true;
         }
 
@@ -399,82 +349,14 @@ public class SearchController extends AbstractSearchController {
     private void spawnProjectIfNeeded(boolean bypassExamination, Inquiry inquiry, boolean hadProjectBefore, InquiryHandler inquiryHandler) {
         if (ProjectInfo.INSTANCE.getProjectName().equalsIgnoreCase("dktk") && !bypassExamination) {
             logger.debug("Spawning project and sending mail to ccp office");
-            inquiryHandler.spawnProjectIfNeeded(inquiry, searchDetailsBean.getResultTypes(), loginController.getUser().getId());
+            //TODO replace userid
+            inquiryHandler.spawnProjectIfNeeded(inquiry, searchDetailsBean.getResultTypes(), 1);
             if (hadProjectBefore) {
                 MailUtils.sendModifiedProjectProposalMail(Config.instance.getProperty(CCP_OFFICE_MAIL));
             } else {
                 MailUtils.sendProjectProposalMail(Config.instance.getProperty(CCP_OFFICE_MAIL));
             }
         }
-    }
-
-    /**
-     * Release the inquiry with the given id
-     *
-     * Release may be held back if confirmation by project management is needed
-     *
-     * @param inquiryId the id of the inquiry to release
-     * @return navigation to dashboard
-     */
-    public String releaseInquiry(int inquiryId) {
-        searchDetailsBean.loadFromDb(inquiryId);
-        Inquiry inquiry = searchDetailsBean.getInquiry();
-        FacesMessage msg;
-
-        if (inquiry == null) {
-            logger.error("No inquiry selected.");
-            msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, VALIDATION_FAILED_RELEASE, "Internal Error.");
-            org.omnifaces.util.Messages.addGlobal(msg);
-            return "";
-        }
-        logger.debug("Release inquiry called for inquiry id " + inquiry.getId());
-        User loggedUser = loginController.getUser();
-        Integer loggedUserSiteId = UserUtil.getSiteIdForUser(loggedUser);
-        UserSite userSite = UserSiteUtil.fetchUserSiteByUser(loggedUser);
-
-        boolean bypassExamination = userSite != null && userSite.getApproved() && Utils.onlySelf(searchDetailsBean.getSelectedSites(), loggedUserSiteId);
-
-        List<String> validationMessages = validateInquiry(inquiry);
-        if (validationMessages != null && validationMessages.size() > 0) {
-            logger.debug("Inquiry NOT released. Id " + inquiry.getId());
-            msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, VALIDATION_FAILED_RELEASE, Joiner.on(",").join(validationMessages));
-            org.omnifaces.util.Messages.addGlobal(msg);
-            return "";
-        } else {
-            inquiry.setStatus(InquiryStatus.IS_RELEASED);
-            java.sql.Date expiryDate = new java.sql.Date(SamplyShareUtils.getCurrentDate().getTime() + InquiryUtil.INQUIRY_TTL);
-            inquiry.setExpires(expiryDate);
-            java.sql.Timestamp currentDate = new java.sql.Timestamp(SamplyShareUtils.getCurrentDate().getTime());
-            inquiry.setCreated(currentDate);
-
-            // Increment the revision if a project is linked to it
-            Integer projectId = inquiry.getProjectId();
-            boolean hadProjectBefore = false;
-
-            if ((projectId != null && projectId > 0) || inquiry.getRevision() == 0) {
-                inquiry.setRevision(inquiry.getRevision() + 1);
-
-                if (projectId != null && projectId > 0) {
-                    hadProjectBefore = true;
-                }
-            }
-            InquiryUtil.updateInquiry(inquiry);
-
-            InquiryHandler inquiryHandler = new InquiryHandler();
-            inquiryHandler.setSitesForInquiry(inquiry.getId(), searchDetailsBean.getSelectedSites());
-
-            spawnProjectIfNeeded(bypassExamination, inquiry, hadProjectBefore, inquiryHandler);
-
-            logger.debug("Inquiry released. Id " + inquiry.getId());
-            if (bypassExamination) {
-                msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "OK", Messages.getString("inquiryReleased"));
-            } else {
-                msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "OK", Messages.getString("inquirySentToExamination"));
-            }
-            org.omnifaces.util.Messages.addFlashGlobal(msg);
-            return "dashboard?faces-redirect=true";
-        }
-
     }
 
     /**
@@ -494,7 +376,8 @@ public class SearchController extends AbstractSearchController {
 
         boolean isDktk = ProjectInfo.INSTANCE.getProjectName().equalsIgnoreCase("dktk");
 
-        User loggedUser = loginController.getUser();
+        //TODO replace new User()
+        User loggedUser = new User();
         Integer loggedUserSiteId = UserUtil.getSiteIdForUser(loggedUser);
         UserSite userSite = UserSiteUtil.fetchUserSiteByUser(loggedUser);
 
@@ -589,16 +472,6 @@ public class SearchController extends AbstractSearchController {
         return jsonArray.toString();
     }
 
-    /**
-     * Serialize the query from the tree object to an xml string and redirect to the search details page
-     *
-     * @return navigation to the search details page
-     */
-    public String serializeQueryAndGoToDetails() {
-        serializeQuery();
-        return "search_details?faces-redirect=true";
-    }
-
     @Override
     public String getSerializedQuery() {
         return searchDetailsBean.getSerializedQuery();
@@ -609,16 +482,4 @@ public class SearchController extends AbstractSearchController {
         searchDetailsBean.setSerializedQuery(serializedQuery);
     }
 
-    /**
-     * Export the application form template
-     */
-    public void exportTemplate() throws IOException {
-        ExternalContext ec = FacesContext.getCurrentInstance().getExternalContext();
-        Faces.sendFile(ec.getResourceAsStream("/WEB-INF/classes/" + TEMPLATE_FILENAME), TEMPLATE_FILENAME, true);
-    }
-
-    public String serializeQueryAndGoToViewFieldSelection() {
-        serializeQuery();
-        return "search_viewfields?faces-redirect=true";
-    }
 }

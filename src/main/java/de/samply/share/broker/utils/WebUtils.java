@@ -29,15 +29,6 @@
  */
 package de.samply.share.broker.utils;
 
-import java.io.UnsupportedEncodingException;
-import java.sql.Date;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 import de.samply.common.mdrclient.MdrClient;
 import de.samply.common.mdrclient.MdrConnectionException;
 import de.samply.common.mdrclient.MdrInvalidResponseException;
@@ -59,6 +50,15 @@ import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.common.utils.oauth2.OAuthConfig;
 import de.samply.web.mdrFaces.MdrContext;
+
+import java.io.UnsupportedEncodingException;
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Utilities that are made available via the webutils taglib
@@ -97,7 +97,7 @@ public final class WebUtils {
     /**
      * Gets the designation of a dataelement
      *
-     * @param dataElement the data element mdr id
+     * @param dataElement  the data element mdr id
      * @param languageCode the language code
      * @return the designation of the dataelement
      */
@@ -117,8 +117,8 @@ public final class WebUtils {
     /**
      * Get the designation of a value of a dataelement
      *
-     * @param dataElement the data element mdr id
-     * @param value the permitted value for which the designation shall be got
+     * @param dataElement  the data element mdr id
+     * @param value        the permitted value for which the designation shall be got
      * @param languageCode the language code
      * @return the designation of the value
      */
@@ -192,20 +192,20 @@ public final class WebUtils {
                 long timeDiff = date.getTime() + time.getTime() - SamplyShareUtils.getCurrentSqlTimestamp().getTime();
                 if (timeDiff < ONE_MINUTE_IN_MS) {
                     return Messages.getString("tu_now");
-                } else if (timeDiff < (2 * ONE_MINUTE_IN_MS) ) {
-                    return "in " + timeDiff / ONE_MINUTE_IN_MS  + " " + Messages.getString("tu_minute");
+                } else if (timeDiff < (2 * ONE_MINUTE_IN_MS)) {
+                    return "in " + timeDiff / ONE_MINUTE_IN_MS + " " + Messages.getString("tu_minute");
                 } else if (timeDiff < ONE_HOUR_IN_MS) {
-                    return "in " + timeDiff / ONE_MINUTE_IN_MS  + " " + Messages.getString("tu_minutes");
-                } else if (timeDiff < (2 * ONE_HOUR_IN_MS) ) {
-                    return "in " + timeDiff / ONE_HOUR_IN_MS  + " " + Messages.getString("tu_hour");
+                    return "in " + timeDiff / ONE_MINUTE_IN_MS + " " + Messages.getString("tu_minutes");
+                } else if (timeDiff < (2 * ONE_HOUR_IN_MS)) {
+                    return "in " + timeDiff / ONE_HOUR_IN_MS + " " + Messages.getString("tu_hour");
                 } else if (timeDiff < ONE_DAY_IN_MS) {
-                    return "in " + timeDiff / ONE_HOUR_IN_MS  + " " + Messages.getString("tu_hours");
+                    return "in " + timeDiff / ONE_HOUR_IN_MS + " " + Messages.getString("tu_hours");
                 } else if (timeDiff < (2 * ONE_DAY_IN_MS)) {
                     return Messages.getString("tu_tomorrow");
                 } else if (timeDiff < (3 * ONE_DAY_IN_MS)) {
                     return Messages.getString("tu_dayAfterTomorrow");
                 } else {
-                    return "in " + timeDiff / ONE_DAY_IN_MS  + " " + Messages.getString("tu_days");
+                    return "in " + timeDiff / ONE_DAY_IN_MS + " " + Messages.getString("tu_days");
                 }
             }
         } else if (dateDiff == -1) {
@@ -234,20 +234,20 @@ public final class WebUtils {
             return Messages.getString("tu_past");
         } else if (timeDiff < ONE_MINUTE_IN_MS) {
             return Messages.getString("tu_now");
-        } else if (timeDiff < (2 * ONE_MINUTE_IN_MS) ) {
-            return "in " + timeDiff / ONE_MINUTE_IN_MS  + " " + Messages.getString("tu_minute");
+        } else if (timeDiff < (2 * ONE_MINUTE_IN_MS)) {
+            return "in " + timeDiff / ONE_MINUTE_IN_MS + " " + Messages.getString("tu_minute");
         } else if (timeDiff < ONE_HOUR_IN_MS) {
-            return "in " + timeDiff / ONE_MINUTE_IN_MS  + " " + Messages.getString("tu_minutes");
-        } else if (timeDiff < (2 * ONE_HOUR_IN_MS) ) {
-            return "in " + timeDiff / ONE_HOUR_IN_MS  + " " + Messages.getString("tu_hour");
+            return "in " + timeDiff / ONE_MINUTE_IN_MS + " " + Messages.getString("tu_minutes");
+        } else if (timeDiff < (2 * ONE_HOUR_IN_MS)) {
+            return "in " + timeDiff / ONE_HOUR_IN_MS + " " + Messages.getString("tu_hour");
         } else if (timeDiff < ONE_DAY_IN_MS) {
-            return "in " + timeDiff / ONE_HOUR_IN_MS  + " " + Messages.getString("tu_hours");
+            return "in " + timeDiff / ONE_HOUR_IN_MS + " " + Messages.getString("tu_hours");
         } else if (timeDiff < (2 * ONE_DAY_IN_MS)) {
             return Messages.getString("tu_tomorrow");
         } else if (timeDiff < (3 * ONE_DAY_IN_MS)) {
             return Messages.getString("tu_dayAfterTomorrow");
         } else {
-            return "in " + timeDiff / ONE_DAY_IN_MS  + " " + Messages.getString("tu_days");
+            return "in " + timeDiff / ONE_DAY_IN_MS + " " + Messages.getString("tu_days");
         }
 
 //        else if (timeDiff < ONE_WEEK_IN_MS) {
@@ -264,8 +264,8 @@ public final class WebUtils {
      *
      * @param time the timestamp mentioned in the table row
      * @return "danger" if it's less than a day away
-     *         "warning" if it's between one and three days away
-     *         "" if there's still more time
+     * "warning" if it's between one and three days away
+     * "" if there's still more time
      */
     public static String getTableRowClass(Timestamp time) {
         if (time == null) {
@@ -286,17 +286,17 @@ public final class WebUtils {
      *
      * @param date the date mentioned in the table row
      * @return "danger" if it's less than a day away
-     *         "warning" if it's between one and three days away
-     *         "" if there's still more time
+     * "warning" if it's between one and three days away
+     * "" if there's still more time
      */
     public static String getTableRowClass(Date date) {
         if (date == null) {
             return "";
         }
         long dateDiff = SamplyShareUtils.getDateDiff(SamplyShareUtils.getCurrentDate(), date, TimeUnit.DAYS);
-        if (dateDiff <= 0 ) {
+        if (dateDiff <= 0) {
             return "danger";
-        } else if (dateDiff <= 2 ) {
+        } else if (dateDiff <= 2) {
             return "warning";
         } else {
             return "";
@@ -481,7 +481,7 @@ public final class WebUtils {
      * Count all inquiries with a given status belonging to a user
      *
      * @param inquiryStatus the inquiry status to count
-     * @param userId the id of the user the inquiry should belong to
+     * @param userId        the id of the user the inquiry should belong to
      * @return the amount of inquiries, belonging to the user, with a given status
      */
     public static Integer countInquiries(InquiryStatus inquiryStatus, int userId) {
@@ -492,7 +492,7 @@ public final class WebUtils {
      * Count released inquiries belonging to a user
      *
      * @param withProjects if true, only count the inquiries that belong to any project
-     * @param userId the id of the user the inquiry should belong to
+     * @param userId       the id of the user the inquiry should belong to
      * @return the amount of released inquiries, belonging to the user
      */
     public static Integer countReleasedInquiries(boolean withProjects, int userId) {
@@ -543,7 +543,7 @@ public final class WebUtils {
             sb.append(", ");
         }
         if (sb.length() > 2) {
-            sb.delete(sb.length() -2 , sb.length());
+            sb.delete(sb.length() - 2, sb.length());
         }
         return sb.toString();
     }
@@ -595,7 +595,7 @@ public final class WebUtils {
      * @return the mdr key for the result type dataelement
      */
     public static String getResultTypeMdrKey() {
-    	return Config.instance.getProperty(MDRKEY_RESULT_TYPE);
+        return Config.instance.getProperty(MDRKEY_RESULT_TYPE);
     }
 
     /**
@@ -656,7 +656,7 @@ public final class WebUtils {
         try {
             User loggedUser = Utils.getLoginController().getUser();
             Site userSite = UserUtil.getSiteForUser(loggedUser);
-            
+
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(loggedUser.getName());
             if (userSite != null) {

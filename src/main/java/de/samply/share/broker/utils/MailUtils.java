@@ -25,37 +25,25 @@
  */
 package de.samply.share.broker.utils;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.List;
-
-import javax.faces.application.ProjectStage;
-
-import de.samply.share.common.utils.SamplyShareUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-
 import de.samply.common.mailing.EmailBuilder;
 import de.samply.common.mailing.MailSender;
 import de.samply.common.mailing.MailSending;
 import de.samply.common.mailing.OutgoingEmail;
-import de.samply.share.broker.model.db.tables.pojos.Action;
-import de.samply.share.broker.model.db.tables.pojos.Bank;
-import de.samply.share.broker.model.db.tables.pojos.Contact;
-import de.samply.share.broker.model.db.tables.pojos.Inquiry;
-import de.samply.share.broker.model.db.tables.pojos.Project;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.model.db.tables.pojos.User;
+import de.samply.share.broker.model.db.tables.pojos.*;
 import de.samply.share.broker.thread.MailSenderThread;
-import de.samply.share.broker.utils.db.ActionUtil;
-import de.samply.share.broker.utils.db.ContactUtil;
-import de.samply.share.broker.utils.db.InquiryUtil;
-import de.samply.share.broker.utils.db.ProjectUtil;
-import de.samply.share.broker.utils.db.SiteUtil;
+import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.utils.ProjectInfo;
+import de.samply.share.common.utils.SamplyShareUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.faces.application.ProjectStage;
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.List;
 
 /**
  * An utility class holding methods to send emails.
@@ -655,7 +643,7 @@ public class MailUtils {
         email.putParameter("projectNr", appNrString);
         email.putParameter("office", "true");
         email.putParameter("months", Integer.toString(months));
-        email.putParameter("end_planned", WebUtils.isoToGermanDateString(project.getEndEstimated()));
+        email.putParameter("end_planned", isoToGermanDateString(project.getEndEstimated()));
         email.putParameter("partners", sites);
         if (plContact.getTitle() != null && plContact.getTitle().length() > 0) {
             email.putParameter("title", plContact.getTitle());
@@ -716,8 +704,8 @@ public class MailUtils {
         email.putParameter("projectName", projectLabel);
         email.putParameter("projectNr", appNrString);
         email.putParameter("office", "true");
-        email.putParameter("start", WebUtils.isoToGermanDateString(project.getStarted()));
-        email.putParameter("dueDate", WebUtils.isoToGermanDateString(reminder.getDate()));
+        email.putParameter("start", isoToGermanDateString(project.getStarted()));
+        email.putParameter("dueDate", isoToGermanDateString(reminder.getDate()));
         if (reminder.getMessage() != null && reminder.getMessage().length() > 0) {
             email.putParameter("message", reminder.getMessage());
         }
@@ -779,7 +767,7 @@ public class MailUtils {
         email.putParameter("projectName", projectLabel);
         email.putParameter("projectNr", appNrString);
         email.putParameter("office", "true");
-        email.putParameter("end_planned", WebUtils.isoToGermanDateString(project.getEndEstimated()));
+        email.putParameter("end_planned", isoToGermanDateString(project.getEndEstimated()));
         if (plContact.getTitle() != null && plContact.getTitle().length() > 0) {
             email.putParameter("title", plContact.getTitle());
         }
@@ -856,7 +844,7 @@ public class MailUtils {
         email.putParameter("office", "true");
         email.putParameter("message", message);
         if (wasActive) {
-            email.putParameter("end_actual", WebUtils.isoToGermanDateString(project.getEndActual()));
+            email.putParameter("end_actual", isoToGermanDateString(project.getEndActual()));
         }
         if (hasFinalReport) {
             email.putParameter("has_final_report", "true");
@@ -1036,5 +1024,17 @@ public class MailUtils {
             DateFormat df = new SimpleDateFormat("dd. MMMMM yyyy");
             return df.format(date);
         }
+    }
+
+    /**
+     * Convert a date to German ISO format
+     *
+     * @param isoDate the date to format
+     * @return dd.MM.yyyy representation of the given date as a string
+     */
+    private static String isoToGermanDateString(Date isoDate) {
+        if (isoDate == null)
+            return "";
+        return new SimpleDateFormat("dd.MM.yyyy").format(isoDate);
     }
 }
