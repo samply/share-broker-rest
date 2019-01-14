@@ -10,6 +10,7 @@ import de.samply.share.broker.utils.db.BankUtil;
 import de.samply.share.broker.utils.db.DbUtils;
 import de.samply.share.broker.utils.db.TokenRequestUtil;
 import de.samply.share.common.model.dto.monitoring.StatusReportItem;
+import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.model.common.*;
 import de.samply.share.utils.QueryConverter;
 import de.samply.web.mdrFaces.MdrContext;
@@ -23,6 +24,7 @@ import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
 
 /**
  * Handle incoming data that shall be relayed to icinga and active checks by icinga itself
@@ -70,8 +72,8 @@ public class Monitoring {
         }
         
         status.setStatus(stringBuilder.toString());
-        
-        Gson gson = new Gson();        
+
+        Gson gson = new Gson();
         return Response.ok(gson.toJson(status), MediaType.APPLICATION_JSON).build();
     }
 
@@ -146,10 +148,15 @@ public class Monitoring {
         Eq eq = new Eq();
         Attribute attribute = new Attribute();
 
-        // TNM-T = 2
-        attribute.setMdrKey("urn:dktk:dataelement:100:*");
-        attribute.setValue(objectFactory.createValue("2"));
+        if (ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("samply")) {
+            attribute.setMdrKey("urn:mdr16:dataelement:23:1");
+            attribute.setValue(objectFactory.createValue("female"));
 
+        } else if (ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("dktk")) {
+            // TNM-T = 2
+            attribute.setMdrKey("urn:dktk:dataelement:100:*");
+            attribute.setValue(objectFactory.createValue("2"));
+        }
         eq.setAttribute(attribute);
         and.getAndOrEqOrLike().add(eq);
         where.getAndOrEqOrLike().add(and);
@@ -161,6 +168,9 @@ public class Monitoring {
     static class Status {
         private String status;
 
+        public String getStatus() {
+            return status;
+        }
         public void setStatus(String status) {
             this.status = status;
         }
