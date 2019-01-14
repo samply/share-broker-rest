@@ -124,10 +124,14 @@ public class IcingaConnector {
     private static void sendSimpleReport(String sitename, StatusReportItem statusReportItem, boolean isRetry) throws IcingaConnectorException {
         try {
             HttpPost httpPost;
-            if (ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("samply")) {
-                httpPost = createPost(sitename, statusReportItem.getParameter_name() + "-gba");
+            if (statusReportItem.getParameter_name().equals("host")) {
+                httpPost = createPostHost(sitename);
             } else {
-                httpPost = createPost(sitename, statusReportItem.getParameter_name());
+                if (ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("samply")) {
+                    httpPost = createPost(sitename, statusReportItem.getParameter_name() + "-gba");
+                } else {
+                    httpPost = createPost(sitename, statusReportItem.getParameter_name());
+                }
             }
             IcingaReportItem icingaReportItem = new IcingaReportItem();
             icingaReportItem.setExit_status(statusReportItem.getExit_status());
@@ -276,6 +280,19 @@ public class IcingaConnector {
                 .setPort(httpHost.getPort())
                 .setPath(targetPath)
                 .setCustomQuery("service=" + service);
+        HttpPost httpPost = new HttpPost(uriBuilder.build().toString());
+        httpPost.setHeader(HttpHeaders.ACCEPT, javax.ws.rs.core.MediaType.APPLICATION_JSON);
+        return httpPost;
+    }
+
+    private static HttpPost createPostHost(String sitename) throws URISyntaxException {
+        String service = "BK " + sitename + " " + siteSuffix;
+        URIBuilder uriBuilder = new URIBuilder();
+        uriBuilder.setScheme(httpHost.getSchemeName())
+                .setHost(httpHost.getHostName())
+                .setPort(httpHost.getPort())
+                .setPath(targetPath)
+                .setCustomQuery("host=" + service);
         HttpPost httpPost = new HttpPost(uriBuilder.build().toString());
         httpPost.setHeader(HttpHeaders.ACCEPT, javax.ws.rs.core.MediaType.APPLICATION_JSON);
         return httpPost;
