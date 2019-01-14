@@ -29,8 +29,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -46,8 +44,6 @@ import java.util.concurrent.TimeUnit;
  * Relay version information from attached clients to Icinga
  */
 public class IcingaConnector {
-
-    private static final Logger logger = LogManager.getLogger(IcingaConnector.class);
 
     public static final String CFG_ICINGA_HOST = "icinga.host";
     public static final String CFG_ICINGA_PATH = "icinga.path";
@@ -177,7 +173,7 @@ public class IcingaConnector {
 //            e.printStackTrace();
 //        } catch (KeyStoreException e) {
 //            e.printStackTrace();
-       }
+        }
     }
 
     /**
@@ -201,9 +197,9 @@ public class IcingaConnector {
     private static void sendPerformanceReport(String sitename, StatusReportItem statusReportItem, boolean isRetry) throws IcingaConnectorException {
         try {
             HttpPost httpPost;
-            if(ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("samply")){
-                httpPost = createPost(sitename, statusReportItem.getParameter_name()+"-gba");
-            }else{
+            if (ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("samply")) {
+                httpPost = createPost(sitename, statusReportItem.getParameter_name() + "-gba");
+            } else {
                 httpPost = createPost(sitename, statusReportItem.getParameter_name());
             }
             IcingaReportItem icingaReportItem = new IcingaReportItem();
@@ -215,9 +211,9 @@ public class IcingaConnector {
                     statusReportItem.getParameter_name().equals(StatusReportItem.PARAMETER_REFERENCE_QUERY_RUNTIME) ? IcingaPerformanceData.UnitOfMeasure.MILISECONDS : IcingaPerformanceData.UnitOfMeasure.NONE);
             icingaReportItem.getPerformance_data().add(icingaPerformanceData);
 
-           httpPost.setEntity(new StringEntity(gson.toJson(icingaReportItem), Consts.UTF_8));
+            httpPost.setEntity(new StringEntity(gson.toJson(icingaReportItem), Consts.UTF_8));
 
-           // only for local test with proxy
+            // only for local test with proxy
 //            HttpHost httpHost = new HttpHost("193.174.53.221", 3128);
 //            SSLContextBuilder builder = new SSLContextBuilder();
 //            builder.loadTrustMaterial(null, new TrustStrategy() {
@@ -251,18 +247,6 @@ public class IcingaConnector {
 //            e.printStackTrace();
 //        } catch (KeyStoreException e) {
 //            e.printStackTrace();
-       }
-    }
-
-    /**
-     * Report a list of status report items to icinga
-     *
-     * @param sitename the name of the site that sent the report
-     * @param statusReportItems the list of status report items
-     */
-    public static void reportStatusItems(String sitename, List<StatusReportItem> statusReportItems) throws IcingaConnectorException {
-        for (StatusReportItem statusReportItem : statusReportItems) {
-            sendReport(sitename, statusReportItem);
         }
     }
 
@@ -272,7 +256,7 @@ public class IcingaConnector {
      * @param sitename the name of the site that sent the report
      * @param statusReportItems the list of status report items
      */
-    public static void reportPerformanceData(String sitename, List<StatusReportItem> statusReportItems) throws IcingaConnectorException {
+    public static void reportStatusItems(String sitename, List<StatusReportItem> statusReportItems) throws IcingaConnectorException {
         for (StatusReportItem statusReportItem : statusReportItems) {
             sendReport(sitename, statusReportItem);
         }

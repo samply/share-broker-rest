@@ -29,6 +29,43 @@
  */
 package de.samply.share.broker.rest;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.itextpdf.awt.geom.misc.Messages;
+import de.samply.share.broker.jdbc.ResourceManager;
+import de.samply.share.broker.model.db.Tables;
+import de.samply.share.broker.model.db.enums.ActionType;
+import de.samply.share.broker.model.db.enums.DocumentType;
+import de.samply.share.broker.model.db.enums.InquiryStatus;
+import de.samply.share.broker.model.db.enums.ProjectStatus;
+import de.samply.share.broker.model.db.tables.daos.ContactDao;
+import de.samply.share.broker.model.db.tables.daos.InquiryDao;
+import de.samply.share.broker.model.db.tables.daos.ReplyDao;
+import de.samply.share.broker.model.db.tables.daos.UserDao;
+import de.samply.share.broker.model.db.tables.pojos.Inquiry;
+import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.utils.ProjectInfo;
+import de.samply.share.common.utils.SamplyShareUtils;
+import de.samply.share.model.common.Contact;
+import de.samply.share.model.common.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jooq.Configuration;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DefaultConfiguration;
+import org.jooq.tools.json.JSONObject;
+import org.jooq.tools.json.JSONParser;
+import org.jooq.tools.json.ParseException;
+
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -40,66 +77,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-
-import de.samply.share.common.utils.SamplyShareUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.codehaus.jettison.json.JSONArray;
-import org.jooq.Configuration;
-import org.jooq.DSLContext;
-import org.jooq.Record;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DefaultConfiguration;
-
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.itextpdf.awt.geom.misc.Messages;
-import com.itextpdf.text.DocumentException;
-
-import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.model.db.Tables;
-import de.samply.share.broker.model.db.enums.ActionType;
-import de.samply.share.broker.model.db.enums.DocumentType;
-import de.samply.share.broker.model.db.enums.InquiryStatus;
-import de.samply.share.broker.model.db.enums.ProjectStatus;
-import de.samply.share.broker.model.db.tables.daos.ContactDao;
-import de.samply.share.broker.model.db.tables.daos.InquiryDao;
-import de.samply.share.broker.model.db.tables.daos.ReplyDao;
-import de.samply.share.broker.model.db.tables.daos.UserDao;
-import de.samply.share.broker.model.db.tables.pojos.Action;
-import de.samply.share.broker.model.db.tables.pojos.BankSite;
-import de.samply.share.broker.model.db.tables.pojos.Document;
-import de.samply.share.broker.model.db.tables.pojos.Inquiry;
-import de.samply.share.broker.model.db.tables.pojos.Project;
-import de.samply.share.broker.model.db.tables.pojos.Reply;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.model.db.tables.pojos.User;
-import de.samply.share.broker.utils.PdfUtils;
-import de.samply.share.broker.utils.db.ActionUtil;
-import de.samply.share.broker.utils.db.BankSiteUtil;
-import de.samply.share.broker.utils.db.ContactUtil;
-import de.samply.share.broker.utils.db.DocumentUtil;
-import de.samply.share.broker.utils.db.InquiryUtil;
-import de.samply.share.broker.utils.db.ProjectUtil;
-import de.samply.share.broker.utils.db.SiteUtil;
-import de.samply.share.common.utils.ProjectInfo;
-import de.samply.share.model.common.And;
-import de.samply.share.model.common.Contact;
-import de.samply.share.model.common.Info;
-import de.samply.share.model.common.ObjectFactory;
-import de.samply.share.model.common.Query;
-import de.samply.share.model.common.Where;
-import org.jooq.tools.json.JSONObject;
-import org.jooq.tools.json.JSONParser;
-import org.jooq.tools.json.ParseException;
-
 /**
  * The Class InquiryHandler.
  */
@@ -108,22 +85,6 @@ public class InquiryHandler {
     private static final Logger logger = LogManager.getLogger(InquiryHandler.class);
 
     public InquiryHandler() {
-    }
-
-    /**
-     * Store an inquiry and send it to the ccp office for validation
-     *
-     * @param query              the query criteria of the inquiry
-     * @param userid             the id of the user that releases the inquiry
-     * @param inquiryName        the label of the inquiry
-     * @param inquiryDescription the description of the inquiry
-     * @param exposeId           the id of the expose linked with this inquiry
-     * @param voteId             the id of the vote linked with this inquiry
-     * @param resultTypes        list of the entities that are searched for
-     * @return the id of the inquiry
-     */
-    public int storeAndRelease(Query query, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes) {
-        return storeAndRelease(query, userid, inquiryName, inquiryDescription, exposeId, voteId, resultTypes, false);
     }
 
     /**
@@ -295,13 +256,6 @@ public class InquiryHandler {
                 int inquiryId = inquiry.getId();
                 Integer exposeId = DocumentUtil.getExposeIdByInquiryId(inquiryId);
 
-                if (appNr > 0 && exposeId > 0) {
-                    try {
-                        PdfUtils.injectApplicationNumber(exposeId, appNr, DocumentUtil.getDocumentOutputStreamById(exposeId));
-                    } catch (IOException | DocumentException e) {
-                        e.printStackTrace();
-                    }
-                }
                 DocumentUtil.setProjectIdForDocumentByInquiryId(inquiryId, projectId);
 
             } else {
@@ -390,15 +344,6 @@ public class InquiryHandler {
             int appNr = record.getValue(Tables.PROJECT.APPLICATION_NUMBER);
             int inquiryId = inquiry.getId();
             int exposeId = DocumentUtil.getExposeIdByInquiryId(inquiryId);
-            if (appNr > 0 && exposeId > 0) {
-                try {
-                    PdfUtils.injectApplicationNumber(exposeId, appNr, DocumentUtil.getDocumentOutputStreamById(exposeId));
-                } catch (IOException e) {
-                    logger.debug("IOException caught: " + e);
-                } catch (DocumentException e) {
-                    logger.debug("DocumentException caught: " + e);
-                }
-            }
             DocumentUtil.setProjectIdForDocumentByInquiryId(inquiryId, projectId);
         } catch (SQLException e) {
             logger.debug("Sql exception caught: " + e);
@@ -531,60 +476,6 @@ public class InquiryHandler {
     }
 
     /**
-     * Update an inquiry.
-     *
-     * @param idString       the id of the inquiry to update in string format
-     * @param query          the query criteria
-     * @param userid         the id of the user that updates the inquiry
-     * @param expose         the expose file
-     * @param exposeFilename the expose filename
-     * @param exposeFiletype the expose filetype
-     * @return the response code of the update action
-     */
-    public Response.Status update(String idString, Query query, int userid, File expose, String exposeFilename, String exposeFiletype) {
-        Response.Status responseStatus;
-        Inquiry inquiry;
-        InquiryDao inquiryDao;
-        int id;
-
-        try {
-            id = Integer.parseInt(idString);
-        } catch (NumberFormatException e2) {
-            e2.printStackTrace();
-            return Response.Status.BAD_REQUEST;
-        }
-
-        try (Connection connection = ResourceManager.getConnection()) {
-            Configuration configuration = new DefaultConfiguration().set(connection).set(SQLDialect.POSTGRES);
-
-            inquiryDao = new InquiryDao(configuration);
-            inquiry = inquiryDao.findById(id);
-
-            if (inquiry == null) {
-                return Response.Status.NOT_FOUND;
-            }
-
-            if (query != null) {
-                JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
-                StringWriter stringWriter = new StringWriter();
-                Marshaller marshaller = jaxbContext.createMarshaller();
-                marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
-                marshaller.marshal(query, stringWriter);
-
-                inquiry.setCriteria(stringWriter.toString());
-            }
-
-            inquiry.setRevision(inquiry.getRevision() + 1);
-            inquiryDao.update(inquiry);
-            responseStatus = Response.Status.OK;
-        } catch (JAXBException | SQLException e1) {
-            e1.printStackTrace();
-            responseStatus = Response.Status.INTERNAL_SERVER_ERROR;
-        }
-        return responseStatus;
-    }
-
-    /**
      * List all (non-tentative) inquiries.
      * <p>
      * Tentative inquiries are identified by a revision nr of 0.
@@ -641,30 +532,17 @@ public class InquiryHandler {
         return returnValue.toString();
     }
 
-    /**
-     * Gets an inquiry.
-     *
-     * @param inquiryId the id of the inquiry to get
-     * @param bankId    the id of the bank that wants to get the inquiry
-     * @param uriInfo   the uri info object linked with the request
-     * @return the serialized inquiry
-     */
-    protected String getInquiry(int inquiryId, int bankId, UriInfo uriInfo) {
-        return getInquiry(inquiryId, bankId, uriInfo, null);
-    }
-
     // TODO: bankId parameter is currently basically useless - may change with access restrictions
 
     /**
      * Gets an inquiry.
      *
      * @param inquiryId       the id of the inquiry to get
-     * @param bankId          the id of the bank that wants to get the inquiry
      * @param uriInfo         the uri info object linked with the request
      * @param userAgentHeader the user agent header of the requesting client
      * @return the serialized inquiry
      */
-    protected String getInquiry(int inquiryId, int bankId, UriInfo uriInfo, String userAgentHeader) {
+    protected String getInquiry(int inquiryId, UriInfo uriInfo, String userAgentHeader) {
         StringBuilder returnValue = new StringBuilder();
         Inquiry inquiry;
         InquiryDao inquiryDao;
@@ -773,11 +651,9 @@ public class InquiryHandler {
      * Gets the query for an inquiry.
      *
      * @param inquiryId the id of the inquiry
-     * @param bankId    the id of the requesting bank
-     * @param uriInfo   the uri info object linked with the request
      * @return the serialized query
      */
-    protected String getQuery(int inquiryId, int bankId, UriInfo uriInfo) {
+    protected String getQuery(int inquiryId) {
         StringBuilder returnValue = new StringBuilder();
         Inquiry inquiry;
         InquiryDao inquiryDao;
@@ -804,11 +680,9 @@ public class InquiryHandler {
      * Gets the ViewFields for an inquiry.
      *
      * @param inquiryId the id of the inquiry
-     * @param bankId    the id of the requesting bank
-     * @param uriInfo   the uri info object linked with the request
      * @return the viewfields
      */
-    protected String getViewFields(int inquiryId, int bankId, UriInfo uriInfo) {
+    protected String getViewFields(int inquiryId) {
         StringBuilder returnValue = new StringBuilder();
         Inquiry inquiry;
         InquiryDao inquiryDao;

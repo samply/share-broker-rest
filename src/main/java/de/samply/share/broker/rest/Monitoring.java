@@ -1,33 +1,30 @@
 package de.samply.share.broker.rest;
 
-import java.util.List;
-import java.util.concurrent.ExecutionException;
+import com.google.gson.Gson;
+import de.samply.common.mdrclient.MdrClient;
+import de.samply.share.broker.model.db.tables.pojos.Site;
+import de.samply.share.broker.utils.Utils;
+import de.samply.share.broker.utils.connector.IcingaConnector;
+import de.samply.share.broker.utils.connector.IcingaConnectorException;
+import de.samply.share.broker.utils.db.BankUtil;
+import de.samply.share.broker.utils.db.DbUtils;
+import de.samply.share.broker.utils.db.TokenRequestUtil;
+import de.samply.share.common.model.dto.monitoring.StatusReportItem;
+import de.samply.share.common.utils.ProjectInfo;
+import de.samply.share.model.common.*;
+import de.samply.share.utils.QueryConverter;
+import de.samply.web.mdrFaces.MdrContext;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
-import de.samply.share.broker.model.db.tables.pojos.Project;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.utils.Utils;
-import de.samply.share.broker.utils.connector.IcingaConnector;
-import de.samply.share.broker.utils.connector.IcingaConnectorException;
-import de.samply.share.broker.utils.db.BankUtil;
-import de.samply.share.broker.utils.db.TokenRequestUtil;
-import de.samply.share.common.utils.ProjectInfo;
-import de.samply.share.model.common.*;
-import de.samply.share.utils.QueryConverter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import com.google.gson.Gson;
-
-import de.samply.common.mdrclient.MdrClient;
-import de.samply.share.common.model.dto.monitoring.StatusReportItem;
-import de.samply.share.broker.utils.db.DbUtils;
-import de.samply.web.mdrFaces.MdrContext;
 
 /**
  * Handle incoming data that shall be relayed to icinga and active checks by icinga itself
@@ -75,8 +72,8 @@ public class Monitoring {
         }
         
         status.setStatus(stringBuilder.toString());
-        
-        Gson gson = new Gson();        
+
+        Gson gson = new Gson();
         return Response.ok(gson.toJson(status), MediaType.APPLICATION_JSON).build();
     }
 
@@ -151,11 +148,11 @@ public class Monitoring {
         Eq eq = new Eq();
         Attribute attribute = new Attribute();
 
-        if(ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("samply")){
+        if (ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("samply")) {
             attribute.setMdrKey("urn:mdr16:dataelement:23:1");
             attribute.setValue(objectFactory.createValue("female"));
 
-        }else if(ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("dktk")) {
+        } else if (ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("dktk")) {
             // TNM-T = 2
             attribute.setMdrKey("urn:dktk:dataelement:100:*");
             attribute.setValue(objectFactory.createValue("2"));
@@ -170,7 +167,7 @@ public class Monitoring {
     
     static class Status {
         private String status;
-        
+
         public String getStatus() {
             return status;
         }

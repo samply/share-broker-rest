@@ -26,19 +26,6 @@
 
 package de.samply.share.broker.utils.db;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import de.samply.share.common.utils.SamplyShareUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.jooq.Configuration;
-import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DefaultConfiguration;
-
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.EnumProjectType;
 import de.samply.share.broker.model.db.Tables;
@@ -51,6 +38,18 @@ import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.Project;
 import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.model.db.tables.pojos.User;
+import de.samply.share.common.utils.SamplyShareUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jooq.Configuration;
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DefaultConfiguration;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class provides static methods for CRUD operations for Project Objects
@@ -136,26 +135,6 @@ public final class ProjectUtil {
                     break;
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return projects;
-    }
-
-    /**
-     * Get all projects belonging to a user
-     *
-     * @param user the user whose projects to get
-     * @return the list of all projects belonging to that user
-     */
-    public static List<Project> fetchProjectsByUser(User user) {
-        List<Project> projects = null;
-        ProjectDao projectDao;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-            projectDao = new ProjectDao(configuration);
-            projects = projectDao.fetchByProjectleaderId(user.getId());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -266,26 +245,6 @@ public final class ProjectUtil {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Get all inquiries that belong to a project
-     *
-     * @param projectId the id of the project
-     * @return the list of all inquiries for that project
-     */
-    public static List<Inquiry> fetchInquiriesForProject(int projectId) {
-        List<Inquiry> inquiries = null;
-        InquiryDao inquiryDao;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-            inquiryDao = new InquiryDao(configuration);
-            inquiries = inquiryDao.fetchByProjectId(projectId);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return inquiries;
     }
 
     /**

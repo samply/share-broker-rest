@@ -26,11 +26,12 @@
 
 package de.samply.share.broker.utils.db;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
+import de.samply.share.broker.jdbc.ResourceManager;
+import de.samply.share.broker.model.db.Tables;
+import de.samply.share.broker.model.db.enums.ActionType;
+import de.samply.share.broker.model.db.tables.daos.ActionDao;
+import de.samply.share.broker.model.db.tables.pojos.Action;
+import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.common.utils.SamplyShareUtils;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
@@ -38,12 +39,10 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 
-import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.model.db.Tables;
-import de.samply.share.broker.model.db.enums.ActionType;
-import de.samply.share.broker.model.db.tables.daos.ActionDao;
-import de.samply.share.broker.model.db.tables.pojos.Action;
-import de.samply.share.broker.model.db.tables.pojos.User;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class provides static methods for CRUD operations for Action Objects
@@ -208,83 +207,6 @@ public final class ActionUtil {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Get a list of all recent actions in descending order
-     *
-     * @return list of all recent actions in descending order
-     */
-    public static List<Action> getRecentActions() {
-        List<Action> actions = null;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            DSLContext create = ResourceManager.getDSLContext(conn);
-
-            actions = create.select()
-                    .from(Tables.ACTION)
-                    .where(
-                        ((Tables.ACTION.DATE).lessThan(DSL.currentDate()))
-                        .or((Tables.ACTION.DATE).equal(DSL.currentDate())
-                            .and(Tables.ACTION.TIME.isNotNull())
-                            .and(Tables.ACTION.TIME.lessThan(DSL.currentTime()))
-                        )
-                    )
-                    .orderBy(Tables.ACTION.DATE.desc(), Tables.ACTION.TIME.desc().nullsFirst())
-                    .fetchInto(Action.class);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return actions;
-    }
-
-    /**
-     * Get a list of all upcoming actions in ascending order
-     *
-     * @return list of all upcoming actions in ascending order
-     */
-    public static List<Action> getUpcomingActions() {
-        List<Action> actions = null;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            DSLContext create = ResourceManager.getDSLContext(conn);
-
-            actions = create.select()
-                    .from(Tables.ACTION)
-                    .where(
-                        ((Tables.ACTION.DATE).greaterThan(DSL.currentDate()))
-                        .or((Tables.ACTION.DATE).equal(DSL.currentDate())
-                            .and((Tables.ACTION.TIME.isNull())
-                            .or(Tables.ACTION.TIME.greaterThan(DSL.currentTime())))
-                        )
-                    )
-                    .orderBy(Tables.ACTION.DATE.asc(), Tables.ACTION.TIME.asc().nullsLast())
-                    .fetchInto(Action.class);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return actions;
-    }
-
-    /**
-     * Get a list of all actions in descending order
-     *
-     * @return list of all actions in descending order
-     */
-    public static List<Action> getAllActions() {
-        List<Action> actions = null;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            DSLContext create = ResourceManager.getDSLContext(conn);
-
-            actions = create.select()
-                    .from(Tables.ACTION)
-                    .orderBy(Tables.ACTION.DATE.desc(), Tables.ACTION.TIME.desc().nullsFirst())
-                    .fetchInto(Action.class);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return actions;
     }
 
     /**
