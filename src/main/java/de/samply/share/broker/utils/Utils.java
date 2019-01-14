@@ -533,6 +533,13 @@ public class Utils {
                     statusReportItemVersion.setParameter_name(PARAMETER_IDM_VERSION);
                     statusReportItemVersion.setStatus_text("unknown");
                 }
+                statusReportItems.add(statusReportItemStatus);
+                statusReportItems.add(statusReportItemVersion);
+
+                statusReportItemStatus = new StatusReportItem();
+                statusReportItemStatus.setExit_status("0");
+                statusReportItemStatus.setParameter_name("host");
+                statusReportItemStatus.setStatus_text("ok");
 
                 statusReportItems.add(statusReportItemStatus);
                 statusReportItems.add(statusReportItemVersion);
