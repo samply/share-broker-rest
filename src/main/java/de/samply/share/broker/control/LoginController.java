@@ -343,7 +343,7 @@ public class LoginController implements Serializable {
                 User loggedUser = UserUtil.fetchUserByAuthId(jwtIdToken.getSubject());
                 if (loggedUser == null) {
                     logger.debug("user not known...creating");
-                    loggedUser = UserUtil.createOrUpdateUser(jwtIdToken, accessToken);
+                    loggedUser = UserUtil.createOrUpdateUser(jwtIdToken);
                     FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_INFO, Messages.getString("welcome"), Messages.getString("newUserCreated"));
                     org.omnifaces.util.Messages.addFlashGlobal(msg);
                 }
