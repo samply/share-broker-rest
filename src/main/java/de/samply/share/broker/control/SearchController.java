@@ -176,7 +176,7 @@ public class SearchController extends AbstractSearchController {
 
         if (ProjectInfo.INSTANCE.getProjectName().equalsIgnoreCase("dktk") && !bypassExamination) {
             logger.debug("Sending mail to ccp office");
-            MailUtils.sendProjectProposalMail(Config.instance.getProperty(CCP_OFFICE_MAIL));
+            MailUtils.sendProjectProposalMail(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
         }
 
         return "submitted?faces-redirect=true";
@@ -352,9 +352,9 @@ public class SearchController extends AbstractSearchController {
             //TODO replace userid
             inquiryHandler.spawnProjectIfNeeded(inquiry, searchDetailsBean.getResultTypes(), 1);
             if (hadProjectBefore) {
-                MailUtils.sendModifiedProjectProposalMail(Config.instance.getProperty(CCP_OFFICE_MAIL));
+                MailUtils.sendModifiedProjectProposalMail(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
             } else {
-                MailUtils.sendProjectProposalMail(Config.instance.getProperty(CCP_OFFICE_MAIL));
+                MailUtils.sendProjectProposalMail(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
             }
         }
     }

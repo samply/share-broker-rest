@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context path="/">
+    <Resource
+            name="BeanManager"
+            auth="Container"
+            type="javax.enterprise.inject.spi.BeanManager"
+            factory="org.jboss.weld.resources.ManagerObjectFactory"
+    />
     <Resource name="jdbc/postgres/samply.share.broker" auth="Container"
               type="javax.sql.DataSource" driverClassName="org.postgresql.Driver"
-              url="jdbc:postgresql://localhost:5432/samply.broker"
-              username="samply" password="samply" maxActive="100" maxIdle="30"
-              maxWait="30000" removeAbandoned="true" removeAbandonedTimeout="120" logAbandoned="true"
-              testOnBorrow="true" validationQuery="select 1"/>
+              url="jdbc:postgresql://localhost/samply.broker"
+              username="samply" password="samply" maxTotal="50" maxIdle="20"
+              maxWaitMillis="30000" removeAbandonedOnBorrow="true" removeAbandonedOnMaintenance="true"
+              removeAbandonedTimeout="120" logAbandoned="true"/>
 </Context>

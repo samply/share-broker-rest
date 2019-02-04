@@ -29,23 +29,31 @@
  */
 package de.samply.share.broker.listener;
 
-import de.samply.common.http.HttpConnector;
-import de.samply.common.mdrclient.MdrClient;
-import de.samply.share.broker.job.DbCleanupJob;
-import de.samply.share.broker.utils.Config;
-import de.samply.share.broker.utils.db.Migration;
-import de.samply.share.common.utils.ProjectInfo;
-import de.samply.web.mdrFaces.MdrContext;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.quartz.*;
-import org.quartz.impl.StdSchedulerFactory;
-
-import javax.servlet.ServletContextEvent;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
+
+import javax.servlet.ServletContextEvent;
+
+import de.samply.config.util.FileFinderUtil;
+import de.samply.share.broker.job.DbCleanupJob;
+import de.samply.share.broker.utils.db.Migration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import de.samply.common.http.HttpConnector;
+import de.samply.common.mdrclient.MdrClient;
+import de.samply.share.broker.utils.Config;
+import de.samply.share.broker.utils.ScheduledMailSending;
+import de.samply.share.broker.utils.Utils;
+import de.samply.share.common.utils.ProjectInfo;
+import de.samply.web.mdrFaces.MdrContext;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
 
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobBuilder.newJob;
@@ -97,10 +105,17 @@ public class StartupListener implements javax.servlet.ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         ProjectInfo.INSTANCE.initProjectMetadata(sce);
         LOGGER.info("Loading Samply.Share.Broker v" + ProjectInfo.INSTANCE.getVersionString() + " for " + ProjectInfo.INSTANCE.getProjectName());
-
         LOGGER.debug("Listener to the web application startup is running. Checking configuration...");
-        Config c = Config.instance;
+        Config c = Config.getInstance(System.getProperty("catalina.base") + File.separator + "conf", sce.getServletContext().getRealPath("/WEB-INF"));
         ProjectInfo.INSTANCE.setConfig(c);
+        try {
+            Configurator.initialize(
+                    null,
+                    FileFinderUtil.findFile(
+                            "log4j2.xml", ProjectInfo.INSTANCE.getProjectName(), System.getProperty("catalina.base") + File.separator + "conf", sce.getServletContext().getRealPath("/WEB-INF")).getAbsolutePath());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         Migration.doUpgrade();
         String mdrUrl = c.getProperty("mdr.url");
         HttpConnector httpConnector = Proxy.getHttpConnector();
