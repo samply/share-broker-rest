@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app id="WebApp_ID"
-    version="3.0"
-    xmlns="http://java.sun.com/xml/ns/javaee"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+         version="3.0"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
     <display-name>Samply.Share.Broker</display-name>
     <servlet>
         <servlet-name>Jersey Web Application</servlet-name>
@@ -54,4 +54,8 @@
     <listener>
         <listener-class>de.samply.share.broker.listener.StartupListener</listener-class>
     </listener>
+    <context-param>
+        <param-name>log4jConfiguration</param-name>
+        <param-value>file:///etc/samply/log4j2_samply.share.broker.xml</param-value>
+    </context-param>
 </web-app>

@@ -460,14 +460,6 @@ public class ItemSearchController extends AbstractItemSearchController {
                 continue;
             }
 
-            List<String> blacklist = Utils.getAB().getMdrKeyBlacklist();
-
-            if (blacklist != null && blacklist.contains(r.getId())) {
-                logger.debug(r.getId() + " is marked as unsupported. Skipping...");
-                continue;
-            }
-
-            filterList.add(r);
         }
 
         // sort
@@ -510,16 +502,6 @@ public class ItemSearchController extends AbstractItemSearchController {
 
             logger.trace("Menu " + parent.getDesignation() + ", " + parent.getMdrId() + " clicked.");
 
-            for (Result r : getGroupMembers(mdrId)) {
-                if (Utils.getAB().getMdrKeyBlacklist().contains(r.getId())) {
-                    logger.debug(r.getId() + " is marked as unsupported. Skipping...");
-                    continue;
-                }
-                MenuItem menuItem = MenuItemTreeManager.buildMenuItem(r.getId(), EnumElementType.valueOf(r.getType()),
-                        MdrUtils.getDesignation(r.getDesignations()),
-                        MdrUtils.getDefinition(r.getDesignations()), new ArrayList<MenuItem>(), parent);
-                MenuItemTreeManager.addMenuItem(menuItem, parent);
-            }
             MenuItemTreeManager.setItemAndParentsOpen(parent);
             Ajax.update(getItemNavigationPanel().getClientId());
         }
