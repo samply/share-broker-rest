@@ -71,7 +71,6 @@ import de.samply.auth.rest.AccessTokenDTO;
 import de.samply.auth.rest.LocationDTO;
 import de.samply.auth.rest.LocationListDTO;
 import de.samply.auth.rest.UserDTO;
-import de.samply.share.broker.control.ApplicationBean;
 import de.samply.share.broker.control.LocaleController;
 import de.samply.share.broker.control.LoginController;
 import de.samply.share.broker.control.SearchDetailsBean;
@@ -225,16 +224,6 @@ public class Utils {
         }
 
         return bankId;
-    }
-
-    /**
-     * Gets the application bean.
-     *
-     * @return the ApplicationBean
-     */
-    public static ApplicationBean getAB() {
-        return (ApplicationBean) FacesContext.getCurrentInstance().getApplication().getELResolver()
-                .getValue(FacesContext.getCurrentInstance().getELContext(), null, "applicationBean");
     }
 
     /**
