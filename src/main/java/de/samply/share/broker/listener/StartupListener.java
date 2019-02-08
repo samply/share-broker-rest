@@ -47,8 +47,6 @@ import org.apache.logging.log4j.Logger;
 import de.samply.common.http.HttpConnector;
 import de.samply.common.mdrclient.MdrClient;
 import de.samply.share.broker.utils.Config;
-import de.samply.share.broker.utils.ScheduledMailSending;
-import de.samply.share.broker.utils.Utils;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.web.mdrFaces.MdrContext;
 import org.apache.logging.log4j.core.config.Configurator;

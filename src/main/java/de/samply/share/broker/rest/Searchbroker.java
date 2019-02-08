@@ -351,7 +351,7 @@ public class Searchbroker {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        String ret = inquiryHandler.getInquiry(inquiryId, bankId, uriInfo, userAgentHeader);
+        String ret = inquiryHandler.getInquiry(inquiryId, uriInfo, userAgentHeader);
 
         Response response = buildResponse(xmlNamespaceHeader, inquiryId, ret);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -412,7 +412,7 @@ public class Searchbroker {
         }
 
 
-        String ret = inquiryHandler.getQuery(inquiryId, bankId, uriInfo);
+        String ret = inquiryHandler.getQuery(inquiryId);
 
         return buildResponse(xmlNamespaceHeader, inquiryId, ret);
     }
@@ -458,7 +458,7 @@ public class Searchbroker {
         }
 
 
-        String ret = inquiryHandler.getViewFields(inquiryId, bankId, uriInfo);
+        String ret = inquiryHandler.getViewFields(inquiryId);
 
         if (SamplyShareUtils.isNullOrEmpty(ret)) {
             logger.debug("No ViewFields were set for inquiry with id " + inquiryId);
