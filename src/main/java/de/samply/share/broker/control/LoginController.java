@@ -36,6 +36,7 @@ import de.samply.auth.client.jwt.JWTIDToken;
 import de.samply.auth.rest.*;
 import de.samply.jsf.JsfUtils;
 import de.samply.jsf.LoggedUser;
+import de.samply.share.broker.filter.AuthenticatedUser;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.messages.Messages;
 import de.samply.share.broker.model.db.tables.pojos.*;
@@ -52,6 +53,7 @@ import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -76,60 +78,41 @@ import java.util.TimeZone;
 @SessionScoped
 public class LoginController implements Serializable {
 
-    /**
-     * The Constant serialVersionUID.
-     */
+    /** The Constant serialVersionUID. */
     private static final long serialVersionUID = -5474963222029599835L;
 
-    /**
-     * The Constant SESSION_USERNAME.
-     */
+    /** The Constant SESSION_USERNAME. */
     private static final String SESSION_USERNAME = "username";
 
-    /**
-     * The Constant SESSION_ROLE.
-     */
+    /** The Constant SESSION_ROLE. */
     private static final String SESSION_ROLES = "roles";
 
-    /**
-     * The Constant CCP OFFICE.
-     */
+    /** The Constant CCP OFFICE. */
     private static final String ROLE_CCP_OFFICE = "ccp_office";
 
-    /**
-     * The Constant RESEARCHER.
-     */
+    /** The Constant RESEARCHER. */
     private static final String ROLE_RESEARCHER = "researcher";
 
-    /**
-     * The Constant RESEARCHER.
-     */
+    /** The Constant RESEARCHER. */
     private static final String ROLE_ADMIN = "admin";
 
-    /**
-     * The Constant that represents the role for the CCP Office in Samply Auth. This will be changed in a future release
-     */
+    /** The Constant that represents the role for the CCP Office in Samply Auth. This will be changed in a future release */
     private static final String CCP_OFFICE_ROLEIDENTIFIER = "CCP Büro";
     private static final String ADMIN_ROLEIDENTIFIER = "DKTK_SEARCHBROKER_ADMIN";
 
-    /**
-     * The Constant logger.
-     */
+    /** The Constant logger. */
     private static final Logger logger = LogManager.getLogger(LoginController.class);
 
-    /**
-     * The user.
-     */
-    private User user = new User();
+    /** The user. */
+    @Inject
+    @AuthenticatedUser
+    User authenticatedUser;
+    private User user = authenticatedUser;
 
-    /**
-     * The contact.
-     */
+    /** The contact. */
     private Contact contact = new Contact();
-
-    /**
-     * The user-site relation
-     */
+    
+    /** The user-site relation */
     private UserSite userSite = null;
     private int newSiteId;
 
@@ -155,7 +138,8 @@ public class LoginController implements Serializable {
     /**
      * Sets the user.
      *
-     * @param user the new user
+     * @param user
+     *            the new user
      */
     public void setUser(User user) {
         this.user = user;
@@ -173,7 +157,8 @@ public class LoginController implements Serializable {
     /**
      * Sets the contact.
      *
-     * @param contact the new contact
+     * @param contact
+     *            the new contact
      */
     public void setContact(Contact contact) {
         this.contact = contact;
@@ -273,7 +258,7 @@ public class LoginController implements Serializable {
         setUser(user);
 
         setUserConsent(UserConsentUtil.hasUserGivenLatestConsent(user));
-
+        
         reloadUserSite();
 
         try (Connection connection = ResourceManager.getConnection()) {
@@ -316,7 +301,7 @@ public class LoginController implements Serializable {
         List<String> roles = new ArrayList<>();
         String rolesConcat;
         boolean isCcpOffice = false;
-
+        
         if (error != null) {
             return "/errors/error.xhtml?faces-redirect=true&error=" + error;
         }
@@ -361,13 +346,13 @@ public class LoginController implements Serializable {
                         roles.add(ROLE_ADMIN);
                     }
                 }
-
+                
                 if (roles.isEmpty()) {
                     rolesConcat = ROLE_RESEARCHER;
                 } else {
                     rolesConcat = Joiner.on(',').join(roles);
                 }
-
+                
                 logger.info("user: " + loggedUser.getUsername() + " ( " + loggedUser.getAuthid() + " ) signed in");
                 login(loggedUser);
                 // set the session
@@ -382,7 +367,7 @@ public class LoginController implements Serializable {
                     if (requestedPage != null && !requestedPage.contains("loginRedirect")) {
                         stringBuilder.append(requestedPage);
                         stringBuilder.append(".xhtml");
-
+                        
                         // Check if redirect contains inquiry reference
                         String inquiryId = requestParameterMap.get("inquiryId");
                         if (inquiryId != null && inquiryId.length() > 0) {
@@ -392,7 +377,7 @@ public class LoginController implements Serializable {
                         } else {
                             stringBuilder.append("?faces-redirect=true");
                         }
-
+                        
                         // Check if redirect contains project reference
                         if (isCcpOffice) {
                             String projectId = requestParameterMap.get("projectId");
@@ -414,9 +399,9 @@ public class LoginController implements Serializable {
                     List<LocationDTO> userLocations = jwtIdToken.getLocations();
                     UserSiteUtil.updateUserLocations(user, userLocations);
                 }
-
+                
                 request.getSession().setAttribute(SESSION_ROLES, rolesConcat);
-
+                
                 if (projectName.equalsIgnoreCase("dktk") && isCcpOffice) {
                     if (stringBuilder.length() > 0) {
                         return stringBuilder.toString();
@@ -457,10 +442,10 @@ public class LoginController implements Serializable {
      * Logout and invalidate session
      */
     public void logout() throws UnsupportedEncodingException {
-        // Delete old unbound exposes...
-        DocumentUtil.deleteOldUnboundDocuments();
+    	// Delete old unbound exposes...
+    	DocumentUtil.deleteOldUnboundDocuments();
 
-        Faces.invalidateSession();
+    	Faces.invalidateSession();
         user = null;
         String authLogoutUrl = OAuthConfig.getAuthLogoutUrl();
 

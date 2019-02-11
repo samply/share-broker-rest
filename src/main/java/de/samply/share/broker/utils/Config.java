@@ -36,10 +36,19 @@ import de.samply.share.common.utils.AbstractConfig;
  */
 public class Config extends AbstractConfig {
 
-    public static final Config instance = new Config("samply.share.broker.conf");
+    private static final String CONFIG_FILENAME = "samply.share.broker.conf";
 
-    private Config(String configFilename) {
-        super(configFilename);
+    private static Config instance;
+
+    public static Config getInstance(String... fallbacks) {
+        if (instance == null) {
+            instance = new Config(fallbacks);
+        }
+        return instance;
+    }
+
+    private Config(String... fallbacks) {
+        super(CONFIG_FILENAME, fallbacks);
     }
 
 }

@@ -62,12 +62,12 @@ public class IcingaConnector {
 
     static {
         try {
-            String username = Config.instance.getProperty(CFG_ICINGA_USERNAME);
-            String password = Config.instance.getProperty(CFG_ICINGA_PASSWORD);
-            siteSuffix = Config.instance.getProperty(CFG_ICINGA_SITE_SUFFIX);
-            String targetHost = Config.instance.getProperty(CFG_ICINGA_HOST);
-            targetPath = Config.instance.getProperty(CFG_ICINGA_PATH);
-            HttpConnector httpConnector = new HttpConnector(Utils.getHttpConfigParams(Config.instance));
+            String username = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_ICINGA_USERNAME);
+            String password = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_ICINGA_PASSWORD);
+            siteSuffix = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_ICINGA_SITE_SUFFIX);
+            String targetHost = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_ICINGA_HOST);
+            targetPath = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_ICINGA_PATH);
+            HttpConnector httpConnector = new HttpConnector(Utils.getHttpConfigParams(ProjectInfo.INSTANCE.getConfig()));
             httpHost = SamplyShareUtils.getAsHttpHost(targetHost);
             credentialsProvider = prepareCredentialsProvider(httpHost, username, password);
             httpConnector.setCp(credentialsProvider);

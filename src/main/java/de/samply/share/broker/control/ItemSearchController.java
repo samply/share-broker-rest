@@ -173,7 +173,7 @@ public class ItemSearchController extends AbstractItemSearchController {
 
         if (ProjectInfo.INSTANCE.getProjectName().equalsIgnoreCase("dktk")) {
             try {
-                SHOW_ADT = Boolean.parseBoolean(Config.instance.getProperty(CFG_SHOW_ADT));
+                SHOW_ADT = Boolean.parseBoolean(ProjectInfo.INSTANCE.getConfig().getProperty(CFG_SHOW_ADT));
             } catch (Exception e) {
                 // Leave as false on any kind of exception
             }
@@ -196,7 +196,7 @@ public class ItemSearchController extends AbstractItemSearchController {
      */
     private void readShownAdtElements() {
         try {
-            String adtElementList = Config.instance.getProperty(CFG_SHOWN_ADT_ELEMENTS);
+            String adtElementList = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_SHOWN_ADT_ELEMENTS);
             String[] adtElementArray = adtElementList.split(";");
             for (String adtElement : adtElementArray) {
                 MdrIdDatatype adtMdrElement = new MdrIdDatatype(adtElement);
@@ -212,10 +212,10 @@ public class ItemSearchController extends AbstractItemSearchController {
      */
     private void readIncludeGroups() {
         try {
-            String groupList = Config.instance.getProperty(CFG_INCLUDE_GROUPS);
+            String groupList = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_INCLUDE_GROUPS);
             String[] groupArray = groupList.split(";");
             for (String group : groupArray) {
-                includeGroups.add(Config.instance.getProperty(group));
+                includeGroups.add(ProjectInfo.INSTANCE.getConfig().getProperty(group));
             }
             logger.debug("Got " + includeGroups.size() + " groups to include");
         } catch (Exception e) {

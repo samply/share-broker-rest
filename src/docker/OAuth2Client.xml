@@ -7,5 +7,5 @@
         {auth-public-key}
     </p:hostPublicKey>
     <p:clientId>{auth-client-id}</p:clientId>
-    <p:clientSecret>{auth-client-secret}</p:clientSecret>
+    <p:clientSecret></p:clientSecret>
 </p:oAuth2Client>
