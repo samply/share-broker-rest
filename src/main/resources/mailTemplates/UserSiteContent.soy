@@ -1,0 +1,21 @@
+{delpackage UserSiteContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for a user site assignment mail.
+ * @param? locale The locale of the mail
+ * @param userName The username of the requesting user
+ * @param userAuthId The user id in samply auth
+ * @param userMail The mail address of the user
+ * @param siteId The DB id of the site
+ * @param siteName the name of the site
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            Der Benutzer "{$userName}" ({$userMail} - {$userAuthId}) möchte dem Standort {$siteName} (id: {$siteId}) zugeordnet werden.
+            {\n}{\n}
+            Bitte prüfen Sie diese Zuordnung.
+        {default}
+    {/switch}
+{/deltemplate}

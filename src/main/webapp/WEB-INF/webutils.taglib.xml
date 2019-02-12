@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facelet-taglib version="2.0"
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facelettaglibrary_2_0.xsd">
+    <namespace>http://share.samply.de/webutils</namespace>
+    
+    <function>
+        <function-name>getDisplayName</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getDisplayName()</function-signature>
+    </function>
+    <function>
+        <function-name>getDesignation</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getDesignation(java.lang.String, java.lang.String)</function-signature>
+    </function>
+    <function>
+        <function-name>getValueDesignation</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getValueDesignation(java.lang.String, java.lang.String, java.lang.String)</function-signature>
+    </function>
+    <function>
+        <function-name>convertTimestamp</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String convertTimestamp(java.sql.Timestamp)</function-signature>
+    </function>
+    <function>
+        <function-name>convertTime</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String convertTime(java.sql.Time)</function-signature>
+    </function>
+    <function>
+        <function-name>convertTimedifference</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String convertTimedifference(java.sql.Date, java.sql.Time)</function-signature>
+    </function>
+    <function>
+        <function-name>getTableRowClass</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getTableRowClass(java.sql.Timestamp)</function-signature>
+    </function>
+    <function>
+        <function-name>getTableRowClass2</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getTableRowClass(java.sql.Date)</function-signature>
+    </function>
+    <function>
+        <function-name>isoToGermanDateString</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String isoToGermanDateString(java.sql.Date)</function-signature>
+    </function>
+    <function>
+        <function-name>getOperator</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getOperator(java.lang.String)</function-signature>
+    </function>
+    <function>
+        <function-name>getProjectName</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getProjectName()</function-signature>
+    </function>
+    <function>
+        <function-name>getVersionString</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getVersionString()</function-signature>
+    </function>
+    <function>
+        <function-name>getAlertClasses</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getAlertClasses(java.lang.String)</function-signature>
+    </function>
+    <function>
+        <function-name>getAuthUrl</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getAuthUrl()</function-signature>
+    </function>
+    <function>
+        <function-name>getAuthorName</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getAuthorName(de.samply.share.broker.model.db.tables.pojos.Inquiry)</function-signature>
+    </function>
+    <function>
+        <function-name>getProjectLeaderName</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getProjectLeaderName(de.samply.share.broker.model.db.tables.pojos.Project)</function-signature>
+    </function>
+    <function>
+        <function-name>getProjectLeaderUsername</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getProjectLeaderUsername(de.samply.share.broker.model.db.tables.pojos.Project)</function-signature>
+    </function>
+    <function>
+        <function-name>getSite</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getSite(de.samply.share.broker.model.db.tables.pojos.Project)</function-signature>
+    </function>
+    <function>
+        <function-name>countProjects</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.Integer countProjects(de.samply.share.broker.model.EnumProjectType)</function-signature>
+    </function>
+    <function>
+        <function-name>countInquiries</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.Integer countInquiries(de.samply.share.broker.model.db.enums.InquiryStatus, int)</function-signature>
+    </function>
+    <function>
+        <function-name>countReleasedInquiries</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.Integer countReleasedInquiries(boolean, int)</function-signature>
+    </function>
+    <function>
+        <function-name>getUsernameById</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getUsernameById(int)</function-signature>
+    </function>
+    <function>
+        <function-name>getProjectForInquiry</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>de.samply.share.broker.model.db.tables.pojos.Project getProjectForInquiry(de.samply.share.broker.model.db.tables.pojos.Inquiry)</function-signature>
+    </function>
+    <function>
+        <function-name>getFirstInquiryForProject</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>de.samply.share.broker.model.db.tables.pojos.Inquiry getFirstInquiryForProject(de.samply.share.broker.model.db.tables.pojos.Project)</function-signature>
+    </function>
+    <function>
+        <function-name>getProjectPartners</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getProjectPartners(de.samply.share.broker.model.db.tables.pojos.Project)</function-signature>
+    </function>
+    <function>
+        <function-name>getProjectTitle</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getProjectTitle(int)</function-signature>
+    </function>
+    <function>
+        <function-name>getProjectApplicationNumber</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getProjectApplicationNumber(int)</function-signature>
+    </function>
+    <function>
+        <function-name>expiryImminent</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>boolean expiryImminent(de.samply.share.broker.model.db.tables.pojos.Inquiry)</function-signature>
+    </function>
+    <function>
+        <function-name>isInquiryStillActive</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>boolean isInquiryStillActive(de.samply.share.broker.model.db.tables.pojos.Inquiry)</function-signature>
+    </function>
+    <function>
+        <function-name>getResultTypeMdrKey</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getResultTypeMdrKey()</function-signature>
+    </function>
+    <function>
+        <function-name>getExtendedNamespace</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getExtendedNamespace(java.lang.String)</function-signature>
+    </function>
+    <function>
+        <function-name>getNamespaceSiteId</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getNamespaceSiteId(java.lang.String)</function-signature>
+    </function>
+    <function>
+        <function-name>getSiteForUser</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>de.samply.share.broker.model.db.tables.pojos.Site getSiteForLoggedUser()</function-signature>
+    </function>
+    <function>
+        <function-name>getUserStringWithSite</function-name>
+        <function-class>de.samply.share.broker.utils.WebUtils</function-class>
+        <function-signature>java.lang.String getUserStringWithSite()</function-signature>
+    </function>
+</facelet-taglib>

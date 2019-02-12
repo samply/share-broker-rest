@@ -1,0 +1,25 @@
+{delpackage ProjectEndingContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for an activate project information mail.
+ * @param? locale The locale of the mail
+ * @param projectName The name/label of the project
+ * @param projectNr The application number of the project
+ * @param end_planned when is the planned date when the project will end?
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            {\n}{\n}
+            Ihr Projekt "{$projectName}" (Antragsnummer {$projectNr}) wird zum {$end_planned} enden. Falls sich das Projektende verschoben hat, teilen Sie uns das geänderte Datum bitte mit.
+            {\n}{\n} 
+            Sollte Ihr Projekt mittlerweile geendet sein, senden Sie uns bitte Ihren Abschlussbericht per Mail an ccp@dkfz.de zu.{sp}
+            Eine Vorlage hierfür können Sie bei uns anfordern oder auf der Startseite der dezentralen Suche runterladen.{sp}
+            Sollte Ihr Projekt im Rahmen einer wissenschaftlichen Publikation veröffentlicht worden sein, genügt der Literaturnachweis als Abschlussbericht.    
+            {\n}{\n}      
+        
+            Wir bitten um eine Rückmeldung innerhalb der nächsten 2 Wochen. Bei Fragen oder anderen Anliegen können Sie sich jederzeit an uns wenden: ccp@dkfz.de
+        {default}
+    {/switch}
+{/deltemplate}

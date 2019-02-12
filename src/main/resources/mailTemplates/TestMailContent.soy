@@ -1,0 +1,16 @@
+{delpackage TestMailContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for a test mail.
+ * @param? locale The locale of the mail
+ * @param? testPar Some TestParameter
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            <p>Dies ist eine Test-E-Mail mit dem Testparameter {$testPar}.</p>
+        {default}
+            <p>This is a mail sent for testing with parameter {$testPar}.</p>
+    {/switch}
+{/deltemplate}

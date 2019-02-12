@@ -1,0 +1,26 @@
+{delpackage Footer}
+{namespace samply.mailing}
+
+/**
+ * The footer of the mail
+ * @param? locale The locale of the mail
+ * @param? office Should the ccp office greeting formula be used?
+ */
+{deltemplate footer}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            Mit freundlichen Grüßen,{\r}{\n}
+            {if $office}
+                Ihr CCP Office
+            {else}
+                Ihr dezentraler Suchbroker
+            {/if}
+        {default}
+            Yours sincerely,{\r}{\n}
+            {if $office}
+                Your CCP Office
+            {else}
+                Your decentral searchbroker
+            {/if}
+    {/switch}
+{/deltemplate}

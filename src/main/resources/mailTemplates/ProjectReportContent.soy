@@ -1,0 +1,30 @@
+{delpackage ProjectReportContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for an project report reminder mail.
+ * @param? locale The locale of the mail
+ * @param projectName The name/label of the project
+ * @param projectNr The application number of the project
+ * @param start when did the project start?
+ * @param dueDate when is the report due?
+ * @param? message optional additional message set with the reminder
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            {\r}{\n}
+            Ihr Projekt "{$projectName}" (Antragsnummer {$projectNr}) ist seit dem {$start} aktiv.{sp}
+            Bitte senden Sie uns Ihren jährlichen Zwischenbericht über den Fortschritt Ihres Projekts bis spätestens {$dueDate} per Mail an ccp@dkfz.de zu.{sp}
+            Sie können Ihren Zwischenbericht auch gerne selbst in der dezentralen Suche hochladen.
+            {\n}{\n} 
+            Eine Vorlage für den Zwischenbericht können Sie bei uns anfordern oder auf der Startseite der dezentralen Suche runterladen.   
+            {\n}{\n}
+            {if $message}{$message}{\n}{\n}{/if}
+        
+            Bei Fragen oder anderen Anliegen können Sie sich jederzeit an uns wenden: ccp@dkfz.de
+            {\n}{\n}
+            Wir wünschen Ihnen weiterhin viel Erfolg mit Ihrem Projekt!
+        {default}
+    {/switch}
+{/deltemplate}

@@ -1,0 +1,33 @@
+{delpackage ArchiveProjectContent}
+{namespace samply.mailing}
+
+/**
+ * Main content for a grant project information mail.
+ * @param? locale The locale of the mail
+ * @param projectName The name/label of the project
+ * @param projectNr The application number of the project
+ * @param? message the message entered by the ccp office on the webinterface
+ * @param? end_actual the actual ending date of the project
+ * @param? has_final_report set to any value if a final report has already been linked with the project
+ */
+{deltemplate maincontent}
+    {switch $locale}
+        {case 'de', 'de_DE'}
+            {\r}{\n}
+            Ihr Projekt{if not $end_actual}vorschlag{/if} "{$projectName}" (Antragsnummer {$projectNr}) {if $end_actual}ist zum {$end_actual} geendet und {/if}wird archiviert.
+            {if $end_actual}
+                {if not $has_final_report}
+                    {\n}{\n}
+                    Bitte denken Sie daran, uns Ihren Abschlussbericht per Mail an ccp@dkfz.de zu schicken.{sp}
+                    Eine Vorlage hierfür können Sie bei uns anfordern oder auf der Startseite der dezentralen Suche runterladen.{sp}
+                    Sollte Ihr Projekt im Rahmen einer wissenschaftlichen Publikation veröffentlicht worden sein, genügt der Literaturnachweis als Abschlussbericht.   
+                {/if}
+            {elseif $message}
+                {\n}{\n}
+                {$message}
+            {/if}
+            {\n}{\n}      
+            Bei Fragen oder anderen Anliegen können Sie sich jederzeit an uns wenden: ccp@dkfz.de
+        {default}
+    {/switch}
+{/deltemplate}
