@@ -1,4 +1,7 @@
-# Samply-Search-Broker
+[![Docker Pulls](https://img.shields.io/docker/pulls/martinbreu/samply-searchbroker.svg)](https://hub.docker.com/r/martinbreu/samply-searchbroker/)
+[![CircleCI](https://circleci.com/gh/martinbreu/samply-searchbroker/tree/master.svg?style=svg)](https://circleci.com/gh/martinbreu/samply-searchbroker/tree/master)
+
+# Searchbroker
 
 ## General information
 
@@ -7,41 +10,30 @@ It allows to create and distribute decentral search inquiries based on dataeleme
 
 ## Usage
 
-To start the Backend, Database and the UI in once, go to samply.share.broker.ui which has a Docker compose file.
-
-To run only the backend, 
-Clone this Git repository, if you haven't already.
-
-Make sure you have port 8083 and 5438 free or edit the two run -p contexts below, before bringing the system up with:
-
-### Docker
-Install Docker and open a console:
-
-#### Start a postgres container by:
-```
-docker network create --driver bridge broker
-docker stop postgres
-docker rm postgres
-docker run -p 5438:5432 --name=postgres --net=broker -d -e POSTGRES_USER=samply -e POSTGRES_PASSWORD=samply -e POSTGRES_DB=samply.broker postgres:9.6
-```
-
 #### Start Searchbroker by:
 
-go to repository directory, e.g.: cd D:\Repositories\itc\samply.share.broker.rest
+See https://github.com/martinbreu/gba-central-compose
+To build and start the docker container manually, see below and add default environments (see docker-compose file) to the run statement below.
 
-call: mvn clean package
-
+In repo directory:
 ```
+#Start Postgres database:
+docker stop postgres
+docker rm postgres
+docker run -p 5438:5432 --name=postgres -d -e POSTGRES_USER=samply -e POSTGRES_PASSWORD=samply -e POSTGRES_DB=samply.searchbroker postgres:9.6
+
+#Build container:
+mvn clean package
 docker stop searchbroker
 docker rm searchbroker
 docker build .
-docker run  --name=searchbroker --net=broker -p 8083:8080 $ID_FROM_BUILD
+docker run  --name=searchbroker -p 8083:8080 $ID_FROM_BUILD
 ```
-get "Hello world" from http://localhost:8083/broker
+get "Hello world" from http://localhost:8083
 
 Also it's very likely to change mail settings, so you can receive emails to register a Connector.
 
-To verify a Bridgehead after adding the Searchbroker in Connector, verify in database (port=5436, db=samply.broker, user/password=samply):
+To verify a Bridgehead after adding the Searchbroker in Connector, verify in database (port=5438, db=samply.searchbroker, user/password=samply):
 
 Go to db samply.broker and make a new row in table bank_site with bank_id={bank_id in table bank}, site_id={site_id in table site}, approved=true
 
@@ -55,19 +47,18 @@ Use like this: docker run  --name=searchbroker --net=broker -p 8083:8080 e6a8653
 
 * `MAIL_HOST` - eg. relay2int1.klinik.uni.de
 * `MAIL_PORT` - eg. 25
-* `MAIL_PROTOCOL` - eg. smtp
+* `MAIL_PROTOCO`L - eg. smtp
 * `MAIL_FROM_ADDRESS` - eg. Searchbroker@samply.de
 * `MAIL_FROM_NAME` - eg. Lokal Samply Searchbroker
 
 * `POSTGRES_HOST` - the host name of the Postgres DB
-* `POSTGRES_PORT` - the port of the Postgres DB, defaults to 5432
-* `POSTGRES_DB` - the database name, defaults to samply.broker
-* `POSTGRES_USER` - the database username, defaults to samply
+* `POSTGRES_PORT` - the port of the Postgres DB
+* `POSTGRES_DB` - the database name
+* `POSTGRES_USER` - the database username
 * `POSTGRES_PASS` - the database password
 
 * `PROXY_HOST` - the URL of the HTTP proxy to use for outgoing connections; enables proxy usage if set
 * `PROXY_PORT` - the port of the HTTP proxy to use for outgoing connections; enables proxy usage if set
-
 
 ## Manual Install
 
@@ -77,7 +68,7 @@ Create a Postgresql 9.6 database with:
 username = samply
 password = samply
 port = 5432
-name = samply.broker
+name = samply.searchbroker
 
 Run in Tomcat 8.5 under http://localhost:8083 so you can use standard configuration files.
 Except you are behind a PROXY: edit samply_common_config.xml
