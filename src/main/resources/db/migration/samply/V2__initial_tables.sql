@@ -4,6 +4,7 @@ CREATE TABLE "user" (
   email      TEXT,
   name       TEXT,
   authid     TEXT UNIQUE NOT NULL,
+  role       TEXT,
   contact_id INTEGER
 );
 

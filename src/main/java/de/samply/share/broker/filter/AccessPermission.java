@@ -5,5 +5,5 @@ package de.samply.share.broker.filter;
  */
 public enum AccessPermission {
     ADMIN,
-    USE
+    DKTK_SEARCHBROKER
 }

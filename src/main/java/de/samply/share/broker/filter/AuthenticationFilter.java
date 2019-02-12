@@ -89,15 +89,16 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         storeInDb(requestContext, jwtIdToken);
 
         //send user to AuthenticatedUserProvider to get access to the user from everywhere
+        String test=jwtIdToken.getSubject();
         userAuthenticatedEvent.fire(jwtIdToken.getSubject());
 
         //TODO Enable again
-        if (true) return;
+
         //send permissions to AuthenticatedUserPermissionsProvider to get access to the permissions from everywhere
-        Object permissionsClaim = jwtIdToken.getClaimsSet().getClaim("permissions");
-        Map<String, List<String>> map = (Map) permissionsClaim;
-        List<String> brokerPermissions = map.get(OAuthConfig.getOAuth2Client(ProjectInfo.INSTANCE.getProjectName()).getClientId());
-        userAuthenticatedPermissionsEvent.fire(brokerPermissions);
+//        Object permissionsClaim = jwtIdToken.getClaimsSet().getClaim("permissions");
+//        Map<String, List<String>> map = (Map) permissionsClaim;
+//        List<String> brokerPermissions = map.get(OAuthConfig.getOAuth2Client(ProjectInfo.INSTANCE.getProjectName()).getClientId());
+//        userAuthenticatedPermissionsEvent.fire(brokerPermissions);
     }
 
     private boolean isTokenBasedAuthentication(String authorizationHeader) {

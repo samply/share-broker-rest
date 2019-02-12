@@ -26,6 +26,7 @@
 
 package de.samply.share.broker.utils.db;
 
+import com.google.gson.Gson;
 import de.samply.auth.client.jwt.JWTIDToken;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
@@ -95,6 +96,7 @@ public final class UserUtil {
             user.setEmail(jwtIdToken.getEmail());
             user.setName(jwtIdToken.getName());
             user.setUsername(jwtIdToken.getEmail());
+            user.setRole(new Gson().toJson(jwtIdToken.getRoles()));
 
             userDao.insert(user);
             user = userDao.fetchOneByAuthid(user.getAuthid());

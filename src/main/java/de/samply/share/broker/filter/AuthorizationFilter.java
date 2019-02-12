@@ -1,8 +1,14 @@
 package de.samply.share.broker.filter;
 
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import de.samply.auth.rest.RoleDTO;
+import de.samply.share.broker.model.db.tables.pojos.User;
+
 import javax.annotation.Priority;
 import javax.inject.Inject;
+import javax.management.relation.Role;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -29,14 +35,14 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     private ResourceInfo resourceInfo;
 
     @Inject
-    @AuthenticatedUserPermissions
-    List<AccessPermission> accessPermissions;
+    @AuthenticatedUser
+    User user;
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
 
         //TODO: Activate again
-        if (true) return;
+
 
         // Get the resource class which matches with the requested URL
         // Extract the permissions declared by it
@@ -47,15 +53,17 @@ public class AuthorizationFilter implements ContainerRequestFilter {
         // Extract the permissions declared by it
         Method resourceMethod = resourceInfo.getResourceMethod();
         List<AccessPermission> methodPermissions = extractPermissions(resourceMethod);
-
+        Gson gson = new Gson();
+        ArrayList<RoleDTO> roles = gson.fromJson(user.getRole(), new TypeToken<ArrayList<RoleDTO>>() {
+        }.getType());
         try {
 
             // Check if the user is allowed to execute the method
             // The method annotations override the class annotations
             if (methodPermissions.isEmpty()) {
-                checkPermissions(classPermissions);
+                checkPermissions(classPermissions, roles);
             } else {
-                checkPermissions(methodPermissions);
+                checkPermissions(methodPermissions, roles);
             }
 
         } catch (Exception e) {
@@ -79,13 +87,16 @@ public class AuthorizationFilter implements ContainerRequestFilter {
         }
     }
 
-    private void checkPermissions(List<AccessPermission> allowedAccessPermissions) throws Exception {
-
+    private void checkPermissions(List<AccessPermission> allowedAccessPermissions, List<RoleDTO> roles) throws Exception {
+        for (RoleDTO roleDTO : roles) {
+            for (AccessPermission accessPermission : allowedAccessPermissions) {
+                if (accessPermission.name().equals(roleDTO.getIdentifier())) {
+                    return;
+                }
+            }
+        }
         // Check if the user contains one of the allowed permissions
         // Throw an Exception if the user has not permission to execute the method
-        if (allowedAccessPermissions.containsAll(accessPermissions)) {
-            return;
-        }
         throw new Exception(); // Permission denied
     }
 }

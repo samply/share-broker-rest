@@ -31,6 +31,7 @@ package de.samply.share.broker.rest;
 
 import com.google.gson.Gson;
 import de.samply.share.broker.control.SearchController;
+import de.samply.share.broker.filter.AccessPermission;
 import de.samply.share.broker.filter.AuthenticatedUser;
 import de.samply.share.broker.filter.Secured;
 import de.samply.share.broker.model.db.tables.pojos.*;
@@ -98,7 +99,7 @@ public class Searchbroker {
      * @param xml the query
      * @return 200 or 500 code
      */
-    @Secured
+    @Secured({AccessPermission.DKTK_SEARCHBROKER})
     @POST
     @Path("/sendQuery")
     @Produces(MediaType.APPLICATION_XML)
