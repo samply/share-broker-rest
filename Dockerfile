@@ -4,7 +4,7 @@ ADD target/searchbroker                         /usr/local/tomcat/webapps/ROOT/
 
 ADD src/docker/context.xml                      /usr/local/tomcat/conf/Catalina/localhost/ROOT.xml
 ADD src/docker/samply.share.broker.conf         /etc/samply/
-ADD src/docker/log4j2_samply.share.broker.xml   /etc/samply/
+ADD src/docker/log4j2.xml                       /etc/samply/
 ADD src/docker/OAuth2Client.xml                 /etc/samply/
 ADD src/docker/samply_common_config.xml         /etc/samply/
 ADD src/docker/mailSending.xml                  /etc/samply/
