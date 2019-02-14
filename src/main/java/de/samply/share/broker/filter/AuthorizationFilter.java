@@ -35,10 +35,6 @@ public class AuthorizationFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-
-        //TODO: Activate again
-
-
         // Get the resource class which matches with the requested URL
         // Extract the permissions declared by it
         Class<?> resourceClass = resourceInfo.getResourceClass();
