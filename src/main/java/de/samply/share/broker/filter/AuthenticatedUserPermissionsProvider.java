@@ -4,6 +4,8 @@ package de.samply.share.broker.filter;
  * Created on 18.12.2018.
  */
 
+import de.samply.auth.rest.RoleDTO;
+
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Produces;
@@ -18,18 +20,9 @@ public class AuthenticatedUserPermissionsProvider {
     @Produces
     @RequestScoped
     @AuthenticatedUserPermissions
-    private List<AccessPermission> accessPermissions;
+    private List<RoleDTO> roles;
 
-    public void handleAuthenticationEvent(@Observes @AuthenticatedUserPermissions List<String> permissionsAsString) {
-
-        String permissionsAsStringSeperated = permissionsAsString.stream()
-                .map(String::toUpperCase)
-                .collect(Collectors.joining(","));
-
-        List<AccessPermission> accessPermissions = Arrays.stream(permissionsAsStringSeperated.split(",\\s+"))
-                .map(AccessPermission::valueOf)
-                .collect(Collectors.toList());
-
-        this.accessPermissions = accessPermissions;
+    public void handleAuthenticationEvent(@Observes @AuthenticatedUserPermissions List<RoleDTO> roles) {
+        this.roles = roles;
     }
 }

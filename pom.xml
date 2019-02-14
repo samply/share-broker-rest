@@ -70,6 +70,7 @@
         <javaee-api.version>8.0</javaee-api.version>
         <weld.version>2.4.8.Final</weld.version>
         <cdi.version>1.2</cdi.version>
+        <version.gson>2.8.5</version.gson>
     </properties>
 
     <build>
@@ -260,6 +261,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
+            <version>${version.gson}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>

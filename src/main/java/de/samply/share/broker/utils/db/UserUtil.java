@@ -95,7 +95,6 @@ public final class UserUtil {
             user.setEmail(jwtIdToken.getEmail());
             user.setName(jwtIdToken.getName());
             user.setUsername(jwtIdToken.getEmail());
-
             userDao.insert(user);
             user = userDao.fetchOneByAuthid(user.getAuthid());
         } catch (SQLException e) {
