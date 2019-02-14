@@ -5,6 +5,7 @@ import de.samply.auth.client.jwt.JWTException;
 import de.samply.auth.client.jwt.JWTIDToken;
 import de.samply.auth.rest.LocationDTO;
 import de.samply.auth.rest.LocationListDTO;
+import de.samply.auth.rest.RoleDTO;
 import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.broker.utils.db.ContactUtil;
 import de.samply.share.broker.utils.db.SiteUtil;
@@ -45,7 +46,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
     @Inject
     @AuthenticatedUserPermissions
-    Event<List<String>> userAuthenticatedPermissionsEvent;
+    Event<List<RoleDTO>> userAuthenticatedPermissionsEvent;
 
     private static final String REALM = "example";
     private static final String AUTHENTICATION_SCHEME = "Bearer";
@@ -89,12 +90,9 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         storeInDb(requestContext, jwtIdToken);
 
         //send user to AuthenticatedUserProvider to get access to the user from everywhere
-        String test=jwtIdToken.getSubject();
         userAuthenticatedEvent.fire(jwtIdToken.getSubject());
-
-        //TODO Enable again
-
         //send permissions to AuthenticatedUserPermissionsProvider to get access to the permissions from everywhere
+        userAuthenticatedPermissionsEvent.fire(jwtIdToken.getRoles());
 //        Object permissionsClaim = jwtIdToken.getClaimsSet().getClaim("permissions");
 //        Map<String, List<String>> map = (Map) permissionsClaim;
 //        List<String> brokerPermissions = map.get(OAuthConfig.getOAuth2Client(ProjectInfo.INSTANCE.getProjectName()).getClientId());

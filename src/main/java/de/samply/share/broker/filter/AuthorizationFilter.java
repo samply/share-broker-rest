@@ -1,14 +1,9 @@
 package de.samply.share.broker.filter;
 
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import de.samply.auth.rest.RoleDTO;
-import de.samply.share.broker.model.db.tables.pojos.User;
-
+import de.samply.auth.rest.RoleDTO;;
 import javax.annotation.Priority;
 import javax.inject.Inject;
-import javax.management.relation.Role;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -35,8 +30,8 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     private ResourceInfo resourceInfo;
 
     @Inject
-    @AuthenticatedUser
-    User user;
+    @AuthenticatedUserPermissions
+    List<RoleDTO> roles;
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -53,9 +48,6 @@ public class AuthorizationFilter implements ContainerRequestFilter {
         // Extract the permissions declared by it
         Method resourceMethod = resourceInfo.getResourceMethod();
         List<AccessPermission> methodPermissions = extractPermissions(resourceMethod);
-        Gson gson = new Gson();
-        ArrayList<RoleDTO> roles = gson.fromJson(user.getRole(), new TypeToken<ArrayList<RoleDTO>>() {
-        }.getType());
         try {
 
             // Check if the user is allowed to execute the method

@@ -99,7 +99,7 @@ public class Searchbroker {
      * @param xml the query
      * @return 200 or 500 code
      */
-    @Secured({AccessPermission.DKTK_SEARCHBROKER})
+    @Secured({AccessPermission.DKTK_SEARCHBROKER,AccessPermission.USE,AccessPermission.ADMIN})
     @POST
     @Path("/sendQuery")
     @Produces(MediaType.APPLICATION_XML)
@@ -121,7 +121,7 @@ public class Searchbroker {
      * @param id the id of the query
      * @return the result as JSON String
      */
-    @Secured
+    @Secured({AccessPermission.DKTK_SEARCHBROKER,AccessPermission.USE,AccessPermission.ADMIN})
     @GET
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
@@ -135,7 +135,7 @@ public class Searchbroker {
      * @param id Inquiry ID
      * @return the count of the sites
      */
-    @Secured
+    @Secured({AccessPermission.DKTK_SEARCHBROKER,AccessPermission.USE,AccessPermission.ADMIN})
     @GET
     @Path("/getSize")
     @Consumes(MediaType.TEXT_PLAIN)
