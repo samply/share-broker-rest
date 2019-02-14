@@ -105,14 +105,17 @@ public class Searchbroker {
     @Produces(MediaType.APPLICATION_XML)
     @Consumes(MediaType.APPLICATION_XML)
     public Response sendQuery(String xml) {
+        logger.info("sendQuery called");
         User user = authenticatedUser;
         int id;
         try {
             id = SearchController.releaseQuery(xml, user);
         } catch (JAXBException e) {
+            logger.error("sendQuery id internal error: " + e);
             e.printStackTrace();
             return Response.serverError().build();
         }
+        logger.info("sendQuery with id is sent");
         return Response.accepted().header("id", id).build();
     }
 

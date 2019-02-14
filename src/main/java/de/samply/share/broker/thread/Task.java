@@ -29,46 +29,27 @@
  */
 package de.samply.share.broker.thread;
 
+import java.util.concurrent.Callable;
+
 /**
- * An instance of this class needs to be returned by any Task to be executed by ApplicationController. Extend this class to include custom return values.
+ * Auto-Logging task to be queued in the Application class.
  */
-public class TaskResult {
-
-	/** The error code. */
-	private int errorCode;
-
-	/** The message to be logged. */
-	private String messageToBeLogged;
+public abstract class Task implements Callable<TaskResult> {
 
 	/**
-	 * Instantiates a new task result.
+	 * Executes this task.
 	 *
-	 * @param errorCode
-	 *            the error code
-	 * @param messageToBeLogged
-	 *            the message to be logged
+	 * @return the task result
+	 * @throws Exception the exception
 	 */
-	public TaskResult(int errorCode, String messageToBeLogged) {
-		this.errorCode = errorCode;
-		this.messageToBeLogged = messageToBeLogged;
+	abstract TaskResult doIt() throws Exception;
+
+	/* (non-Javadoc)
+	 * @see java.util.concurrent.Callable#call()
+	 */
+	@Override
+	public TaskResult call() throws Exception {
+		return doIt();
 	}
 
-	/**
-	 * Gets the error code.
-	 *
-	 * @return the error code
-	 */
-	public int getErrorCode() {
-		return errorCode;
-	}
-
-	/**
-	 * Gets the message to be logged.
-	 *
-	 * @return the message to be logged
-	 */
-	public String getMessageToBeLogged() {
-		return messageToBeLogged;
-	}
 }
-
