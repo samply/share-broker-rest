@@ -29,46 +29,29 @@
  */
 package de.samply.share.broker.thread;
 
+import de.samply.share.broker.utils.MailUtils;
+
 /**
- * An instance of this class needs to be returned by any Task to be executed by ApplicationController. Extend this class to include custom return values.
+ * A task that checks if any reminders and/or notifications have to be sent and sends them if necessary
+ *
+ * This is realized as a task to avoid blocking the application when trying to send a mail
  */
-public class TaskResult {
+public class MailSendingTask extends Task {
 
-	/** The error code. */
-	private int errorCode;
+    public MailSendingTask() {
+    }
 
-	/** The message to be logged. */
-	private String messageToBeLogged;
-
-	/**
-	 * Instantiates a new task result.
-	 *
-	 * @param errorCode
-	 *            the error code
-	 * @param messageToBeLogged
-	 *            the message to be logged
-	 */
-	public TaskResult(int errorCode, String messageToBeLogged) {
-		this.errorCode = errorCode;
-		this.messageToBeLogged = messageToBeLogged;
-	}
-
-	/**
-	 * Gets the error code.
-	 *
-	 * @return the error code
-	 */
-	public int getErrorCode() {
-		return errorCode;
-	}
-
-	/**
-	 * Gets the message to be logged.
-	 *
-	 * @return the message to be logged
-	 */
-	public String getMessageToBeLogged() {
-		return messageToBeLogged;
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see de.samply.share.thread.Task#doIt()
+     */
+    @Override
+    public TaskResult doIt() {
+        MailUtils.checkAndSendNotifications();
+        MailUtils.checkAndSendReminders();
+        MailUtils.checkAndSendRemindersExternal();
+        MailUtils.checkAndSendReportReminders();
+        return new TaskResult(0, "MailSending Check done");
+    }
 }
-

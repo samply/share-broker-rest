@@ -25,7 +25,7 @@
                 <project.context>samply</project.context>
                 <database.username>${project.context}</database.username>
                 <database.password>${project.context}</database.password>
-                <database.url>jdbc:postgresql://localhost:5432/${project.context}.broker</database.url>
+                <database.url>jdbc:postgresql://localhost:5432/${project.context}.searchbroker</database.url>
                 <database.schema>${project.context}</database.schema>
             </properties>
         </profile>
@@ -73,7 +73,7 @@
     </properties>
 
     <build>
-        <finalName>broker</finalName>
+        <finalName>searchbroker</finalName>
         <resources>
             <resource>
                 <directory>src/main/java</directory>
@@ -401,13 +401,17 @@
             <scope>runtime</scope>
         </dependency>
 
-
     </dependencies>
     <repositories>
         <repository>
             <id>samply-maven-oss-releases</id>
             <name>Samply Maven Builds</name>
             <url>https://maven.samply.de/nexus/content/repositories/oss-releases</url>
+        </repository>
+        <repository>
+            <id>samply-maven-oss-snapshots</id>
+            <name>Samply Maven Builds</name>
+            <url>https://maven.samply.de/nexus/content/repositories/oss-snapshots</url>
         </repository>
     </repositories>
 </project>
