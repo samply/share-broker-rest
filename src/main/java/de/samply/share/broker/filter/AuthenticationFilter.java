@@ -96,7 +96,6 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     }
 
     private boolean isTokenBasedAuthentication(String authorizationHeader) {
-
         // Check if the Authorization header is valid
         // It must not be null and must be prefixed with "Bearer" plus a whitespace
         // The authentication scheme comparison must be case-insensitive
@@ -105,7 +104,6 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     }
 
     private void abortWithUnauthorized(ContainerRequestContext requestContext) {
-
         // Abort the filter chain with a 401 status code response
         // The WWW-Authenticate header is sent along with the response
         requestContext.abortWith(
