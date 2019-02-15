@@ -145,6 +145,7 @@ public class Monitoring {
         Query query = new Query();
         Where where = new Where();
         And and = new And();
+        Or or= new Or();
         Eq eq = new Eq();
         Attribute attribute = new Attribute();
 
@@ -158,7 +159,8 @@ public class Monitoring {
             attribute.setValue(objectFactory.createValue("2"));
         }
         eq.setAttribute(attribute);
-        and.getAndOrEqOrLike().add(eq);
+        or.getAndOrEqOrLike().add(eq);
+        and.getAndOrEqOrLike().add(or);
         where.getAndOrEqOrLike().add(and);
         query.setWhere(where);
 
