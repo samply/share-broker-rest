@@ -529,6 +529,14 @@ public class Utils {
                 statusReportItems.add(statusReportItemStatus);
                 statusReportItems.add(statusReportItemVersion);
 
+                statusReportItemStatus = new StatusReportItem();
+                statusReportItemStatus.setExit_status("0");
+                statusReportItemStatus.setParameter_name("host");
+                statusReportItemStatus.setStatus_text("ok");
+
+                statusReportItems.add(statusReportItemStatus);
+                statusReportItems.add(statusReportItemVersion);
+
                 IcingaConnector.reportStatusItems(site.getName(), statusReportItems);
             } catch (IcingaConnectorException e) {
                 logger.warn("There was an error while trying to submit to icinga", e);

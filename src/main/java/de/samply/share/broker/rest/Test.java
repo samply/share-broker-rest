@@ -225,13 +225,19 @@ public class Test {
         Where where = new Where();
         And and = new And();
         Eq eq = new Eq();
+        Or or= new Or();
         Attribute attribute = new Attribute();
+        if (ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("samply")) {
+            attribute.setMdrKey("urn:mdr16:dataelement:23:1");
+            attribute.setValue(objectFactory.createValue("female"));
 
-        attribute.setMdrKey("urn:dktk:dataelement:1:*");
-        attribute.setValue(objectFactory.createValue("M"));
-
+        } else if (ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("dktk")) {
+            attribute.setMdrKey("urn:dktk:dataelement:1:*");
+            attribute.setValue(objectFactory.createValue("M"));
+        }
         eq.setAttribute(attribute);
-        and.getAndOrEqOrLike().add(eq);
+        or.getAndOrEqOrLike().add(eq);
+        and.getAndOrEqOrLike().add(or);
         where.getAndOrEqOrLike().add(and);
         query.setWhere(where);
 
