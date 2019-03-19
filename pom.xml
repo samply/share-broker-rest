@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>war</packaging>
     <artifactId>share.broker.rest</artifactId>
-    <version>1.2.1-SNAPSHOT</version>
+    <version>2.0.0</version>
     <name>Searchbroker</name>
 
     <parent>
@@ -118,6 +118,14 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <configuration>
                     <archive>
+                        <manifestFile>
+                            ${basedir}/src/main/webapp/META-INF/MANIFEST.MF
+                        </manifestFile>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            <mainClass/>
+                        </manifest>
                         <manifestEntries>
                             <Samply-Project-Context>${project.context}</Samply-Project-Context>
                         </manifestEntries>
