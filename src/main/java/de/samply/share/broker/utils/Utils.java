@@ -55,6 +55,7 @@ import de.samply.share.broker.utils.connector.IcingaConnector;
 import de.samply.share.broker.utils.connector.IcingaConnectorException;
 import de.samply.share.broker.utils.connector.SiteReportItem;
 import de.samply.share.common.model.dto.monitoring.StatusReportItem;
+import de.samply.share.common.utils.AbstractConfig;
 import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.SamplyShareUtils;
 import org.apache.commons.io.FileUtils;
@@ -70,7 +71,6 @@ import de.samply.auth.rest.AccessTokenDTO;
 import de.samply.auth.rest.LocationDTO;
 import de.samply.auth.rest.LocationListDTO;
 import de.samply.auth.rest.UserDTO;
-import de.samply.share.broker.control.ApplicationBean;
 import de.samply.share.broker.control.LocaleController;
 import de.samply.share.broker.control.LoginController;
 import de.samply.share.broker.control.SearchDetailsBean;
@@ -85,6 +85,7 @@ import de.samply.share.common.utils.oauth2.OAuthConfig;
 import de.samply.share.common.utils.oauth2.OAuthUtils;
 
 import static de.samply.share.common.model.dto.monitoring.StatusReportItem.*;
+import static org.omnifaces.util.Faces.getServletContext;
 
 /**
  * A collection of utility methods.
@@ -226,16 +227,6 @@ public class Utils {
     }
 
     /**
-     * Gets the application bean.
-     *
-     * @return the ApplicationBean
-     */
-    public static ApplicationBean getAB() {
-        return (ApplicationBean) FacesContext.getCurrentInstance().getApplication().getELResolver()
-                .getValue(FacesContext.getCurrentInstance().getELContext(), null, "applicationBean");
-    }
-
-    /**
      * Gets the login controller
      *
      * @return the LoginController
@@ -358,7 +349,8 @@ public class Utils {
      */
     public static LocationListDTO getLocationList(AccessTokenDTO accesstoken) {
         String projectName = ProjectInfo.INSTANCE.getProjectName();
-        String authUrl = OAuthConfig.getOAuth2Client(projectName).getHost() + "/oauth2/locations";
+        String[] fallbacks = {System.getProperty("catalina.base") + File.separator + "conf", getServletContext().getRealPath("/WEB-INF")};
+        String authUrl = OAuthConfig.getOAuth2Client(projectName, fallbacks).getHost() + "/oauth2/locations";
 
         Client client = ClientBuilder.newClient();
         Invocation.Builder invocationBuilder = client.target(authUrl).request("application/json").
@@ -375,7 +367,8 @@ public class Utils {
      */
     public static String getLocationIdFromAccessToken(String accessTokenHeader) {
         String projectName = ProjectInfo.INSTANCE.getProjectName();
-        String authUrl = OAuthConfig.getOAuth2Client(projectName).getHost() + "/oauth2/userinfo";
+        String[] fallbacks = {System.getProperty("catalina.base") + File.separator + "conf", getServletContext().getRealPath("/WEB-INF")};
+        String authUrl = OAuthConfig.getOAuth2Client(projectName, fallbacks).getHost() + "/oauth2/userinfo";
 
         JWTAccessToken accessToken = OAuthUtils.getJwtAccessToken(accessTokenHeader);
 
@@ -399,9 +392,8 @@ public class Utils {
      * @param config the configuration, containing the parameters
      * @return a map with http connector compliant values
      */
-    public static HashMap<String, String> getHttpConfigParams(Config config) {
+    public static HashMap<String, String> getHttpConfigParams(AbstractConfig config) {
         HashMap<String, String> configParams = new HashMap<>();
-
         configParams.put(PROXY_HTTP_HOST, config.getProperty(PROXY_HTTPS_HOST));
         configParams.put(PROXY_HTTP_PORT, config.getProperty(PROXY_HTTP_PORT));
         configParams.put(PROXY_HTTP_USERNAME, config.getProperty(PROXY_HTTP_USERNAME));

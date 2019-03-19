@@ -595,7 +595,7 @@ public final class WebUtils {
      * @return the mdr key for the result type dataelement
      */
     public static String getResultTypeMdrKey() {
-    	return Config.instance.getProperty(MDRKEY_RESULT_TYPE);
+        return ProjectInfo.INSTANCE.getConfig().getProperty(MDRKEY_RESULT_TYPE);
     }
 
     /**

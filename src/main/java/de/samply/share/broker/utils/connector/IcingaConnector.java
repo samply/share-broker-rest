@@ -2,9 +2,11 @@ package de.samply.share.broker.utils.connector;
 
 import com.google.gson.Gson;
 import de.samply.common.http.HttpConnector;
+import de.samply.share.broker.listener.Proxy;
 import de.samply.share.broker.utils.Config;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.common.model.dto.monitoring.StatusReportItem;
+import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.Consts;
@@ -19,16 +21,22 @@ import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -36,8 +44,6 @@ import java.util.concurrent.TimeUnit;
  * Relay version information from attached clients to Icinga
  */
 public class IcingaConnector {
-
-    private static final Logger logger = LogManager.getLogger(IcingaConnector.class);
 
     public static final String CFG_ICINGA_HOST = "icinga.host";
     public static final String CFG_ICINGA_PATH = "icinga.path";
@@ -52,17 +58,18 @@ public class IcingaConnector {
     private static Gson gson;
     private static String targetPath;
     private static String siteSuffix;
+    private static CredentialsProvider credentialsProvider;
 
     static {
         try {
-            String username = Config.instance.getProperty(CFG_ICINGA_USERNAME);
-            String password = Config.instance.getProperty(CFG_ICINGA_PASSWORD);
-            siteSuffix = Config.instance.getProperty(CFG_ICINGA_SITE_SUFFIX);
-            String targetHost = Config.instance.getProperty(CFG_ICINGA_HOST);
-            targetPath = Config.instance.getProperty(CFG_ICINGA_PATH);
-            HttpConnector httpConnector = new HttpConnector(Utils.getHttpConfigParams(Config.instance));
+            String username = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_ICINGA_USERNAME);
+            String password = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_ICINGA_PASSWORD);
+            siteSuffix = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_ICINGA_SITE_SUFFIX);
+            String targetHost = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_ICINGA_HOST);
+            targetPath = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_ICINGA_PATH);
+            HttpConnector httpConnector = new HttpConnector(Utils.getHttpConfigParams(ProjectInfo.INSTANCE.getConfig()));
             httpHost = SamplyShareUtils.getAsHttpHost(targetHost);
-            CredentialsProvider credentialsProvider = prepareCredentialsProvider(httpHost, username, password);
+            credentialsProvider = prepareCredentialsProvider(httpHost, username, password);
             httpConnector.setCp(credentialsProvider);
             httpClient = httpConnector.getHttpClient(targetHost);
             gson = new Gson();
@@ -116,12 +123,37 @@ public class IcingaConnector {
      */
     private static void sendSimpleReport(String sitename, StatusReportItem statusReportItem, boolean isRetry) throws IcingaConnectorException {
         try {
-            HttpPost httpPost = createPost(sitename, statusReportItem.getParameter_name());
+            HttpPost httpPost;
+            if (statusReportItem.getParameter_name().equals("host")) {
+                httpPost = createPostHost(sitename);
+            } else {
+                if (ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("samply")) {
+                    httpPost = createPost(sitename, statusReportItem.getParameter_name() + "-gba");
+                } else {
+                    httpPost = createPost(sitename, statusReportItem.getParameter_name());
+                }
+            }
             IcingaReportItem icingaReportItem = new IcingaReportItem();
             icingaReportItem.setExit_status(statusReportItem.getExit_status());
             icingaReportItem.setPlugin_output(statusReportItem.getStatus_text());
-
             httpPost.setEntity(new StringEntity(gson.toJson(icingaReportItem), Consts.UTF_8));
+
+
+            // only for local test with proxy
+//            HttpHost httpHost = new HttpHost("193.174.53.221", 3128);
+//            SSLContextBuilder builder = new SSLContextBuilder();
+//            builder.loadTrustMaterial(null, new TrustStrategy() {
+//                public boolean isTrusted(final X509Certificate[] chain, String authType) {
+//                    return true;
+//                }
+//            });
+//            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+//            CloseableHttpClient httpClient = HttpClients
+//                    .custom()
+//                    .setSSLSocketFactory(sslsf).setProxy(httpHost).setDefaultCredentialsProvider(credentialsProvider)
+//                    .build();
+
+
             CloseableHttpResponse response = httpClient.execute(httpPost);
             EntityUtils.consume(response.getEntity());
         } catch (NoHttpResponseException nhre) {
@@ -135,6 +167,12 @@ public class IcingaConnector {
             }
         } catch (URISyntaxException | IOException e) {
             throw new IcingaConnectorException(e);
+//        } catch (KeyManagementException e) {
+//            e.printStackTrace();
+//        } catch (NoSuchAlgorithmException e) {
+//            e.printStackTrace();
+//        } catch (KeyStoreException e) {
+//            e.printStackTrace();
         }
     }
 
@@ -158,7 +196,12 @@ public class IcingaConnector {
      */
     private static void sendPerformanceReport(String sitename, StatusReportItem statusReportItem, boolean isRetry) throws IcingaConnectorException {
         try {
-            HttpPost httpPost = createPost(sitename, statusReportItem.getParameter_name());
+            HttpPost httpPost;
+            if (ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("samply")) {
+                httpPost = createPost(sitename, statusReportItem.getParameter_name() + "-gba");
+            } else {
+                httpPost = createPost(sitename, statusReportItem.getParameter_name());
+            }
             IcingaReportItem icingaReportItem = new IcingaReportItem();
             icingaReportItem.setExit_status(statusReportItem.getExit_status());
             icingaReportItem.setPlugin_output(statusReportItem.getStatus_text());
@@ -169,6 +212,22 @@ public class IcingaConnector {
             icingaReportItem.getPerformance_data().add(icingaPerformanceData);
 
             httpPost.setEntity(new StringEntity(gson.toJson(icingaReportItem), Consts.UTF_8));
+
+            // only for local test with proxy
+//            HttpHost httpHost = new HttpHost("193.174.53.221", 3128);
+//            SSLContextBuilder builder = new SSLContextBuilder();
+//            builder.loadTrustMaterial(null, new TrustStrategy() {
+//                public boolean isTrusted(final X509Certificate[] chain, String authType) {
+//                    return true;
+//                }
+//            });
+//            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+//            CloseableHttpClient httpClient = HttpClients
+//                    .custom()
+//                    .setSSLSocketFactory(sslsf).setProxy(httpHost).setDefaultCredentialsProvider(credentialsProvider)
+//                    .build();
+
+
             CloseableHttpResponse response = httpClient.execute(httpPost);
             EntityUtils.consume(response.getEntity());
         } catch (NoHttpResponseException nhre) {
@@ -182,6 +241,12 @@ public class IcingaConnector {
             }
         } catch (URISyntaxException | IOException e) {
             throw new IcingaConnectorException(e);
+//        } catch (KeyManagementException e) {
+//            e.printStackTrace();
+//        } catch (NoSuchAlgorithmException e) {
+//            e.printStackTrace();
+//        } catch (KeyStoreException e) {
+//            e.printStackTrace();
         }
     }
 
@@ -192,18 +257,6 @@ public class IcingaConnector {
      * @param statusReportItems the list of status report items
      */
     public static void reportStatusItems(String sitename, List<StatusReportItem> statusReportItems) throws IcingaConnectorException {
-        for (StatusReportItem statusReportItem : statusReportItems) {
-            sendReport(sitename, statusReportItem);
-        }
-    }
-
-    /**
-     * Report a list of status report items to icinga
-     *
-     * @param sitename the name of the site that sent the report
-     * @param statusReportItems the list of status report items
-     */
-    public static void reportPerformanceData(String sitename, List<StatusReportItem> statusReportItems) throws IcingaConnectorException {
         for (StatusReportItem statusReportItem : statusReportItems) {
             sendReport(sitename, statusReportItem);
         }
@@ -227,6 +280,19 @@ public class IcingaConnector {
                 .setPort(httpHost.getPort())
                 .setPath(targetPath)
                 .setCustomQuery("service=" + service);
+        HttpPost httpPost = new HttpPost(uriBuilder.build().toString());
+        httpPost.setHeader(HttpHeaders.ACCEPT, javax.ws.rs.core.MediaType.APPLICATION_JSON);
+        return httpPost;
+    }
+
+    private static HttpPost createPostHost(String sitename) throws URISyntaxException {
+        String service = "BK " + sitename + " " + siteSuffix;
+        URIBuilder uriBuilder = new URIBuilder();
+        uriBuilder.setScheme(httpHost.getSchemeName())
+                .setHost(httpHost.getHostName())
+                .setPort(httpHost.getPort())
+                .setPath(targetPath)
+                .setCustomQuery("host=" + service);
         HttpPost httpPost = new HttpPost(uriBuilder.build().toString());
         httpPost.setHeader(HttpHeaders.ACCEPT, javax.ws.rs.core.MediaType.APPLICATION_JSON);
         return httpPost;

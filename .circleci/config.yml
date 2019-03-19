@@ -7,7 +7,7 @@ jobs:
         environment:
           POSTGRES_USER: samply
           POSTGRES_PASSWORD: samply
-          POSTGRES_DB: samply.broker
+          POSTGRES_DB: samply.searchbroker
 
     working_directory: ~/repo
 
@@ -17,6 +17,6 @@ jobs:
       - run: mvn -B package
 
       - setup_remote_docker
-      - run: docker build -t akiel/samply-searchbroker .
-      - run: docker login -u akiel -p "${DOCKER_HUB_PASSWD}"
-      - run: docker push akiel/samply-searchbroker
+      - run: docker build -t martinbreu/samply-searchbroker:${CIRCLE_SHA1} .
+      - run: docker login -u martinbreu -p "${DOCKER_HUB_PASSWD}"
+      - run: docker push martinbreu/samply-searchbroker:${CIRCLE_SHA1}

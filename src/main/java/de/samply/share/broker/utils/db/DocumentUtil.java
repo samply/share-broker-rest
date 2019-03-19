@@ -26,6 +26,20 @@
 
 package de.samply.share.broker.utils.db;
 
+import de.samply.share.broker.jdbc.ResourceManager;
+import de.samply.share.broker.model.db.Tables;
+import de.samply.share.broker.model.db.enums.DocumentType;
+import de.samply.share.broker.model.db.tables.daos.DocumentDao;
+import de.samply.share.broker.model.db.tables.pojos.Document;
+import de.samply.share.broker.model.db.tables.pojos.Inquiry;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jooq.Configuration;
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,21 +49,6 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.jooq.Configuration;
-import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DSL;
-import org.jooq.impl.DefaultConfiguration;
-
-import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.model.db.Tables;
-import de.samply.share.broker.model.db.enums.DocumentType;
-import de.samply.share.broker.model.db.tables.daos.DocumentDao;
-import de.samply.share.broker.model.db.tables.pojos.Document;
-import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 
 /**
  * This class provides static methods for CRUD operations for Document Objects
@@ -177,26 +176,6 @@ public final class DocumentUtil {
 
         } catch (SQLException e) {
             logger.error("Error setting inquiry id " + inquiryId + " for document " + documentId);
-        }
-    }
-
-    /**
-     * Link a document with a project
-     *
-     * @param documentId the id of the document
-     * @param projectId the id of the project to link the document with
-     */
-    public static void setProjectIdForDocument(int documentId, Integer projectId) {
-        try (Connection conn = ResourceManager.getConnection() ) {
-            DSLContext dslContext = ResourceManager.getDSLContext(conn);
-            
-            dslContext.update(Tables.DOCUMENT)
-                      .set(Tables.DOCUMENT.PROJECT_ID, projectId)
-                      .where(Tables.DOCUMENT.ID.equal(documentId))
-                      .execute();
-
-        } catch (SQLException e) {
-            logger.error("Error setting project id " + projectId + " for document " + documentId);
         }
     }
 

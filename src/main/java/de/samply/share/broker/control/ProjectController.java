@@ -29,15 +29,28 @@
  */
 package de.samply.share.broker.control;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.List;
+import com.itextpdf.text.DocumentException;
+import de.samply.share.broker.model.EnumProjectType;
+import de.samply.share.broker.model.db.enums.ActionType;
+import de.samply.share.broker.model.db.enums.DocumentType;
+import de.samply.share.broker.model.db.enums.InquiryStatus;
+import de.samply.share.broker.model.db.enums.ProjectStatus;
+import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.rest.InquiryHandler;
+import de.samply.share.broker.utils.MailUtils;
+import de.samply.share.broker.utils.PdfUtils;
+import de.samply.share.broker.utils.Utils;
+import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.model.uiquerybuilder.QueryItem;
+import de.samply.share.common.utils.QueryTreeUtil;
+import de.samply.share.common.utils.SamplyShareUtils;
+import de.samply.share.model.common.Query;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.omnifaces.model.tree.ListTreeModel;
+import org.omnifaces.model.tree.TreeModel;
+import org.omnifaces.util.Ajax;
+import org.omnifaces.util.Faces;
 
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
@@ -48,40 +61,11 @@ import javax.servlet.http.Part;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-
-import de.samply.share.common.utils.QueryTreeUtil;
-import de.samply.share.common.utils.SamplyShareUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.omnifaces.model.tree.ListTreeModel;
-import org.omnifaces.model.tree.TreeModel;
-import org.omnifaces.util.Ajax;
-import org.omnifaces.util.Faces;
-
-import com.itextpdf.text.DocumentException;
-
-import de.samply.share.broker.model.EnumProjectType;
-import de.samply.share.broker.model.db.enums.ActionType;
-import de.samply.share.broker.model.db.enums.DocumentType;
-import de.samply.share.broker.model.db.enums.InquiryStatus;
-import de.samply.share.broker.model.db.enums.ProjectStatus;
-import de.samply.share.broker.model.db.tables.pojos.Action;
-import de.samply.share.broker.model.db.tables.pojos.Document;
-import de.samply.share.broker.model.db.tables.pojos.Inquiry;
-import de.samply.share.broker.model.db.tables.pojos.Project;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.rest.InquiryHandler;
-import de.samply.share.broker.utils.MailUtils;
-import de.samply.share.broker.utils.PdfUtils;
-import de.samply.share.broker.utils.Utils;
-import de.samply.share.broker.utils.db.ActionUtil;
-import de.samply.share.broker.utils.db.DocumentUtil;
-import de.samply.share.broker.utils.db.InquiryUtil;
-import de.samply.share.broker.utils.db.NoteUtil;
-import de.samply.share.broker.utils.db.ProjectUtil;
-import de.samply.share.broker.utils.db.SiteUtil;
-import de.samply.share.common.model.uiquerybuilder.QueryItem;
-import de.samply.share.model.common.Query;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
 
 /**
  * A JSF Managed Bean that is used for most of the project management tasks
@@ -92,7 +76,9 @@ public class ProjectController implements Serializable {
 
     private static final long serialVersionUID = 876573067329775658L;
 
-    /** The Constant logger. */
+    /**
+     * The Constant logger.
+     */
     private static final Logger logger = LogManager.getLogger(ProjectController.class);
 
     private static final String resetFileinputAndCreatePopovers = "$('#documentBoxForm .fileinput-remove-button').trigger('click'); createEventhandlers();";
@@ -101,14 +87,18 @@ public class ProjectController implements Serializable {
     private static final String BELL_ICON = "fa-bell";
     private static final String MAIL_ICON = "fa-mail-forward";
 
-    /** The login controller. */
+    /**
+     * The login controller.
+     */
     @ManagedProperty(value = "#{loginController}")
     private LoginController loginController;
 
     private List<Project> projects;
     private Project selectedProject;
     private int selectedProjectId;
-    /** A tree holding query items (and conjunction groups). Basically "the inquiry" */
+    /**
+     * A tree holding query items (and conjunction groups). Basically "the inquiry"
+     */
     private TreeModel<QueryItem> criteriaTree;
     private String newNote;
     private String projectName;
@@ -355,6 +345,7 @@ public class ProjectController implements Serializable {
 
     /**
      * Load all projects with a given type
+     *
      * @param projectType the project type to load
      */
     public void loadProjects(EnumProjectType projectType) {
@@ -368,7 +359,7 @@ public class ProjectController implements Serializable {
      */
     public void loadProject(boolean setSeen) {
         selectedProject = ProjectUtil.fetchProjectById(selectedProjectId);
-        
+
         if (selectedProject != null) {
             populateCriteriaTree();
             loadSelectedSites();
@@ -381,7 +372,7 @@ public class ProjectController implements Serializable {
             endDateActual = selectedProject.getEndActual();
             endDateEstimated = selectedProject.getEndEstimated();
             selectedProject.setSeen(setSeen);
-            ProjectUtil.updateProject(selectedProject);            
+            ProjectUtil.updateProject(selectedProject);
             // pre-fill the projectname with the inquiry name
             projectName = selectedProject.getName();
         } else {
@@ -469,7 +460,7 @@ public class ProjectController implements Serializable {
     public void exportProject() throws IOException, DocumentException {
         logger.debug("Export Project called for project " + selectedProject.getId());
         Inquiry inquiry = ProjectUtil.fetchFirstInquiryForProject(selectedProjectId);
-        ByteArrayOutputStream bos =  PdfUtils.createPdfOutputstream(inquiry);
+        ByteArrayOutputStream bos = PdfUtils.createPdfOutputstream(inquiry);
         Faces.sendFile(bos.toByteArray(), ProjectUtil.getProjectTitleById(selectedProjectId) + PdfUtils.FILENAME_SUFFIX_PDF, true);
     }
 
@@ -481,7 +472,7 @@ public class ProjectController implements Serializable {
     public void exportDocument(int documentId) throws IOException {
         logger.debug("Export Document called for document id " + documentId);
         Document document = DocumentUtil.getDocumentById(documentId);
-        ByteArrayOutputStream bos =  new ByteArrayOutputStream();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
         bos.write(document.getData());
         bos.close();
         Faces.sendFile(bos.toByteArray(), document.getFilename(), true);
@@ -498,7 +489,7 @@ public class ProjectController implements Serializable {
         selectedProject.setApproved(SamplyShareUtils.getCurrentSqlTimestamp());
         selectedProject.setStatus(ProjectStatus.PS_OPEN_DISTRIBUTION);
         ProjectUtil.updateProject(selectedProject);
-        
+
         MailUtils.sendProjectGrantedInfo(selectedProject, newNote, selectedSites);
 
         Action action = new Action();
@@ -515,7 +506,7 @@ public class ProjectController implements Serializable {
         } else {
             logger.error("Inquiry is null");
         }
-        
+
         return "projects_pending?faces-redirect=true";
     }
 
@@ -529,14 +520,14 @@ public class ProjectController implements Serializable {
         NoteUtil.addNoteToProject(newNote, userId, selectedProjectId);
         selectedProject.setStatus(ProjectStatus.PS_REJECTED);
         ProjectUtil.updateProject(selectedProject);
-        
+
         // If a project is rejected, consider the inquiry outdated
         Inquiry inquiry = ProjectUtil.fetchFirstInquiryForProject(selectedProjectId);
         if (inquiry != null) {
             inquiry.setStatus(InquiryStatus.IS_OUTDATED);
             InquiryUtil.updateInquiry(inquiry);
         }
-        
+
         MailUtils.sendProjectRejectedInfo(selectedProject, newNote);
 
         Action action = new Action();
@@ -559,9 +550,9 @@ public class ProjectController implements Serializable {
         NoteUtil.addNoteToProject(newNote, loginController.getUser().getId(), selectedProjectId);
         selectedProject.setStatus(ProjectStatus.PS_OPEN_MOREINFO_NEEDED);
         ProjectUtil.updateProject(selectedProject);
-        
+
         MailUtils.sendProjectCallbackInfo(selectedProject, newNote);
-        
+
         Inquiry inquiry = ProjectUtil.fetchFirstInquiryForProject(selectedProjectId);
         if (inquiry != null) {
             inquiry.setStatus(InquiryStatus.IS_DRAFT);
@@ -597,7 +588,7 @@ public class ProjectController implements Serializable {
             selectedProject.setEndEstimated(sqlDate);
         }
         ProjectUtil.updateProject(selectedProject);
-        
+
         MailUtils.sendProjectActivatedInfo(selectedProject, projectPartners);
 
         Action action = new Action();
@@ -625,9 +616,9 @@ public class ProjectController implements Serializable {
             selectedProject.setEndActual(sqlDate);
         }
         ProjectUtil.updateProject(selectedProject);
-        
+
         MailUtils.sendProjectArchivedInfo(selectedProject, newNote, DocumentUtil.fetchFinalReportByProjectId(selectedProjectId) != null);
-        
+
         // If a project is closed, consider the inquiry outdated
         Inquiry inquiry = ProjectUtil.fetchFirstInquiryForProject(selectedProjectId);
         if (inquiry != null) {
@@ -662,7 +653,7 @@ public class ProjectController implements Serializable {
             loadDocuments();
             documentFile.delete();
             newDocument = null;
-             Ajax.oncomplete(resetFileinput, createEventhandlers);
+            Ajax.oncomplete(resetFileinput, createEventhandlers);
         } catch (IOException e) {
             e.printStackTrace();
             logger.error("Document upload failed.");
@@ -757,7 +748,7 @@ public class ProjectController implements Serializable {
         MailUtils.sendAssessmentInfo(selectedProject);
         selectedProject.setExternalAssessment(true);
         ProjectUtil.updateProject(selectedProject);
-        
+
         int userId = loginController.getUser().getId();
         Action action = new Action();
         action.setProjectId(selectedProjectId);
@@ -781,7 +772,7 @@ public class ProjectController implements Serializable {
     /**
      * Change the document type for a given document id and refresh the list of documents afterwards
      *
-     * @param docId the id of the document to change
+     * @param docId        the id of the document to change
      * @param documentType the new document type
      */
     public void setDocType(int docId, DocumentType documentType) {

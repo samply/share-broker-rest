@@ -82,44 +82,16 @@ public class IcingaPerformanceData {
         this.maxThreshold = maxThreshold;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public UnitOfMeasure getUnitOfMeasure() {
-        return unitOfMeasure;
-    }
-
-    public String getWarnThreshold() {
-        return warnThreshold;
-    }
-
     public void setWarnThreshold(String warnThreshold) {
         this.warnThreshold = warnThreshold;
-    }
-
-    public String getCritThreshold() {
-        return critThreshold;
     }
 
     public void setCritThreshold(String critThreshold) {
         this.critThreshold = critThreshold;
     }
 
-    public String getMinThreshold() {
-        return minThreshold;
-    }
-
     public void setMinThreshold(String minThreshold) {
         this.minThreshold = minThreshold;
-    }
-
-    public String getMaxThreshold() {
-        return maxThreshold;
     }
 
     public void setMaxThreshold(String maxThreshold) {

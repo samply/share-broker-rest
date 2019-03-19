@@ -29,33 +29,12 @@
  */
 package de.samply.share.broker.control;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ViewScoped;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import de.samply.common.mdrclient.domain.*;
-import de.samply.config.util.FileFinderUtil;
-import de.samply.share.common.utils.SamplyShareUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.omnifaces.util.Ajax;
-
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
-
 import de.samply.common.mdrclient.MdrConnectionException;
 import de.samply.common.mdrclient.MdrInvalidResponseException;
+import de.samply.common.mdrclient.domain.*;
+import de.samply.config.util.FileFinderUtil;
 import de.samply.jsf.MdrUtils;
 import de.samply.share.broker.utils.Config;
 import de.samply.share.broker.utils.Utils;
@@ -64,10 +43,29 @@ import de.samply.share.common.model.uiquerybuilder.MenuItem;
 import de.samply.share.common.model.uiquerybuilder.MenuItemTreeManager;
 import de.samply.share.common.utils.MdrIdDatatype;
 import de.samply.share.common.utils.ProjectInfo;
+import de.samply.share.common.utils.SamplyShareUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.omnifaces.util.Ajax;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * The MDR item search panel controller.
@@ -175,7 +173,7 @@ public class ItemSearchController extends AbstractItemSearchController {
 
         if (ProjectInfo.INSTANCE.getProjectName().equalsIgnoreCase("dktk")) {
             try {
-                SHOW_ADT = Boolean.parseBoolean(Config.instance.getProperty(CFG_SHOW_ADT));
+                SHOW_ADT = Boolean.parseBoolean(ProjectInfo.INSTANCE.getConfig().getProperty(CFG_SHOW_ADT));
             } catch (Exception e) {
                 // Leave as false on any kind of exception
             }
@@ -198,7 +196,7 @@ public class ItemSearchController extends AbstractItemSearchController {
      */
     private void readShownAdtElements() {
         try {
-            String adtElementList = Config.instance.getProperty(CFG_SHOWN_ADT_ELEMENTS);
+            String adtElementList = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_SHOWN_ADT_ELEMENTS);
             String[] adtElementArray = adtElementList.split(";");
             for (String adtElement : adtElementArray) {
                 MdrIdDatatype adtMdrElement = new MdrIdDatatype(adtElement);
@@ -214,10 +212,10 @@ public class ItemSearchController extends AbstractItemSearchController {
      */
     private void readIncludeGroups() {
         try {
-            String groupList = Config.instance.getProperty(CFG_INCLUDE_GROUPS);
+            String groupList = ProjectInfo.INSTANCE.getConfig().getProperty(CFG_INCLUDE_GROUPS);
             String[] groupArray = groupList.split(";");
             for (String group : groupArray) {
-                includeGroups.add(Config.instance.getProperty(group));
+                includeGroups.add(ProjectInfo.INSTANCE.getConfig().getProperty(group));
             }
             logger.debug("Got " + includeGroups.size() + " groups to include");
         } catch (Exception e) {
@@ -360,9 +358,7 @@ public class ItemSearchController extends AbstractItemSearchController {
                         new ArrayList<MenuItem>(), null);
                 menuItems.add(menuItem);
             }
-        } else
-
-        {
+        } else {
             for (Result r : results) {
                 MenuItem menuItem = MenuItemTreeManager.buildMenuItem(r.getId(),
                         EnumElementType.valueOf(r.getType()),
@@ -405,9 +401,7 @@ public class ItemSearchController extends AbstractItemSearchController {
         */
 
 
-        if (SHOW_ADT)
-
-        {
+        if (SHOW_ADT) {
             // CCP-340 demands to add select ADT elements without any further hierarchy information
             // So it is necessary to create that manually
             MenuItem adtRootItem = createAdtRootItem();
@@ -466,14 +460,6 @@ public class ItemSearchController extends AbstractItemSearchController {
                 continue;
             }
 
-            List<String> blacklist = Utils.getAB().getMdrKeyBlacklist();
-
-            if (blacklist != null && blacklist.contains(r.getId())) {
-                logger.debug(r.getId() + " is marked as unsupported. Skipping...");
-                continue;
-            }
-
-            filterList.add(r);
         }
 
         // sort
@@ -516,16 +502,6 @@ public class ItemSearchController extends AbstractItemSearchController {
 
             logger.trace("Menu " + parent.getDesignation() + ", " + parent.getMdrId() + " clicked.");
 
-            for (Result r : getGroupMembers(mdrId)) {
-                if (Utils.getAB().getMdrKeyBlacklist().contains(r.getId())) {
-                    logger.debug(r.getId() + " is marked as unsupported. Skipping...");
-                    continue;
-                }
-                MenuItem menuItem = MenuItemTreeManager.buildMenuItem(r.getId(), EnumElementType.valueOf(r.getType()),
-                        MdrUtils.getDesignation(r.getDesignations()),
-                        MdrUtils.getDefinition(r.getDesignations()), new ArrayList<MenuItem>(), parent);
-                MenuItemTreeManager.addMenuItem(menuItem, parent);
-            }
             MenuItemTreeManager.setItemAndParentsOpen(parent);
             Ajax.update(getItemNavigationPanel().getClientId());
         }

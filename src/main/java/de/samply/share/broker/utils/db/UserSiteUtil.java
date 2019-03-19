@@ -26,27 +26,25 @@
 
 package de.samply.share.broker.utils.db;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.jooq.Configuration;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DefaultConfiguration;
-
 import de.samply.auth.rest.LocationDTO;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.tables.daos.SiteDao;
-import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.daos.UserSiteDao;
 import de.samply.share.broker.model.db.tables.pojos.EmailSite;
 import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.broker.model.db.tables.pojos.UserSite;
 import de.samply.share.broker.utils.MailUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jooq.Configuration;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DefaultConfiguration;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * This class provides static methods for CRUD operations for UserSite Objects
@@ -59,25 +57,6 @@ public final class UserSiteUtil {
     
     // Prevent instantiation
     private UserSiteUtil() {
-    }
-
-    /**
-     * Get all user to site associations
-     *
-     * @return a list with all user to site associations
-     */
-    public static List<UserSite> fetchUserSites() {
-        UserSiteDao userSiteDao;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-            userSiteDao = new UserSiteDao(configuration);           
-
-            return userSiteDao.findAll();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     /**
@@ -222,29 +201,6 @@ public final class UserSiteUtil {
         if (userSite != null) {
             deleteUserSite(userSite);
         }
-    }
-
-    /**
-     * Get a user id by his auth id
-     *
-     * @param authId the auth id of the user
-     * @return the user id
-     */
-    public static int getUserIdByAuthId(String authId) {
-        User user;
-        UserDao userDao;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-            userDao = new UserDao(configuration);
-            user = userDao.fetchOneByAuthid(authId);
-            if (user != null) {
-                return user.getId();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
     }
 
     /**

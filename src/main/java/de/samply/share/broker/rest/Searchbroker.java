@@ -29,38 +29,31 @@
  */
 package de.samply.share.broker.rest;
 
+import com.google.gson.Gson;
+import de.samply.share.broker.control.SearchController;
+import de.samply.share.broker.filter.AuthenticatedUser;
+import de.samply.share.broker.filter.Secured;
+import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.utils.Config;
+import de.samply.share.broker.utils.Utils;
+import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.model.dto.SiteInfo;
+import de.samply.share.common.utils.Constants;
+import de.samply.share.common.utils.ProjectInfo;
+import de.samply.share.common.utils.SamplyShareUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.JAXBException;
-
-import de.samply.share.broker.control.SearchController;
-import de.samply.share.broker.model.db.tables.pojos.*;
-import de.samply.share.broker.utils.db.*;
-import de.samply.share.common.utils.SamplyShareUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import com.google.gson.Gson;
-
-import de.samply.share.broker.utils.Config;
-import de.samply.share.broker.utils.Utils;
-import de.samply.share.common.model.dto.SiteInfo;
-import de.samply.share.common.utils.Constants;
-import de.samply.share.common.utils.ProjectInfo;
-import org.jooq.tools.json.JSONObject;
-import org.jooq.tools.json.JSONParser;
-import org.jooq.tools.json.ParseException;
 
 /**
  * The Class Searchbroker provides the REST resources for samply.share.client (and other similar products) to use the decentral search.
@@ -71,7 +64,7 @@ public class Searchbroker {
     public static final String CONFIG_PROPERTY_BROKER_NAME = "broker.name";
     private static final String CONTENT_TYPE_PDF = "application/pdf";
 
-    private Logger logger = LogManager.getLogger(this.getClass().getName());
+    final Logger logger = LoggerFactory.getLogger(Searchbroker.class);
 
     private final String SERVER_HEADER_VALUE = Constants.SERVER_HEADER_VALUE_PREFIX + ProjectInfo.INSTANCE.getVersionString();
 
@@ -84,6 +77,10 @@ public class Searchbroker {
     @Context
     UriInfo uriInfo;
 
+    @Inject
+    @AuthenticatedUser
+    User authenticatedUser;
+
     /**
      * Gets the name of the searchbroker as given in the config file.
      *
@@ -92,7 +89,7 @@ public class Searchbroker {
     @Path("/name")
     @GET
     public Response getName() {
-        return Response.ok(Config.instance.getProperty(CONFIG_PROPERTY_BROKER_NAME)).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
+        return Response.ok(ProjectInfo.INSTANCE.getConfig().getProperty(CONFIG_PROPERTY_BROKER_NAME)).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
     }
 
     /**
@@ -101,21 +98,23 @@ public class Searchbroker {
      * @param xml the query
      * @return 200 or 500 code
      */
+    @Secured
     @POST
     @Path("/sendQuery")
     @Produces(MediaType.APPLICATION_XML)
     @Consumes(MediaType.APPLICATION_XML)
     public Response sendQuery(String xml) {
-        User user = new User();
-        user.setId(1);
-        user.setName("test");
+        logger.info("sendQuery called");
+        User user = authenticatedUser;
         int id;
         try {
             id = SearchController.releaseQuery(xml, user);
         } catch (JAXBException e) {
+            logger.error("sendQuery id internal error: " + e);
             e.printStackTrace();
             return Response.serverError().build();
         }
+        logger.info("sendQuery with id is sent");
         return Response.accepted().header("id", id).build();
     }
 
@@ -124,6 +123,7 @@ public class Searchbroker {
      * @param id the id of the query
      * @return the result as JSON String
      */
+    @Secured
     @GET
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
@@ -137,6 +137,7 @@ public class Searchbroker {
      * @param id Inquiry ID
      * @return the count of the sites
      */
+    @Secured
     @GET
     @Path("/getSize")
     @Consumes(MediaType.TEXT_PLAIN)
@@ -353,7 +354,7 @@ public class Searchbroker {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        String ret = inquiryHandler.getInquiry(inquiryId, bankId, uriInfo, userAgentHeader);
+        String ret = inquiryHandler.getInquiry(inquiryId, uriInfo, userAgentHeader);
 
         Response response = buildResponse(xmlNamespaceHeader, inquiryId, ret);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -414,7 +415,7 @@ public class Searchbroker {
         }
 
 
-        String ret = inquiryHandler.getQuery(inquiryId, bankId, uriInfo);
+        String ret = inquiryHandler.getQuery(inquiryId);
 
         return buildResponse(xmlNamespaceHeader, inquiryId, ret);
     }
@@ -460,7 +461,7 @@ public class Searchbroker {
         }
 
 
-        String ret = inquiryHandler.getViewFields(inquiryId, bankId, uriInfo);
+        String ret = inquiryHandler.getViewFields(inquiryId);
 
         if (SamplyShareUtils.isNullOrEmpty(ret)) {
             logger.debug("No ViewFields were set for inquiry with id " + inquiryId);

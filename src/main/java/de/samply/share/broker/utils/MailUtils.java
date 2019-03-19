@@ -25,6 +25,7 @@
  */
 package de.samply.share.broker.utils;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -126,7 +127,7 @@ public class MailUtils {
         List<Action> reminders = ActionUtil.getRemindersForToday();
         if (!SamplyShareUtils.isNullOrEmpty(reminders)) {
             for (Action reminder : reminders) {
-                MailUtils.sendReminder(Config.instance.getProperty(CCP_OFFICE_MAIL), reminder);
+                MailUtils.sendReminder(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL), reminder);
             }
             logger.debug("Sent " + reminders.size() + " reminders.");
         }
@@ -200,7 +201,7 @@ public class MailUtils {
             email.setSubject(MAIL_SUBJECT_REGISTRATION_EN);
         }
         email.putParameter("token", token);
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("NewRegistrationContent.soy", "NewRegistrationContent");
@@ -232,7 +233,7 @@ public class MailUtils {
             email.setSubject(MAIL_SUBJECT_NEWPROPOSAL_EN);
         }
         email.putParameter("toOffice", "true");
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("NewProjectProposalContent.soy", "NewProjectProposalContent");
@@ -265,7 +266,7 @@ public class MailUtils {
         }
         email.putParameter("toOffice", "true");
         email.putParameter("modified", "true");
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("NewProjectProposalContent.soy", "NewProjectProposalContent");
@@ -300,7 +301,7 @@ public class MailUtils {
         email.setLocale(locale);
         email.putParameter("inquiryName", inquiry.getLabel());
         email.putParameter("expiryDate", sqlDateToString(expiryDate, locale));
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("ExpiryContent.soy", "ExpiryContent");
@@ -337,7 +338,7 @@ public class MailUtils {
         email.putParameter("appnr", applicationNumber);
         email.putParameter("reminder", action.getMessage());
         email.putParameter("toOffice", "true");
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
 
         EmailBuilder builder = initializeBuilder(mailSending);
@@ -364,7 +365,7 @@ public class MailUtils {
             logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
             return;
         }
-        String mailSwitch = Config.instance.getProperty(MAIL_SWITCH);
+        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
         if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
             logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
             return;            
@@ -385,8 +386,8 @@ public class MailUtils {
         User projectLeader = ProjectUtil.getProjectLeader(project);
         Contact plContact = ContactUtil.getContactForUser(projectLeader);
         email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(Config.instance.getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(Config.instance.getProperty(CCP_OFFICE_MAIL));
+        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
+        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
         email.setLocale(locale);
         email.putParameter("projectName", projectLabel);
         email.putParameter("projectNr", appNrString);
@@ -395,7 +396,7 @@ public class MailUtils {
             email.putParameter("title", plContact.getTitle());
         }
         email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("AssessmentContent.soy", "AssessmentContent");
@@ -423,7 +424,7 @@ public class MailUtils {
             logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
             return;
         }
-        String mailSwitch = Config.instance.getProperty(MAIL_SWITCH);
+        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
         if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
             logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
             return;            
@@ -449,8 +450,8 @@ public class MailUtils {
         String sites = Joiner.on(", ").join(siteList);
 
         email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(Config.instance.getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(Config.instance.getProperty(CCP_OFFICE_MAIL));
+        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
+        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
         email.setLocale(locale);
         email.putParameter("projectName", projectLabel);
         email.putParameter("projectNr", appNrString);
@@ -462,7 +463,7 @@ public class MailUtils {
             email.putParameter("title", plContact.getTitle());
         }
         email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("GrantProjectContent.soy", "GrantProjectContent");
@@ -489,7 +490,7 @@ public class MailUtils {
             logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
             return;
         }
-        String mailSwitch = Config.instance.getProperty(MAIL_SWITCH);
+        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
         if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
             logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
             return;            
@@ -511,8 +512,8 @@ public class MailUtils {
         Contact plContact = ContactUtil.getContactForUser(projectLeader);
 
         email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(Config.instance.getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(Config.instance.getProperty(CCP_OFFICE_MAIL));
+        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
+        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
         email.setLocale(locale);
         email.putParameter("projectName", projectLabel);
         email.putParameter("projectNr", appNrString);
@@ -523,7 +524,7 @@ public class MailUtils {
             email.putParameter("title", plContact.getTitle());
         }
         email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("RejectProjectContent.soy", "RejectProjectContent");
@@ -549,8 +550,8 @@ public class MailUtils {
         if (Utils.getProjectStage().equals(ProjectStage.Development)) {
             logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
             return;
-        } 
-        String mailSwitch = Config.instance.getProperty(MAIL_SWITCH);
+        }
+        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
         if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
             logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
             return;            
@@ -576,8 +577,8 @@ public class MailUtils {
 
 
         email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(Config.instance.getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(Config.instance.getProperty(CCP_OFFICE_MAIL));
+        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
+        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
         email.setLocale(locale);
         email.putParameter("projectName", projectLabel);
         email.putParameter("projectNr", appNrString);
@@ -587,7 +588,7 @@ public class MailUtils {
             email.putParameter("title", plContact.getTitle());
         }
         email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("CallbackProjectContent.soy", "CallbackProjectContent");
@@ -614,7 +615,7 @@ public class MailUtils {
             logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
             return;
         }
-        String mailSwitch = Config.instance.getProperty(MAIL_SWITCH);
+        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
         if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
             logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
             return;            
@@ -648,8 +649,8 @@ public class MailUtils {
         int months = SamplyShareUtils.getMonthsDiff(project.getStarted(), project.getEndEstimated());
 
         email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(Config.instance.getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(Config.instance.getProperty(CCP_OFFICE_MAIL));
+        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
+        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
         email.setLocale(locale);
         email.putParameter("projectName", projectLabel);
         email.putParameter("projectNr", appNrString);
@@ -661,8 +662,7 @@ public class MailUtils {
             email.putParameter("title", plContact.getTitle());
         }
         email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
-
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("ActivateProjectContent.soy", "ActivateProjectContent");
         email.setBuilder(builder);
@@ -688,7 +688,7 @@ public class MailUtils {
             logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
             return;
         }
-        String mailSwitch = Config.instance.getProperty(MAIL_SWITCH);
+        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
         if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
             logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
             return;            
@@ -710,8 +710,8 @@ public class MailUtils {
         Contact plContact = ContactUtil.getContactForUser(projectLeader);
 
         email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(Config.instance.getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(Config.instance.getProperty(CCP_OFFICE_MAIL));
+        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
+        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
         email.setLocale(locale);
         email.putParameter("projectName", projectLabel);
         email.putParameter("projectNr", appNrString);
@@ -725,7 +725,7 @@ public class MailUtils {
             email.putParameter("title", plContact.getTitle());
         }
         email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("ProjectReportContent.soy", "ProjectReportContent");
@@ -751,7 +751,7 @@ public class MailUtils {
             logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
             return;
         }
-        String mailSwitch = Config.instance.getProperty(MAIL_SWITCH);
+        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
         if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
             logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
             return;            
@@ -773,8 +773,8 @@ public class MailUtils {
         Contact plContact = ContactUtil.getContactForUser(projectLeader);
 
         email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(Config.instance.getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(Config.instance.getProperty(CCP_OFFICE_MAIL));
+        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
+        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
         email.setLocale(locale);
         email.putParameter("projectName", projectLabel);
         email.putParameter("projectNr", appNrString);
@@ -784,7 +784,7 @@ public class MailUtils {
             email.putParameter("title", plContact.getTitle());
         }
         email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("ProjectEndingContent.soy", "ProjectEndingContent");
@@ -812,7 +812,7 @@ public class MailUtils {
             logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
             return;
         }
-        String mailSwitch = Config.instance.getProperty(MAIL_SWITCH);
+        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
         if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
             logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
             return;            
@@ -848,8 +848,8 @@ public class MailUtils {
         Contact plContact = ContactUtil.getContactForUser(projectLeader);
 
         email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(Config.instance.getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(Config.instance.getProperty(CCP_OFFICE_MAIL));
+        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
+        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
         email.setLocale(locale);
         email.putParameter("projectName", projectLabel);
         email.putParameter("projectNr", appNrString);
@@ -865,7 +865,7 @@ public class MailUtils {
             email.putParameter("title", plContact.getTitle());
         }
         email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("ArchiveProjectContent.soy", "ArchiveProjectContent");
@@ -909,19 +909,19 @@ public class MailUtils {
 
         email.setSubject("[broker] User assignment requested: " + userMail + " -> " + siteName);
 
-        List<String> addressees = Splitter.on(MAIL_DELIMITER_CHAR).trimResults().omitEmptyStrings().splitToList(Config.instance.getProperty(ADMIN_MAIL));
+        List<String> addressees = Splitter.on(MAIL_DELIMITER_CHAR).trimResults().omitEmptyStrings().splitToList(ProjectInfo.INSTANCE.getConfig().getProperty(ADMIN_MAIL));
         for (String addressee : addressees) {
             email.addAddressee(addressee);
         }
 
-//            email.addAddressee(Config.instance.getProperty(ADMIN_MAIL));
+//            email.addAddressee(ProjectInfo.INSTANCE.getConfig().getProperty(ADMIN_MAIL));
         email.setLocale(locale);
         email.putParameter("userName", user.getName());
         email.putParameter("userAuthId", user.getAuthid());
         email.putParameter("userMail", userMail);
         email.putParameter("siteId", siteId);
         email.putParameter("siteName", siteName);
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("UserSiteContent.soy", "UserSiteContent");
@@ -965,18 +965,18 @@ public class MailUtils {
 
         email.setSubject("[broker] Bank assignment requested: " + bankMail + " -> " + siteName);
 
-        List<String> addressees = Splitter.on(MAIL_DELIMITER_CHAR).trimResults().omitEmptyStrings().splitToList(Config.instance.getProperty(ADMIN_MAIL));
+        List<String> addressees = Splitter.on(MAIL_DELIMITER_CHAR).trimResults().omitEmptyStrings().splitToList(ProjectInfo.INSTANCE.getConfig().getProperty(ADMIN_MAIL));
         for (String addressee : addressees) {
             email.addAddressee(addressee);
         }
 
-//            email.addAddressee(Config.instance.getProperty(ADMIN_MAIL));
+//            email.addAddressee(ProjectInfo.INSTANCE.getConfig().getProperty(ADMIN_MAIL));
         email.setLocale(locale);
         email.putParameter("bankMail", bankMail);
         email.putParameter("bankId", Integer.toString(bank.getId()));
         email.putParameter("siteId", siteId);
         email.putParameter("siteName", siteName);
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
 
         EmailBuilder builder = initializeBuilder(mailSending);
         builder.addTemplateFile("BankSiteContent.soy", "BankSiteContent");

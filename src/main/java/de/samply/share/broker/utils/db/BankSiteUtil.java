@@ -26,16 +26,6 @@
 
 package de.samply.share.broker.utils.db;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.jooq.Configuration;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DefaultConfiguration;
-
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.tables.daos.BankDao;
 import de.samply.share.broker.model.db.tables.daos.BankSiteDao;
@@ -44,6 +34,15 @@ import de.samply.share.broker.model.db.tables.pojos.Bank;
 import de.samply.share.broker.model.db.tables.pojos.BankSite;
 import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.utils.MailUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jooq.Configuration;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DefaultConfiguration;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  *  This class provides static methods for CRUD operations for BankSite Objects
@@ -164,25 +163,6 @@ public final class BankSiteUtil {
         } catch (SQLException e) {
             logger.error("SQL Exception caught", e);
         }
-    }
-
-    /**
-     * Get all assignments between banks and sites
-     *
-     * @return list of all assignments between banks and sites
-     */
-    public static List<BankSite> fetchBankSites() {
-        BankSiteDao bankSiteDao;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-            bankSiteDao = new BankSiteDao(configuration);           
-
-            return bankSiteDao.findAll();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     /**

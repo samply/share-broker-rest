@@ -30,7 +30,7 @@
 package de.samply.share.broker.thread;
 
 /**
- * An instance of this class needs to be returned by any Task to be executed by Application. Extend this class to include custom return values.
+ * An instance of this class needs to be returned by any Task to be executed by ApplicationController. Extend this class to include custom return values.
  */
 public class TaskResult {
 
@@ -71,3 +71,4 @@ public class TaskResult {
 		return messageToBeLogged;
 	}
 }
+

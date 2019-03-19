@@ -1,160 +1,300 @@
-# Samply-Search-Broker
+[![CircleCI](https://circleci.com/gh/bbmride/searchbroker/tree/master.svg?style=svg)](https://circleci.com/gh/bbmride/searchbroker/tree/master)
 
-## General information
+[![Docker Pulls](https://img.shields.io/docker/pulls/bbmride/searchbroker.svg)](https://hub.docker.com/r/bbmride/searchbroker/)
 
-The Samply Searchbroker is a vital part of the decentral search infrastructure.
-It allows to create and distribute decentral search inquiries based on dataelements in the metadata repository.
+# Searchbroker
 
-## Usage
+To make samples easily accessible for researcher to help [making new treatments possible.](http://www.bbmri-eric.eu/)
 
-To start the Backend, Database and the UI in once, go to samply.share.broker.ui which has a Docker compose file.
+[TOC]
 
-To run only the backend, 
-Clone this Git repository, if you haven't already.
+The Searchbroker connects [Searchbroker-UI](https://github.com/bbmride/searchbroker-ui) and [Connector](https://github.com/bbmride/connector) as part of the [GBA-Central](https://github.com/bbmride/gba-central), accessible under http://localhost:8083.
 
-Make sure you have port 8083 and 5438 free or edit the two run -p contexts below, before bringing the system up with:
+
+
+------
+
+|          Thanks to the commits of these developers:          |
+| :----------------------------------------------------------: |
+|                         Martin Breu                          |
+|                          Deniz Tas                           |
+|                        Saher Maqsood                         |
+|                        Alexander Kiel                        |
+|                       Christoph Dolch                        |
+| **To contribute, see our [Manifest](https://github.com/bbmride/MANIFEST.md) and open a [PR](https://help.github.com/en/articles/creating-a-pull-request)** |
+
+------
+
+
+
+## Build
+
+Requirements:
+
+- [Java 8](#java)
+- [Database](#database)
+- Maven
+
+```
+git clone https://github.com/bbmride/searchbroker
+cd searchbroker
+mvn install -Psamply
+```
+
+
+
+## Run ([Docker](#docker) or [Manual](#manual))
 
 ### Docker
-Install Docker and open a console:
 
-#### Start a postgres container by:
-```
-docker network create --driver bridge broker
-docker stop postgres
-docker rm postgres
-docker run -p 5438:5432 --name=postgres --net=broker -d -e POSTGRES_USER=samply -e POSTGRES_PASSWORD=samply -e POSTGRES_DB=samply.broker postgres:9.6
-```
-
-#### Start Searchbroker by:
-
-go to repository directory, e.g.: cd D:\Repositories\itc\samply.share.broker.rest
-
-call: mvn clean package
+Use the Docker-Compose of the [GBA-Central](https://github.com/bbmride/gba-central) and run only the Searchbroker with:
 
 ```
-docker stop searchbroker
-docker rm searchbroker
-docker build .
-docker run  --name=searchbroker --net=broker -p 8083:8080 $ID_FROM_BUILD
-```
-get "Hello world" from http://localhost:8083/broker
-
-Also it's very likely to change mail settings, so you can receive emails to register a Connector.
-
-To verify a Bridgehead after adding the Searchbroker in Connector, verify in database (port=5436, db=samply.broker, user/password=samply):
-
-Go to db samply.broker and make a new row in table bank_site with bank_id={bank_id in table bank}, site_id={site_id in table site}, approved=true
-
-Without defining volumes, the database will be lost after deleting the container.
-
-#### Environment
-
-The Docker container needs certain environment variables to be able to run:
-
-Use like this: docker run  --name=searchbroker --net=broker -p 8083:8080 e6a8653b5744 -e PROXY_HOST=197.149.128.60 -e PROXY_PORT=4593
-
-* `MAIL_HOST` - eg. relay2int1.klinik.uni.de
-* `MAIL_PORT` - eg. 25
-* `MAIL_PROTOCO`L - eg. smtp
-* `MAIL_FROM_ADDRESS` - eg. Searchbroker@samply.de
-* `MAIL_FROM_NAME` - eg. Lokal Samply Searchbroker
-
-* `POSTGRES_HOST` - the host name of the Postgres DB
-* `POSTGRES_PORT` - the port of the Postgres DB, defaults to 5432
-* `POSTGRES_DB` - the database name, defaults to samply.broker
-* `POSTGRES_USER` - the database username, defaults to samply
-* `POSTGRES_PASS` - the database password
-
-* `AUTH_HOST` - eg. https://auth.dev.germanbiobanknode.de
-* `AUTH_PUBLIC_KEY` - eg. base64DerFormat of https://auth.dev.germanbiobanknode.de/oauth2/certs
-* `AUTH_CLIENT_ID` - eg. aun53c97n41iu
-* `AUTH_CLIENT_SECRET` - eg. 65r9umrs4koi5c6325nflbb63hduko5t6nbu02o54mf841cdmfcfc41ob7fqjhgkm1ut0qconbd3dgo1ihu21n73k1vvid0pi8geqt
-
-* `PROXY_HOST` - the URL of the HTTP proxy to use for outgoing connections; enables proxy usage if set
-* `PROXY_PORT` - the port of the HTTP proxy to use for outgoing connections; enables proxy usage if set
-
-
-## Manual Install
-
-#### Conventions
-
-Create a Postgresql 9.6 database with:
-username = samply
-password = samply
-port = 5432
-name = samply.broker
-
-Run in Tomcat 8.5 under http://localhost:8083 so you can use standard configuration files.
-Except you are behind a PROXY: edit samply_common_config.xml
-
-for details see https://wiki.mitro.dkfz.de/x/RIAHAw
-
-#### Configuration files
-
-```
-- samply.share.broker.conf
-- samply_common_config.xml
-- log4j2_samply.share.broker.xml
-- OAuth2Client.xml (Deprecated)
-- context.xml (goes to tomcat dir)
-```
-
-You can save these files local to 
-WINDOWS: "C:\/Users/\%username%/\.config/\samply/\"
-LINUX: "/etc/samply/"
-This will of course fully override the WEB-INF fallback directory, so your configurations are stable.
-
-#### Database Connection
-
-The database connection uses a connection pool, for which the datasource is defined in
- _src/main/webapp/META-INF/context.xml_ or the context.xml from your tomcat installation. Usually, the definition
- in tomcat's own context.xml has a higher priority.
-  Samply Share Broker uses a database schema named _samply_.
-
-Since Tomcat 8, a newer version of Apache Commons DBCP is used, which needs some parameters renamed. 
-See [here](https://tomcat.apache.org/migration-8.html#Database_Connection_Pooling). That should lead to the following 
-file:
-
-```
-<?xml version="1.0" encoding="UTF-8"?>
-<Context path="/">
-    <Resource name="jdbc/postgres/samply.share.broker" auth="Container"
-              type="javax.sql.DataSource" driverClassName="org.postgresql.Driver"
-              url="jdbc:postgresql://<database_url>/<database_name>"
-              username="<username>" password="<password>" maxTotal="50" maxIdle="20"
-              maxWaitMillis="30000" removeAbandonedOnBorrow="true" removeAbandonedOnMaintenance="true"
-              removeAbandonedTimeout="120" logAbandoned="true" />
-</Context>
-```
-
-You have to set the parameters "database_url", "database_name", "username" and "password" according to
-your setup. The resource name can not be changed without changing it in
- _de.samply.share.broker.jdbc.ResourceManager.java_ as well, but feel free to change the database name,
- the user name and the user password. Especially changing the password is highly recommended.
- 
-The values set for the db pool are just example values. Feel free to change them to whatever suits your needs. 
- 
-Also, adapt _pom.xml_ accordingly for Flyway to prepare the database.
-
-#### Logging
-
-Copy the example _log4j2.xml_ file from _/src/main/resources_ to the place defined in the corresponding
-parameter in your _web.xml_. By default, the parameter in _web.xml_ is set to.
-
-```
-<context-param>
-    <param-name>log4jConfiguration</param-name>
-    <param-value>file:///etc/dktk/log4j2_samply.share.broker.xml</param-value>
-</context-param>
-```
-
-Feel free to change this to whatever you like, and make sure that tomcat has the right to read this file. Also ensure
-that tomcat may write to the specified directory in the log4j config file. The parameter to change is:
-
-```
-<Property name="logDir">/var/log/samply/</Property>
+docker-compose up searchbroker
 ```
 
 
 
+### Manual
 
+Requirements:
+
+- [Database](#database)
+- [Tomcat](#tomcat)
+- The Searchbroker webapp as .war file: [build yourselve](#build) or download from release tab of Github
+
+
+
+Steps:
+
+- Delete folder ${tomcat.home}/webapps/ROOT.
+- Rename .war file to ROOT.war
+- Copy ROOT.war to ${tomcat.home}/webapps/ 
+
+Start tomcat by executing ${tomcat.home}/bin/startup.sh (Windows: startup.bat) or by running the tomcat-service if you [created one.](#tomcat-service-for-autostart)
+
+
+
+## Environment
+
+### Database
+
+The Open-Source database Postresql 9.6 is used. The database connection uses the connection pool of Tomcat. 
+
+This webapp needs schema '**samply**' in the database '**samply.searchbroker**' under user '**samply**' and password '**samply**' under port `5432`. 
+
+To change these settings during build, search for these values in the **src/pom.xml** and adapt to your needs.
+During run, see context.xml (described under [Configurations](#Configurations)).
+
+
+
+- Follow installation for port **5432**
+
+  - Windows: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads
+  - Linux Mint:
+
+  ```
+  sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main" > /etc/apt/sources.list.d/postgresql.list'
+  
+  wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+  
+  sudo apt-get install postgresql-9.6
+  ```
+
+  ​	Other Linux:
+
+  ```
+  sudo add-apt-repository "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -sc)-pgdg main"
+  
+  wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+  
+  sudo apt-get install postgresql-9.6
+  ```
+
+- Create database and user:
+
+  - pgAdmin installed: Having Server opened, under "Databases": rightclick on "Login/Group Roles". Select "Create"?"Login/Group Role". Tab Generel: Enter Name. Tab Definition: Enter Password. Tab Privileges: enable "Can Login?" and "Superuser". By creating new Databases, select this user as "Owner"*
+
+  - command line: 
+
+    ```
+    (sudo su postgres)
+    psql
+    CREATE DATABASE "samply.searchbroker";
+    CREATE USER samply WITH PASSWORD 'samply';
+    GRANT ALL PRIVILEGES ON DATABASE "samply.searchbroker" to samply;
+    ```
+
+
+
+### Tomcat
+
+Requirements:
+
+- [Java 8](#java)
+
+  
+
+1. Download and unzip: http://mirror.funkfreundelandshut.de/apache/tomcat/tomcat-8/v8.5.38/bin/apache-tomcat-8.5.38.zip (eg. to /opt/tomcat-searchbroker)
+
+2. Change ports: Every webapp has its own tomcat, so change ports for Store-Tomcat in ${tomcat.base}/conf/server.xml:
+
+   ```
+   ...
+   ...<connector port="8083" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8103" />...
+   ...
+   ...<connector port="8003" protocol="AJP/1.3" redirectPort="8103" /> ...
+   ...
+   ...<Server port="8203" shutdown="SHUTDOWN">...
+   ...
+   ```
+
+
+
+### Java
+
+Is a dependency of tomcat,
+
+if you install different jre versions on this machine, set jre 8 for tomcat by creating a so called "setenv.sh".
+
+Linux: [OpenJDK](https://openjdk.java.net/install/)
+
+Windows: [Oracle](https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html) 
+
+
+
+### Configurations
+
+These configuration files are used:
+
+```
+src/main/java/webapp/WEB-INF/conf/
+(log4j2.xml, mailSending.xml, samply.share.broker.conf, samply_common_config.xml, OAuth2Client.xml <- same as UI)
+
+src/main/java/webapp/META-INF/
+(context.xml)
+```
+
+The context.xml will be auto-copied by tomcat at startup to ${tomcat.base}/conf/Catalina/localhost/ROOT.xml.
+This file will not be overwritten by updating the WAR file due to tomcat settings.
+
+All files under WEB-INF/conf will always be found from FileFinder as ultimate fallback.
+
+If you want to save your configurations, copy all files under WEB-INF/conf (tomcat or code source) to ${tomcat.base}/conf.
+
+According to the predefinded log4j2.xml, all logs can be found in ${tomcat.base}/logs/searchbroker.
+
+**IntelliJ** creates a *tomcat.base* directory for every startup of the application. So save your configuration files to *tomcat.home* and it will copy these files and logs every time to *tomcat.base*. You will see the paths at startup in the first lines of the console output.
+
+
+
+### Connections
+
+To use a **proxy**, set your url in file **samply_common_config.xml**.
+
+
+
+Ingoing (secured with APIkey or OAuth2):
+
+```
+GET    /searchbroker/name
+POST   /searchbroker/sendQuery
+GET    /searchbroker/getReply
+GET    /searchbroker/getSize
+GET    /searchbroker/
+PUT    /searchbroker/banks/{email}
+DELETE /searchbroker/banks/{email}
+GET    /searchbroker/banks/{email}/status
+GET    /searchbroker/inquiries
+GET    /searchbroker/inquiries/{inquiryid}
+GET    /searchbroker/inquiries/{inquiryid}/query
+GET    /searchbroker/inquiries/{inquiryid}/viewfields
+GET    /searchbroker/inquiries/{inquiryid}/contact
+GET    /searchbroker/inquiries/{inquiryid}/info
+GET    /searchbroker/inquiries/{inquiryid}/hasexpose
+GET    /searchbroker/inquiries/{inquiryid}/replies/{bankemail}
+GET    /searchbroker/exposes/{inquiryid}
+GET    /searchbroker/inquiries/{inquiryid}/expose
+GET    /searchbroker/sites
+GET    /searchbroker/banks/{email}/site/{siteid}
+
+PUT    /monitoring
+GET    /monitoring/check
+GET    /monitoring/referencequery
+
+GET    /health
+
+POST   /documentUpload/user/{userid}/{doctype}
+
+GET    /test/inquiries/{inquiryid}
+```
+
+
+
+Outgoing:
+
+```
+Icinga
+
+```
+
+
+
+### Productive Settings
+
+#### Tomcat service for autostart
+
+​	Linux:
+
+​		Remember path of output:
+
+```
+sudo update-java-alternatives -l
+
+```
+
+​		Create new service file:
+
+```
+sudo nano /etc/systemd/system/tomcat-searchbroker.service
+
+```
+
+​		Copy the remembered path to JAVA_HOME and add `/jre` to the end of this path, also check 		tomcat path:
+
+```
+[Unit]
+Description=Apache Tomcat Web Application Container
+After=network.target
+
+[Service]
+Type=forking
+
+Environment=JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64/jre
+Environment=CATALINA_PID=/opt/tomcat-searchbroker/temp/tomcat.pid
+Environment=CATALINA_HOME=/opt/tomcat-searchbroker
+Environment=CATALINA_BASE=/opt/tomcat-searchbroker
+Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
+Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
+
+ExecStart=/opt/tomcat-searchbroker/bin/startup.sh
+ExecStop=/opt/tomcat-searchbroker/bin/shutdown.sh
+
+User=tomcat
+Group=tomcat
+UMask=0007
+RestartSec=10
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+```
+
+
+
+​	Windows: 
+
+​		Follow installer: http://ftp.fau.de/apache/tomcat/tomcat-8/v8.5.38/bin/apache-tomcat-8.5.38.exe
+
+​		And check service (one per app/tomcat): http://www.ansoncheunghk.info/article/5-steps-install-multiple-apache-tomcat-instance-windows

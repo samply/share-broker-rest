@@ -26,11 +26,13 @@
 
 package de.samply.share.broker.utils.db;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
+import de.samply.auth.rest.LocationDTO;
+import de.samply.auth.rest.LocationListDTO;
+import de.samply.share.broker.jdbc.ResourceManager;
+import de.samply.share.broker.model.db.Tables;
+import de.samply.share.broker.model.db.tables.daos.SiteDao;
+import de.samply.share.broker.model.db.tables.pojos.Site;
+import de.samply.share.broker.utils.Utils;
 import de.samply.share.common.utils.SamplyShareUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,13 +42,10 @@ import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultConfiguration;
 
-import de.samply.auth.rest.LocationDTO;
-import de.samply.auth.rest.LocationListDTO;
-import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.model.db.Tables;
-import de.samply.share.broker.model.db.tables.daos.SiteDao;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.utils.Utils;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class provides static methods for CRUD operations for Site Objects
@@ -133,33 +132,6 @@ public final class SiteUtil {
             e.printStackTrace();
         }
         return sites;
-    }
-
-    /**
-     * Insert a list of sites into the database
-     *
-     * @param sites a list of sites to add
-     */
-    public static void insertSites(List<Site> sites) {
-        List<Site> persistedSites = fetchSites();
-        List<Site> newSites = new ArrayList<>();
-        List<String> siteNames = Utils.getSiteNames(persistedSites);
-
-        for (Site site : sites) {
-            if (siteNames.contains(site.getName())) {
-                continue;
-            }
-            newSites.add(site);
-        }
-
-        SiteDao siteDao;
-        try (Connection conn = ResourceManager.getConnection() ) {
-            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-            siteDao = new SiteDao(configuration);
-            siteDao.insert(newSites);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     /**

@@ -26,10 +26,13 @@
 
 package de.samply.share.broker.utils.db;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
-
+import de.samply.auth.client.jwt.JWTIDToken;
+import de.samply.share.broker.jdbc.ResourceManager;
+import de.samply.share.broker.model.db.Tables;
+import de.samply.share.broker.model.db.tables.daos.SiteDao;
+import de.samply.share.broker.model.db.tables.daos.UserDao;
+import de.samply.share.broker.model.db.tables.pojos.Site;
+import de.samply.share.broker.model.db.tables.pojos.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
@@ -38,14 +41,9 @@ import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultConfiguration;
 
-import de.samply.auth.client.jwt.JWTIDToken;
-import de.samply.auth.rest.AccessTokenDTO;
-import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.model.db.Tables;
-import de.samply.share.broker.model.db.tables.daos.SiteDao;
-import de.samply.share.broker.model.db.tables.daos.UserDao;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.model.db.tables.pojos.User;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  *  This class provides static methods for CRUD operations for User Objects
@@ -137,10 +135,9 @@ public final class UserUtil {
      * Creates or updates a user.
      *
      * @param jwtIdToken the id token from the auth service
-     * @param accessToken the access token from the auth service
      * @return the created or updated user
      */
-    public static User createOrUpdateUser(JWTIDToken jwtIdToken, AccessTokenDTO accessToken) {
+    public static User createOrUpdateUser(JWTIDToken jwtIdToken) {
         User user = fetchUserByUserNameIgnoreCase(jwtIdToken.getEmail());
         if (user == null) {
             return createUser(jwtIdToken);

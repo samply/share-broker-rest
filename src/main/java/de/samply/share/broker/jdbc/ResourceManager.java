@@ -29,21 +29,18 @@
  */
 package de.samply.share.broker.jdbc;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * The Class ResourceManager.
@@ -81,17 +78,6 @@ public class ResourceManager  {
     }
 
     /**
-     * Gets the configuration.
-     *
-     * @return the configuration
-     * @throws SQLException
-     *             the SQL exception
-     */
-    public static synchronized Configuration getConfiguration() throws SQLException {
-        return new DefaultConfiguration().set(getConnection()).set(SQLDialect.POSTGRES);
-    }
-
-    /**
      * Gets the connection.
      *
      * @return the connection
@@ -104,52 +90,6 @@ public class ResourceManager  {
 
     public static DataSource getDataSource() {
         return dataSource;
-    }
-
-    /**
-     * Close.
-     *
-     * @param connection
-     *            the conn
-     */
-    public static void close(Connection connection) {
-        try {
-            if (connection != null)
-                connection.close();
-        } catch (SQLException sqle) {
-            sqle.printStackTrace();
-        }
-    }
-
-    /**
-     * Close.
-     *
-     * @param statement
-     *            the statement
-     */
-    public static void close(PreparedStatement statement) {
-        try {
-            if (statement != null)
-                statement.close();
-        } catch (SQLException sqle) {
-            sqle.printStackTrace();
-        }
-    }
-
-    /**
-     * Close.
-     *
-     * @param resultSet
-     *            the result set
-     */
-    public static void close(ResultSet resultSet) {
-        try {
-            if (resultSet != null)
-                resultSet.close();
-        } catch (SQLException sqle) {
-            sqle.printStackTrace();
-        }
-
     }
 
 }
