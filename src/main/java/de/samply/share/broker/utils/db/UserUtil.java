@@ -26,6 +26,7 @@
 
 package de.samply.share.broker.utils.db;
 
+import de.samply.auth.client.jwt.JWTException;
 import de.samply.auth.client.jwt.JWTIDToken;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
@@ -33,6 +34,8 @@ import de.samply.share.broker.model.db.tables.daos.SiteDao;
 import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.model.db.tables.pojos.User;
+import de.samply.share.common.utils.ProjectInfo;
+import de.samply.share.common.utils.oauth2.OAuthConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
@@ -41,6 +44,7 @@ import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultConfiguration;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -345,6 +349,37 @@ public final class UserUtil {
             e.printStackTrace();
         }
         return "Unbekannt";
+    }
+
+    public static User getUsernByEmail(String email) {
+        User user;
+        UserDao userDao;
+
+        try (Connection conn = ResourceManager.getConnection() ) {
+            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
+            userDao = new UserDao(configuration);
+            user = userDao.fetchByEmail(email).get(0);
+            if (user != null) {
+                return user;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+
+    public static User getUserByJWTToken(String token) {
+        JWTIDToken jwtIdToken;
+        try {
+            String[] fallbacks = {System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF")};
+            jwtIdToken = new JWTIDToken(OAuthConfig.getOAuth2Client(ProjectInfo.INSTANCE.getProjectName(), fallbacks), token);
+            return getUsernByEmail(jwtIdToken.getEmail());
+        } catch (JWTException e) {
+            logger.error("Create instance of JWTIDToken failed. OAuth2Client.xml? JWT-ID-Token?", e);
+            return null;
+        }
     }
 
 }
