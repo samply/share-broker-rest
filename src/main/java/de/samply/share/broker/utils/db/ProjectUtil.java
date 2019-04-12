@@ -439,26 +439,51 @@ public final class ProjectUtil {
         return sites;
     }
 
-    public static int addProject(Inquiry inquiry) {
-        InquiryDao inquiryDao;
-        try (Connection connection = ResourceManager.getConnection()) {
-            Configuration configuration = new DefaultConfiguration().set(connection).set(SQLDialect.POSTGRES);
-            DSLContext dslContext = ResourceManager.getDSLContext(connection);
-            Record record = dslContext
-                    .insertInto(Tables.PROJECT, Tables.PROJECT.PROJECTLEADER_ID, Tables.PROJECT.STATUS, Tables.PROJECT.NAME)
-                    .values(inquiry.getAuthorId(), ProjectStatus.PS_NEW, inquiry.getLabel())
-                    .returning(Tables.PROJECT.ID, Tables.PROJECT.APPLICATION_NUMBER).fetchOne();
-            int projectId = record.getValue(Tables.PROJECT.ID);
-            inquiry.setProjectId(projectId);
 
-            inquiryDao = new InquiryDao(configuration);
-            inquiryDao.update(inquiry);
-            int inquiryId = inquiry.getId();
-            DocumentUtil.setProjectIdForDocumentByInquiryId(inquiryId, projectId);
-            return projectId;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
+    /**
+     * Create a new project
+     * @param inquiry the inquiry with the details for the new project
+     * @param connection the database connection
+     * @return the ID of the new project
+     * @throws SQLException
+     */
+    private static int createProject(Inquiry inquiry,Connection connection) {
+        DSLContext dslContext = ResourceManager.getDSLContext(connection);
+        Record record = dslContext
+                .insertInto(Tables.PROJECT, Tables.PROJECT.PROJECTLEADER_ID, Tables.PROJECT.STATUS, Tables.PROJECT.NAME)
+                .values(inquiry.getAuthorId(), ProjectStatus.PS_NEW, inquiry.getLabel())
+                .returning(Tables.PROJECT.ID, Tables.PROJECT.APPLICATION_NUMBER).fetchOne();
+        return record.getValue(Tables.PROJECT.ID);
+    }
+
+    /**
+     * Add a project to a existing inquiry
+     * @param inquiry the existing inquiry
+     * @return the ID of the new project
+     */
+    public static int addProject(Inquiry inquiry) throws SQLException {
+        Connection connection = ResourceManager.getConnection();
+        int projectId= createProject(inquiry,connection);
+        Configuration configuration = new DefaultConfiguration().set(connection).set(SQLDialect.POSTGRES);
+        inquiry.setProjectId(projectId);
+        InquiryDao inquiryDao = new InquiryDao(configuration);
+        inquiryDao.update(inquiry);
+        int inquiryId = inquiry.getId();
+        DocumentUtil.setProjectIdForDocumentByInquiryId(inquiryId, projectId);
+        return projectId;
+    }
+
+
+    /**
+     * get all projects from a user
+     * @param projectLeaderId the user id
+     * @return a list of all projects from a user
+     * @throws SQLException
+     */
+    public static List<Project> fetchProjectByProjectLeaderId(int projectLeaderId) throws SQLException {
+        Connection connection = ResourceManager.getConnection();
+        Configuration configuration = new DefaultConfiguration().set(connection).set(SQLDialect.POSTGRES);
+        ProjectDao projectDao = new ProjectDao(configuration);
+        return projectDao.fetchByProjectleaderId(projectLeaderId);
     }
 }

@@ -46,6 +46,7 @@ import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.common.utils.oauth2.OAuthConfig;
+import org.jooq.tools.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
 import org.jooq.tools.json.ParseException;
@@ -60,6 +61,8 @@ import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,38 +96,63 @@ public class Searchbroker {
     User authenticatedUser;
     private static final String AUTHENTICATION_SCHEME = "Bearer";
 
-    @Path("/test")
+
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Path("/getProject")
     @GET
-    public void adds() {
-        System.out.println(gson.toJson(InquiryUtil.fetchInquiryById(1)));
-        int a=0;
+    public Response getProject() {
+        try {
+            List<Project> projectList = ProjectUtil.fetchProjectByProjectLeaderId(authenticatedUser.getId());
+            JSONArray jsonArray = new JSONArray();
+            JSONObject userProjectsJson = new JSONObject();
+            JSONParser parser = new JSONParser();
+            for (Project project : projectList) {
+                JSONObject tmpJsonObj = new JSONObject();
+                JSONObject projectJson = (JSONObject) parser.parse(gson.toJson(project));
+                JSONArray inquiryListJson = new JSONArray(InquiryUtil.fetchInquiryByProjectId(project.getId()));
+                tmpJsonObj.put("project", projectJson);
+                tmpJsonObj.put("inquiry", inquiryListJson);
+                jsonArray.add(tmpJsonObj);
+            }
+            userProjectsJson.put("projects", jsonArray);
+            return Response.ok(userProjectsJson).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(400, e.getMessage()).build();
+        }
     }
+
 
     @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Path("/addProject")
     @POST
     public Response addProject(String inquiryJson) {
+        int projectId;
+        try {
         Inquiry inquiryNew = gson.fromJson(inquiryJson, Inquiry.class);
-        Inquiry inquiryOld= InquiryUtil.fetchInquiryById(inquiryNew.getId());
-        if (inquiryOld==null || inquiryOld.getAuthorId()!=null) {
+        Inquiry inquiryOld = InquiryUtil.fetchInquiryById(inquiryNew.getId());
+        if (inquiryOld == null) {
             return Response.status(400).build();
+        } else if (inquiryOld.getAuthorId() != authenticatedUser.getId() || authenticatedUser.getId() != inquiryNew.getAuthorId()) {
+            return Response.status(401).build();
         }
-        int projectId=ProjectUtil.addProject(inquiryNew);
-        if (projectId != 0) {
-            return Response.ok().header("id", projectId).build();
-        } else
-            return Response.status(500).build();
+            projectId = ProjectUtil.addProject(inquiryNew);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Response.status(500, e.getMessage()).build();
+        }
+        return Response.ok().header("id", projectId).build();
     }
 
     @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Path("/addInquiryToProject")
     @POST
-    public Response addInquiryToProject(@QueryParam("projectId") int projectId,@QueryParam("projectId") int inquiryId){
-        Inquiry inquiry=InquiryUtil.fetchInquiryById(inquiryId);
-        Project project=ProjectUtil.fetchProjectById(projectId);
-        if(inquiry.getAuthorId()==project.getProjectleaderId()&& inquiry.getAuthorId()==authenticatedUser.getId()){
+    public Response addInquiryToProject(@QueryParam("projectId") int projectId, @QueryParam("projectId") int inquiryId) {
+        Inquiry inquiry = InquiryUtil.fetchInquiryById(inquiryId);
+        Project project = ProjectUtil.fetchProjectById(projectId);
+        if (inquiry.getAuthorId() == project.getProjectleaderId() && inquiry.getAuthorId() == authenticatedUser.getId()) {
             inquiry.setProjectId(projectId);
-            InquiryDao inquiryDao= new InquiryDao();
+            InquiryDao inquiryDao = new InquiryDao();
             inquiryDao.update(inquiry);
             return Response.ok().build();
         }
@@ -135,13 +163,9 @@ public class Searchbroker {
     @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Path("/checkProject")
     @GET
-    public Response checkProject(@QueryParam("queryId") int queryId, @HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
-
-        String token = authorizationHeader
-                .substring(AUTHENTICATION_SCHEME.length()).trim();
-        User user = UserUtil.getUserByJWTToken(token);
+    public Response checkProject(@QueryParam("queryId") int queryId) {
         Project project = ProjectUtil.fetchProjectByInquiryId(queryId);
-        if (project!= null && project.getProjectleaderId() != user.getId()) {
+        if (project != null && project.getProjectleaderId() != authenticatedUser.getId()) {
             return Response.status(401).build();
         }
         if (project != null) {
