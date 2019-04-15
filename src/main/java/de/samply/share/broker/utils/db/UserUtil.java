@@ -350,36 +350,4 @@ public final class UserUtil {
         }
         return "Unbekannt";
     }
-
-    public static User getUsernByEmail(String email) {
-        User user;
-        UserDao userDao;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-            userDao = new UserDao(configuration);
-            user = userDao.fetchByEmail(email).get(0);
-            if (user != null) {
-                return user;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-
-
-    public static User getUserByJWTToken(String token) {
-        JWTIDToken jwtIdToken;
-        try {
-            String[] fallbacks = {System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF")};
-            jwtIdToken = new JWTIDToken(OAuthConfig.getOAuth2Client(ProjectInfo.INSTANCE.getProjectName(), fallbacks), token);
-            return getUsernByEmail(jwtIdToken.getEmail());
-        } catch (JWTException e) {
-            logger.error("Create instance of JWTIDToken failed. OAuth2Client.xml? JWT-ID-Token?", e);
-            return null;
-        }
-    }
-
 }
