@@ -30,26 +30,21 @@
 package de.samply.share.broker.rest;
 
 import com.google.gson.Gson;
-import de.samply.auth.client.jwt.JWTException;
-import de.samply.auth.client.jwt.JWTIDToken;
 import de.samply.share.broker.control.SearchController;
 import de.samply.share.broker.filter.AccessPermission;
 import de.samply.share.broker.filter.AuthenticatedUser;
 import de.samply.share.broker.filter.Secured;
 import de.samply.share.broker.model.db.tables.daos.InquiryDao;
 import de.samply.share.broker.model.db.tables.pojos.*;
-import de.samply.share.broker.utils.Config;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.model.dto.SiteInfo;
 import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
-import de.samply.share.common.utils.oauth2.OAuthConfig;
 import org.jooq.tools.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
-import org.jooq.tools.json.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,11 +53,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.xml.bind.JAXBException;
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,10 +87,9 @@ public class Searchbroker {
     @Inject
     @AuthenticatedUser
     User authenticatedUser;
-    private static final String AUTHENTICATION_SCHEME = "Bearer";
 
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
     @Path("/getProject")
     @GET
     public Response getProject() {
@@ -123,7 +115,7 @@ public class Searchbroker {
     }
 
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
     @Path("/addProject")
     @POST
     public Response addProject(String inquiryJson) {
@@ -144,7 +136,7 @@ public class Searchbroker {
         return Response.ok().header("id", projectId).build();
     }
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
     @Path("/addInquiryToProject")
     @POST
     public Response addInquiryToProject(@QueryParam("projectId") int projectId, @QueryParam("projectId") int inquiryId) {
@@ -160,7 +152,7 @@ public class Searchbroker {
     }
 
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
     @Path("/checkProject")
     @GET
     public Response checkProject(@QueryParam("queryId") int queryId) {
@@ -191,7 +183,7 @@ public class Searchbroker {
      * @param xml the query
      * @return 200 or 500 code
      */
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
     @POST
     @Path("/sendQuery")
     @Produces(MediaType.APPLICATION_XML)
@@ -217,7 +209,7 @@ public class Searchbroker {
      * @param id the id of the query
      * @return the result as JSON String
      */
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
     @GET
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
@@ -232,7 +224,7 @@ public class Searchbroker {
      * @param id Inquiry ID
      * @return the count of the sites
      */
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
     @GET
     @Path("/getSize")
     @Consumes(MediaType.TEXT_PLAIN)
