@@ -54,8 +54,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,9 +89,49 @@ public class Searchbroker {
     @Inject
     @AuthenticatedUser
     User authenticatedUser;
+    private static final String AUTHENTICATION_SCHEME = "Bearer";
 
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/getBiobankID")
+    @POST
+    public Response getBiobankID(List<String> biobankNameList) {
+        try {
+            List<Integer> biobankID = new ArrayList();
+            for (String biobankName : biobankNameList) {
+                Site site = SiteUtil.fetchSiteByNameIgnoreCase(biobankName);
+                biobankID.add(site.getId());
+            }
+            return Response.ok(gson.toJson(biobankID)).build();
+        }catch (Exception e){
+            return Response.serverError().build();
+        }
+    }
+
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/getInquiry")
+    @POST
+    public Response getInquiry(int id) {
+        try {
+            Inquiry inquiry=InquiryUtil.fetchInquiryById(id);
+            if(inquiry.getAuthorId().equals(authenticatedUser.getId())) {
+                if (inquiry != null) {
+                    return Response.ok(gson.toJson(inquiry)).build();
+                } else {
+                    return Response.status(Response.Status.NOT_FOUND).build();
+                }
+            }else{
+                return Response.status(401).build();
+            }
+        }catch (Exception e){
+            return Response.serverError().build();
+        }
+    }
+
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Path("/getProject")
     @GET
     public Response getProject() {
@@ -115,7 +157,7 @@ public class Searchbroker {
     }
 
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Path("/addProject")
     @POST
     public Response addProject(String inquiryJson) {
@@ -136,7 +178,7 @@ public class Searchbroker {
         return Response.ok().header("id", projectId).build();
     }
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Path("/addInquiryToProject")
     @POST
     public Response addInquiryToProject(@QueryParam("projectId") int projectId, @QueryParam("projectId") int inquiryId) {
@@ -152,7 +194,7 @@ public class Searchbroker {
     }
 
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Path("/checkProject")
     @GET
     public Response checkProject(@QueryParam("queryId") int queryId) {
@@ -183,14 +225,20 @@ public class Searchbroker {
      * @param xml the query
      * @return 200 or 500 code
      */
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
     @POST
     @Path("/sendQuery")
     @Produces(MediaType.APPLICATION_XML)
     @Consumes(MediaType.APPLICATION_XML)
     public Response sendQuery(String xml) {
+        User user;
         logger.info("sendQuery called");
-        User user = authenticatedUser;
+        try{
+            authenticatedUser.getUsername();
+            user = authenticatedUser;
+        }catch (Exception e){
+            user= new User();
+            user.setId(1);
+        }
         int id;
         try {
             id = SearchController.releaseQuery(xml, user);
@@ -209,11 +257,10 @@ public class Searchbroker {
      * @param id the id of the query
      * @return the result as JSON String
      */
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
     @GET
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response getReplys(@QueryParam("id") int id) {
+    public Response getReply(@QueryParam("id") int id) {
         String reply = SearchController.getReplysFromQuery(id);
         return Response.ok().header("reply", reply).build();
     }
@@ -224,7 +271,6 @@ public class Searchbroker {
      * @param id Inquiry ID
      * @return the count of the sites
      */
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER})
     @GET
     @Path("/getSize")
     @Consumes(MediaType.TEXT_PLAIN)

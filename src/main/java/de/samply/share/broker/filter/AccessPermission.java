@@ -5,5 +5,6 @@ package de.samply.share.broker.filter;
  */
 public enum AccessPermission {
     GBA_SEARCHBROKER_ADMIN,
-    GBA_SEARCHBROKER_USER
+    GBA_SEARCHBROKER_USER,
+    DKTK_SEARCHBROKER_ADMIN
 }
