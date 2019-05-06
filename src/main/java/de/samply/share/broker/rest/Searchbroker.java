@@ -98,16 +98,37 @@ public class Searchbroker {
     @Path("/getBiobankID")
     @POST
     public Response getProject(List<String> biobankNameList) {
-       try {
-           List<Integer> biobankID = new ArrayList();
-           for (String biobankName : biobankNameList) {
-               Site site = SiteUtil.fetchSiteByNameIgnoreCase(biobankName);
-               biobankID.add(site.getId());
-           }
-           return Response.ok(gson.toJson(biobankID)).build();
-       }catch (Exception e){
-           return Response.serverError().build();
-       }
+        try {
+            List<Integer> biobankID = new ArrayList();
+            for (String biobankName : biobankNameList) {
+                Site site = SiteUtil.fetchSiteByNameIgnoreCase(biobankName);
+                biobankID.add(site.getId());
+            }
+            return Response.ok(gson.toJson(biobankID)).build();
+        }catch (Exception e){
+            return Response.serverError().build();
+        }
+    }
+
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/getInquiry")
+    @POST
+    public Response getInquiry(int id) {
+        try {
+            Inquiry inquiry=InquiryUtil.fetchInquiryById(id);
+            if(inquiry.getAuthorId().equals(authenticatedUser.getId())) {
+                if (inquiry != null) {
+                    return Response.ok(gson.toJson(inquiry)).build();
+                } else {
+                    return Response.status(Response.Status.NOT_FOUND).build();
+                }
+            }else{
+                return Response.status(401).build();
+            }
+        }catch (Exception e){
+            return Response.serverError().build();
+        }
     }
 
     @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
@@ -204,7 +225,6 @@ public class Searchbroker {
      * @param xml the query
      * @return 200 or 500 code
      */
-    @Secured
     @POST
     @Path("/sendQuery")
     @Produces(MediaType.APPLICATION_XML)
@@ -237,7 +257,6 @@ public class Searchbroker {
      * @param id the id of the query
      * @return the result as JSON String
      */
-    @Secured
     @GET
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
@@ -252,7 +271,6 @@ public class Searchbroker {
      * @param id Inquiry ID
      * @return the count of the sites
      */
-    @Secured
     @GET
     @Path("/getSize")
     @Consumes(MediaType.TEXT_PLAIN)

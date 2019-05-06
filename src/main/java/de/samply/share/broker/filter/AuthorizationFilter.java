@@ -76,10 +76,6 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     }
 
     private void checkPermissions(List<AccessPermission> allowedAccessPermissions, List<RoleDTO> roles) throws Exception {
-        String methodname=resourceInfo.getResourceMethod().getName();
-       if(methodname.equals("sendQuery") ||methodname.equals("getSize") || methodname.equals("getReply")){
-           return;
-       }
         for (RoleDTO roleDTO : roles) {
             for (AccessPermission accessPermission : allowedAccessPermissions) {
                 if (accessPermission.name().equals(roleDTO.getIdentifier())) {
