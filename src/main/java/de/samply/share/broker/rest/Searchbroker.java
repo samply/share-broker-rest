@@ -97,7 +97,7 @@ public class Searchbroker {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/getBiobankID")
     @POST
-    public Response getProject(List<String> biobankNameList) {
+    public Response getBiobankID(List<String> biobankNameList) {
         try {
             List<Integer> biobankID = new ArrayList();
             for (String biobankName : biobankNameList) {
