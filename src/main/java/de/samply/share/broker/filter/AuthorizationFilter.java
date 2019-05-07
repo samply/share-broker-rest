@@ -1,6 +1,7 @@
 package de.samply.share.broker.filter;
 
 
+import de.samply.auth.rest.RoleDTO;;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.Priorities;
@@ -30,14 +31,10 @@ public class AuthorizationFilter implements ContainerRequestFilter {
 
     @Inject
     @AuthenticatedUserPermissions
-    List<AccessPermission> accessPermissions;
+    List<RoleDTO> roles;
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-
-        //TODO: Activate again
-        if (true) return;
-
         // Get the resource class which matches with the requested URL
         // Extract the permissions declared by it
         Class<?> resourceClass = resourceInfo.getResourceClass();
@@ -47,15 +44,14 @@ public class AuthorizationFilter implements ContainerRequestFilter {
         // Extract the permissions declared by it
         Method resourceMethod = resourceInfo.getResourceMethod();
         List<AccessPermission> methodPermissions = extractPermissions(resourceMethod);
-
         try {
 
             // Check if the user is allowed to execute the method
             // The method annotations override the class annotations
             if (methodPermissions.isEmpty()) {
-                checkPermissions(classPermissions);
+                checkPermissions(classPermissions, roles);
             } else {
-                checkPermissions(methodPermissions);
+                checkPermissions(methodPermissions, roles);
             }
 
         } catch (Exception e) {
@@ -79,13 +75,16 @@ public class AuthorizationFilter implements ContainerRequestFilter {
         }
     }
 
-    private void checkPermissions(List<AccessPermission> allowedAccessPermissions) throws Exception {
-
+    private void checkPermissions(List<AccessPermission> allowedAccessPermissions, List<RoleDTO> roles) throws Exception {
+        for (RoleDTO roleDTO : roles) {
+            for (AccessPermission accessPermission : allowedAccessPermissions) {
+                if (accessPermission.name().equals(roleDTO.getIdentifier())) {
+                    return;
+                }
+            }
+        }
         // Check if the user contains one of the allowed permissions
         // Throw an Exception if the user has not permission to execute the method
-        if (allowedAccessPermissions.containsAll(accessPermissions)) {
-            return;
-        }
         throw new Exception(); // Permission denied
     }
 }

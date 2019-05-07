@@ -1,22 +1,22 @@
 /**
  * Copyright (C) 2015 Working Group on Joint Research, University Medical Center Mainz
  * Contact: info@osse-register.de
- *
+ * <p>
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
  * Software Foundation; either version 3 of the License, or (at your option) any
  * later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program; if not, see <http://www.gnu.org/licenses>.
- *
+ * <p>
  * Additional permission under GNU GPL version 3 section 7:
- *
+ * <p>
  * If you modify this Program, or any covered work, by linking or combining it
  * with Jersey (https://jersey.java.net) (or a modified version of that
  * library), containing parts covered by the terms of the General Public
@@ -43,6 +43,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultConfiguration;
 
@@ -53,11 +54,11 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * This class provides static methods for CRUD operations for Project Objects
- * 
+ *
  * @see Project
  */
 public final class ProjectUtil {
-    
+
     private static final Logger logger = LogManager.getLogger(ProjectUtil.class);
 
     // Prevent instantiation
@@ -81,7 +82,7 @@ public final class ProjectUtil {
 
     /**
      * Get all projects that end in a certain amount of days
-     *
+     * <p>
      * The estimated end date is used, since the real end date will be applied when the project is closed
      *
      * @param days the threshold for project end date in days
@@ -89,9 +90,9 @@ public final class ProjectUtil {
      */
     public static List<Project> getProjectsThatEndInDays(int days) {
         List<Project> projects = null;
-        java.sql.Date threshold = new java.sql.Date(SamplyShareUtils.getCurrentDate().getTime() + TimeUnit.DAYS.toMillis(days) );
+        java.sql.Date threshold = new java.sql.Date(SamplyShareUtils.getCurrentDate().getTime() + TimeUnit.DAYS.toMillis(days));
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             DSLContext create = ResourceManager.getDSLContext(conn);
 
             projects = create.select(Tables.PROJECT.fields())
@@ -114,23 +115,28 @@ public final class ProjectUtil {
     public static List<Project> fetchProjectsByType(EnumProjectType projectType) {
         List<Project> projects = null;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             DSLContext create = ResourceManager.getDSLContext(conn);
 
             switch (projectType) {
-            case PT_NEW: projects = create.select().from(Tables.PROJECT)
-                    .where((Tables.PROJECT.STATUS).in(ProjectStatus.PS_NEW, ProjectStatus.PS_OPEN_MOREINFO_PROVIDED)).fetchInto(Project.class);
+                case PT_NEW:
+                    projects = create.select().from(Tables.PROJECT)
+                            .where((Tables.PROJECT.STATUS).in(ProjectStatus.PS_NEW, ProjectStatus.PS_OPEN_MOREINFO_PROVIDED)).fetchInto(Project.class);
                     break;
-            case PT_OPEN: projects = create.select().from(Tables.PROJECT)
-                    .where((Tables.PROJECT.STATUS).in(ProjectStatus.PS_OPEN_DISTRIBUTION, ProjectStatus.PS_OPEN_MOREINFO_NEEDED)).fetchInto(Project.class);
+                case PT_OPEN:
+                    projects = create.select().from(Tables.PROJECT)
+                            .where((Tables.PROJECT.STATUS).in(ProjectStatus.PS_OPEN_DISTRIBUTION, ProjectStatus.PS_OPEN_MOREINFO_NEEDED)).fetchInto(Project.class);
                     break;
-            case PT_ACTIVE: projects = create.select().from(Tables.PROJECT)
-                    .where((Tables.PROJECT.STATUS).equal(ProjectStatus.PS_ACTIVE)).fetchInto(Project.class);
+                case PT_ACTIVE:
+                    projects = create.select().from(Tables.PROJECT)
+                            .where((Tables.PROJECT.STATUS).equal(ProjectStatus.PS_ACTIVE)).fetchInto(Project.class);
                     break;
-            case PT_ARCHIVED: projects = create.select().from(Tables.PROJECT)
-                    .where((Tables.PROJECT.STATUS).in(ProjectStatus.PS_CLOSED, ProjectStatus.PS_REJECTED)).fetchInto(Project.class);
+                case PT_ARCHIVED:
+                    projects = create.select().from(Tables.PROJECT)
+                            .where((Tables.PROJECT.STATUS).in(ProjectStatus.PS_CLOSED, ProjectStatus.PS_REJECTED)).fetchInto(Project.class);
                     break;
-            default: logger.debug("Unknown Project Type (" + projectType.toString() + "). Returning all projects.");
+                default:
+                    logger.debug("Unknown Project Type (" + projectType.toString() + "). Returning all projects.");
                     projects = create.select().from(Tables.PROJECT).fetchInto(Project.class);
                     break;
             }
@@ -151,7 +157,7 @@ public final class ProjectUtil {
         User user = null;
         UserDao userDao;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             userDao = new UserDao(configuration);
             user = userDao.fetchOneById(project.getProjectleaderId());
@@ -188,7 +194,7 @@ public final class ProjectUtil {
             return null;
         }
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             siteDao = new SiteDao(configuration);
             site = siteDao.fetchOneById(siteIdForUser);
@@ -207,19 +213,24 @@ public final class ProjectUtil {
     public static Integer countProjects(EnumProjectType projectType) {
         Integer count = 0;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             DSLContext create = ResourceManager.getDSLContext(conn);
 
             switch (projectType) {
-            case PT_NEW: count = create.fetchCount(Tables.PROJECT, (Tables.PROJECT.STATUS).in(ProjectStatus.PS_NEW, ProjectStatus.PS_OPEN_MOREINFO_PROVIDED));
+                case PT_NEW:
+                    count = create.fetchCount(Tables.PROJECT, (Tables.PROJECT.STATUS).in(ProjectStatus.PS_NEW, ProjectStatus.PS_OPEN_MOREINFO_PROVIDED));
                     break;
-            case PT_OPEN: count = create.fetchCount(Tables.PROJECT, (Tables.PROJECT.STATUS).in(ProjectStatus.PS_OPEN_DISTRIBUTION, ProjectStatus.PS_OPEN_MOREINFO_NEEDED));
+                case PT_OPEN:
+                    count = create.fetchCount(Tables.PROJECT, (Tables.PROJECT.STATUS).in(ProjectStatus.PS_OPEN_DISTRIBUTION, ProjectStatus.PS_OPEN_MOREINFO_NEEDED));
                     break;
-            case PT_ACTIVE: count = create.fetchCount(Tables.PROJECT, (Tables.PROJECT.STATUS).equal(ProjectStatus.PS_ACTIVE));
+                case PT_ACTIVE:
+                    count = create.fetchCount(Tables.PROJECT, (Tables.PROJECT.STATUS).equal(ProjectStatus.PS_ACTIVE));
                     break;
-            case PT_ARCHIVED: count = create.fetchCount(Tables.PROJECT, (Tables.PROJECT.STATUS).in(ProjectStatus.PS_CLOSED, ProjectStatus.PS_REJECTED));
+                case PT_ARCHIVED:
+                    count = create.fetchCount(Tables.PROJECT, (Tables.PROJECT.STATUS).in(ProjectStatus.PS_CLOSED, ProjectStatus.PS_REJECTED));
                     break;
-            default: logger.debug("Unknown Project Type (" + projectType.toString() + "). Counting all projects.");
+                default:
+                    logger.debug("Unknown Project Type (" + projectType.toString() + "). Counting all projects.");
                     count = create.fetchCount(Tables.PROJECT);
                     break;
             }
@@ -238,7 +249,7 @@ public final class ProjectUtil {
     public static void updateProject(Project project) {
         ProjectDao projectDao;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             projectDao = new ProjectDao(configuration);
             projectDao.update(project);
@@ -257,7 +268,7 @@ public final class ProjectUtil {
         List<Inquiry> inquiries = null;
         InquiryDao inquiryDao;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             inquiryDao = new InquiryDao(configuration);
             inquiries = inquiryDao.fetchByProjectId(projectId);
@@ -281,7 +292,7 @@ public final class ProjectUtil {
     public static List<Site> fetchProjectPartners(Project project) {
         List<Site> sites = null;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             DSLContext create = ResourceManager.getDSLContext(conn);
 
             sites = create.select()
@@ -296,14 +307,14 @@ public final class ProjectUtil {
     /**
      * Set all project partners for a project
      *
-     * @param projectId the id of the project
+     * @param projectId  the id of the project
      * @param partnerIds the ids of the partner sites
      * @return true on success, false on error
      */
     public static boolean setProjectPartnersForProject(int projectId, List<String> partnerIds) {
         boolean ret = true;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             DSLContext dslContext = ResourceManager.getDSLContext(conn);
 
             for (String site : partnerIds) {
@@ -329,7 +340,7 @@ public final class ProjectUtil {
         Project project = null;
         ProjectDao projectDao;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             projectDao = new ProjectDao(configuration);
             project = projectDao.fetchOneById(projectId);
@@ -345,7 +356,7 @@ public final class ProjectUtil {
      * @param inquiry the inquiry
      * @return the project belonging to this inquiry, or null if no project belongs to the inquiry
      */
-    public static Project fetchProjectByInquiry(Inquiry inquiry) {        
+    public static Project fetchProjectByInquiry(Inquiry inquiry) {
         Integer projectId = inquiry.getProjectId();
         if (projectId == null || projectId == 0) {
             return null;
@@ -366,17 +377,17 @@ public final class ProjectUtil {
         Project project = null;
         ProjectDao projectDao;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             inquiryDao = new InquiryDao(configuration);
             inquiry = inquiryDao.fetchOneById(inquiryId);
-            
+
             Integer projectId = inquiry.getProjectId();
             if (projectId == null || projectId == 0) {
                 logger.debug("No project id found for inquiry with id " + inquiryId);
                 return null;
             }
-            
+
             projectDao = new ProjectDao(configuration);
             project = projectDao.fetchOneById(projectId);
         } catch (SQLException e) {
@@ -396,7 +407,7 @@ public final class ProjectUtil {
         ProjectDao projectDao;
         String projectTitle = "";
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             projectDao = new ProjectDao(configuration);
             project = projectDao.fetchOneById(projectId);
@@ -416,7 +427,7 @@ public final class ProjectUtil {
     public static List<Site> fetchProjectPartnersForProject(int projectId) {
         List<Site> sites = null;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             DSLContext create = ResourceManager.getDSLContext(conn);
 
             sites = create.select()
@@ -428,4 +439,51 @@ public final class ProjectUtil {
         return sites;
     }
 
+
+    /**
+     * Create a new project
+     * @param inquiry the inquiry with the details for the new project
+     * @param connection the database connection
+     * @return the ID of the new project
+     * @throws SQLException
+     */
+    private static int createProject(Inquiry inquiry,Connection connection) {
+        DSLContext dslContext = ResourceManager.getDSLContext(connection);
+        Record record = dslContext
+                .insertInto(Tables.PROJECT, Tables.PROJECT.PROJECTLEADER_ID, Tables.PROJECT.STATUS, Tables.PROJECT.NAME)
+                .values(inquiry.getAuthorId(), ProjectStatus.PS_NEW, inquiry.getLabel())
+                .returning(Tables.PROJECT.ID, Tables.PROJECT.APPLICATION_NUMBER).fetchOne();
+        return record.getValue(Tables.PROJECT.ID);
+    }
+
+    /**
+     * Add a project to a existing inquiry
+     * @param inquiry the existing inquiry
+     * @return the ID of the new project
+     */
+    public static int addProject(Inquiry inquiry) throws SQLException {
+        Connection connection = ResourceManager.getConnection();
+        int projectId= createProject(inquiry,connection);
+        Configuration configuration = new DefaultConfiguration().set(connection).set(SQLDialect.POSTGRES);
+        inquiry.setProjectId(projectId);
+        InquiryDao inquiryDao = new InquiryDao(configuration);
+        inquiryDao.update(inquiry);
+        int inquiryId = inquiry.getId();
+        DocumentUtil.setProjectIdForDocumentByInquiryId(inquiryId, projectId);
+        return projectId;
+    }
+
+
+    /**
+     * get all projects from a user
+     * @param projectLeaderId the user id
+     * @return a list of all projects from a user
+     * @throws SQLException
+     */
+    public static List<Project> fetchProjectByProjectLeaderId(int projectLeaderId) throws SQLException {
+        Connection connection = ResourceManager.getConnection();
+        Configuration configuration = new DefaultConfiguration().set(connection).set(SQLDialect.POSTGRES);
+        ProjectDao projectDao = new ProjectDao(configuration);
+        return projectDao.fetchByProjectleaderId(projectLeaderId);
+    }
 }

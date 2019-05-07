@@ -5,6 +5,7 @@ import de.samply.auth.client.jwt.JWTException;
 import de.samply.auth.client.jwt.JWTIDToken;
 import de.samply.auth.rest.LocationDTO;
 import de.samply.auth.rest.LocationListDTO;
+import de.samply.auth.rest.RoleDTO;
 import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.broker.utils.db.ContactUtil;
 import de.samply.share.broker.utils.db.SiteUtil;
@@ -45,7 +46,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
     @Inject
     @AuthenticatedUserPermissions
-    Event<List<String>> userAuthenticatedPermissionsEvent;
+    Event<List<RoleDTO>> userAuthenticatedPermissionsEvent;
 
     private static final String REALM = "example";
     private static final String AUTHENTICATION_SCHEME = "Bearer";
@@ -90,18 +91,11 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
         //send user to AuthenticatedUserProvider to get access to the user from everywhere
         userAuthenticatedEvent.fire(jwtIdToken.getSubject());
-
-        //TODO Enable again
-        if (true) return;
         //send permissions to AuthenticatedUserPermissionsProvider to get access to the permissions from everywhere
-        Object permissionsClaim = jwtIdToken.getClaimsSet().getClaim("permissions");
-        Map<String, List<String>> map = (Map) permissionsClaim;
-        List<String> brokerPermissions = map.get(OAuthConfig.getOAuth2Client(ProjectInfo.INSTANCE.getProjectName()).getClientId());
-        userAuthenticatedPermissionsEvent.fire(brokerPermissions);
+        userAuthenticatedPermissionsEvent.fire(jwtIdToken.getRoles());
     }
 
     private boolean isTokenBasedAuthentication(String authorizationHeader) {
-
         // Check if the Authorization header is valid
         // It must not be null and must be prefixed with "Bearer" plus a whitespace
         // The authentication scheme comparison must be case-insensitive
@@ -110,7 +104,6 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     }
 
     private void abortWithUnauthorized(ContainerRequestContext requestContext) {
-
         // Abort the filter chain with a 401 status code response
         // The WWW-Authenticate header is sent along with the response
         requestContext.abortWith(

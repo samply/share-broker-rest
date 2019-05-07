@@ -29,7 +29,6 @@ public class AuthenticatedUserProvider {
      * Return the User instance
      */
     private User findUser(String username) {
-        //TODO: use instead fetchUserByUserNameIgnoreCase(jwtIdToken.getEmail()); ?
         return UserUtil.fetchUserByAuthId(username);
     }
 }

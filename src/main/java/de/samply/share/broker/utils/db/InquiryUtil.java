@@ -32,6 +32,7 @@ import de.samply.share.broker.model.db.enums.DocumentType;
 import de.samply.share.broker.model.db.enums.InquiryStatus;
 import de.samply.share.broker.model.db.enums.ProjectStatus;
 import de.samply.share.broker.model.db.tables.daos.InquiryDao;
+import de.samply.share.broker.model.db.tables.daos.ProjectDao;
 import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.Project;
@@ -127,7 +128,7 @@ public final class InquiryUtil {
 
     /**
      * Delete old tentative inquiries.
-     *
+     * <p>
      * (those that come from central search) older than 1 day
      *
      * @return the number of deleted tentative inquiries
@@ -230,7 +231,7 @@ public final class InquiryUtil {
 
     /**
      * Get all inquiry drafts for a user
-     *
+     * <p>
      * Ordered by creation date in descending order
      *
      * @param userId the id of the user whose inquiry drafts shall be loaded
@@ -258,7 +259,7 @@ public final class InquiryUtil {
 
     /**
      * Get all released inquiries for a user
-     *
+     * <p>
      * Ordered by creation date in descending order
      *
      * @param userId the id of the user whose released inquiries shall be loaded
@@ -288,7 +289,7 @@ public final class InquiryUtil {
 
     /**
      * Get all released inquiries, that also have projects linked to them, for a user
-     *
+     * <p>
      * Ordered by creation date in descending order
      *
      * @param userId the id of the user whose released inquiries shall be loaded
@@ -318,7 +319,7 @@ public final class InquiryUtil {
 
     /**
      * Get all archived inquiries for a user
-     *
+     * <p>
      * Ordered by creation date in descending order
      *
      * @param userId the id of the user whose archived inquiries shall be loaded
@@ -373,7 +374,7 @@ public final class InquiryUtil {
      * Count how many inquiries with a given status the user has
      *
      * @param inquiryStatus the status of the inquiries to count
-     * @param userId the id of the user whose inquiries shall be counted
+     * @param userId        the id of the user whose inquiries shall be counted
      * @return the amount of inquiries with the given status, created by this user
      */
     public static Integer countInquiries(InquiryStatus inquiryStatus, int userId) {
@@ -385,7 +386,7 @@ public final class InquiryUtil {
                 count = create.fetchCount(Tables.INQUIRY,
                         (Tables.INQUIRY.STATUS.equal(inquiryStatus)
                                 .or(Tables.INQUIRY.EXPIRES.lessThan(SamplyShareUtils.getCurrentDate())))
-                        .and(Tables.INQUIRY.AUTHOR_ID.equal(userId)));
+                                .and(Tables.INQUIRY.AUTHOR_ID.equal(userId)));
             } else if (inquiryStatus.equals(InquiryStatus.IS_DRAFT)) {
                 count = create.fetchCount(Tables.INQUIRY,
                         Tables.INQUIRY.STATUS.equal(inquiryStatus)
@@ -406,7 +407,7 @@ public final class InquiryUtil {
      * Count the amount of released inquiries a user has
      *
      * @param withProject if set to true, only the inquiries are counted, that are linked with a project
-     * @param userId the id of the user whose released inquiries shall be counted
+     * @param userId      the id of the user whose released inquiries shall be counted
      * @return the amount of released inquiries, created by this user
      */
     public static Integer countReleasedInquiries(boolean withProject, int userId) {
@@ -455,7 +456,7 @@ public final class InquiryUtil {
 
     /**
      * Get all inquiries for a site
-     *
+     * <p>
      * Only include released inquiries that are not expired
      *
      * @param siteId the id of the site for which the inquiries shall be loaded
@@ -530,7 +531,7 @@ public final class InquiryUtil {
         return inquiries;
     }
 
-    public static void deleteSimpleResultInquiry(){
+    public static void deleteSimpleResultInquiry() {
         int affectedRows = 0;
         //TODO: if necessary change ID from user? The searchbroker user in the DB has the ID 1
         try (Connection conn = ResourceManager.getConnection()) {
@@ -569,5 +570,19 @@ public final class InquiryUtil {
             logger.error("Caught Data Access Exception while trying to delete old inquiries. " + dae);
         }
         logger.info("Deleted " + affectedRows + " old  inquiries");
+    }
+
+    /**
+     * Get inquires of a specific project
+     * @param projectId the project ID
+     * @return A list of the project inquiries
+     * @throws SQLException
+     */
+    public static List<Inquiry> fetchInquiryByProjectId(int projectId) throws SQLException {
+        Connection connection = ResourceManager.getConnection();
+        Configuration configuration = new DefaultConfiguration().set(connection).set(SQLDialect.POSTGRES);
+        InquiryDao inquiryDao = new InquiryDao(configuration);
+        return inquiryDao.fetchByProjectId(projectId);
+
     }
 }
