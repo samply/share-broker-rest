@@ -31,16 +31,20 @@ package de.samply.share.broker.rest;
 
 import com.google.gson.Gson;
 import de.samply.share.broker.control.SearchController;
+import de.samply.share.broker.filter.AccessPermission;
 import de.samply.share.broker.filter.AuthenticatedUser;
 import de.samply.share.broker.filter.Secured;
+import de.samply.share.broker.model.db.tables.daos.InquiryDao;
 import de.samply.share.broker.model.db.tables.pojos.*;
-import de.samply.share.broker.utils.Config;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.model.dto.SiteInfo;
 import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
+import org.jooq.tools.json.JSONArray;
+import org.jooq.tools.json.JSONObject;
+import org.jooq.tools.json.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +54,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,12 +81,132 @@ public class Searchbroker {
 
     private static Map<Integer, Integer> tickMap = new HashMap<>();
 
+    private Gson gson = new Gson();
+
     @Context
     UriInfo uriInfo;
 
     @Inject
     @AuthenticatedUser
     User authenticatedUser;
+    private static final String AUTHENTICATION_SCHEME = "Bearer";
+
+
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/getBiobankID")
+    @POST
+    public Response getBiobankID(List<String> biobankNameList) {
+        try {
+            List<Integer> biobankID = new ArrayList();
+            for (String biobankName : biobankNameList) {
+                Site site = SiteUtil.fetchSiteByNameIgnoreCase(biobankName);
+                biobankID.add(site.getId());
+            }
+            return Response.ok(gson.toJson(biobankID)).build();
+        }catch (Exception e){
+            return Response.serverError().build();
+        }
+    }
+
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/getInquiry")
+    @POST
+    public Response getInquiry(int id) {
+        try {
+            Inquiry inquiry=InquiryUtil.fetchInquiryById(id);
+            if(inquiry.getAuthorId().equals(authenticatedUser.getId())) {
+                if (inquiry != null) {
+                    return Response.ok(gson.toJson(inquiry)).build();
+                } else {
+                    return Response.status(Response.Status.NOT_FOUND).build();
+                }
+            }else{
+                return Response.status(401).build();
+            }
+        }catch (Exception e){
+            return Response.serverError().build();
+        }
+    }
+
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Path("/getProject")
+    @GET
+    public Response getProject() {
+        try {
+            List<Project> projectList = ProjectUtil.fetchProjectByProjectLeaderId(authenticatedUser.getId());
+            JSONArray jsonArray = new JSONArray();
+            JSONObject userProjectsJson = new JSONObject();
+            JSONParser parser = new JSONParser();
+            for (Project project : projectList) {
+                JSONObject tmpJsonObj = new JSONObject();
+                JSONObject projectJson = (JSONObject) parser.parse(gson.toJson(project));
+                JSONArray inquiryListJson = new JSONArray(InquiryUtil.fetchInquiryByProjectId(project.getId()));
+                tmpJsonObj.put("project", projectJson);
+                tmpJsonObj.put("inquiry", inquiryListJson);
+                jsonArray.add(tmpJsonObj);
+            }
+            userProjectsJson.put("projects", jsonArray);
+            return Response.ok(userProjectsJson).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(400, e.getMessage()).build();
+        }
+    }
+
+
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Path("/addProject")
+    @POST
+    public Response addProject(String inquiryJson) {
+        int projectId;
+        try {
+        Inquiry inquiryNew = gson.fromJson(inquiryJson, Inquiry.class);
+        Inquiry inquiryOld = InquiryUtil.fetchInquiryById(inquiryNew.getId());
+        if (inquiryOld == null) {
+            return Response.status(400).build();
+        } else if (inquiryOld.getAuthorId() != authenticatedUser.getId() || authenticatedUser.getId() != inquiryNew.getAuthorId()) {
+            return Response.status(401).build();
+        }
+            projectId = ProjectUtil.addProject(inquiryNew);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Response.status(500, e.getMessage()).build();
+        }
+        return Response.ok().header("id", projectId).build();
+    }
+
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Path("/addInquiryToProject")
+    @POST
+    public Response addInquiryToProject(@QueryParam("projectId") int projectId, @QueryParam("projectId") int inquiryId) {
+        Inquiry inquiry = InquiryUtil.fetchInquiryById(inquiryId);
+        Project project = ProjectUtil.fetchProjectById(projectId);
+        if (inquiry.getAuthorId() == project.getProjectleaderId() && inquiry.getAuthorId() == authenticatedUser.getId()) {
+            inquiry.setProjectId(projectId);
+            InquiryDao inquiryDao = new InquiryDao();
+            inquiryDao.update(inquiry);
+            return Response.ok().build();
+        }
+        return Response.status(400).build();
+    }
+
+
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Path("/checkProject")
+    @GET
+    public Response checkProject(@QueryParam("queryId") int queryId) {
+        Project project = ProjectUtil.fetchProjectByInquiryId(queryId);
+        if (project != null && project.getProjectleaderId() != authenticatedUser.getId()) {
+            return Response.status(401).build();
+        }
+        if (project != null) {
+            return Response.ok().header("id", project.getId()).build();
+        } else
+            return Response.ok().header("id", 0).build();
+    }
 
     /**
      * Gets the name of the searchbroker as given in the config file.
@@ -98,14 +225,20 @@ public class Searchbroker {
      * @param xml the query
      * @return 200 or 500 code
      */
-    @Secured
     @POST
     @Path("/sendQuery")
     @Produces(MediaType.APPLICATION_XML)
     @Consumes(MediaType.APPLICATION_XML)
     public Response sendQuery(String xml) {
+        User user;
         logger.info("sendQuery called");
-        User user = authenticatedUser;
+        try{
+            authenticatedUser.getUsername();
+            user = authenticatedUser;
+        }catch (Exception e){
+            user= new User();
+            user.setId(1);
+        }
         int id;
         try {
             id = SearchController.releaseQuery(xml, user);
@@ -120,30 +253,30 @@ public class Searchbroker {
 
     /**
      * Get result of the bridgeheads
+     *
      * @param id the id of the query
      * @return the result as JSON String
      */
-    @Secured
     @GET
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response getReplys(@QueryParam("id") int id) {
+    public Response getReply(@QueryParam("id") int id) {
         String reply = SearchController.getReplysFromQuery(id);
         return Response.ok().header("reply", reply).build();
     }
 
     /**
      * Get the count of the sites
+     *
      * @param id Inquiry ID
      * @return the count of the sites
      */
-    @Secured
     @GET
     @Path("/getSize")
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response getSize(@QueryParam("id") int id){
-        int size=InquirySiteUtil.fetchInquirySitesForInquiryId(id).size();
-        return Response.ok().header("size",size).build();
+    public Response getSize(@QueryParam("id") int id) {
+        int size = InquirySiteUtil.fetchInquirySitesForInquiryId(id).size();
+        return Response.ok().header("size", size).build();
     }
 
 
