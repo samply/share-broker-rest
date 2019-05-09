@@ -200,13 +200,16 @@ public class Searchbroker {
     @GET
     public Response checkProject(@QueryParam("queryId") int queryId) {
         Project project = ProjectUtil.fetchProjectByInquiryId(queryId);
-        if (project != null && !project.getProjectleaderId().equals(authenticatedUser.getId())) {
-            return resonseHelper.createUnauthorizedResponse();
-        }
-        if (project != null) {
-            return Response.ok().header("id", project.getId()).build();
-        } else
+
+        if (project == null) {
             return Response.ok().header("id", 0).build();
+        }
+
+        if (project.getProjectleaderId().equals(authenticatedUser.getId())) {
+            return Response.ok().header("id", project.getId()).build();
+        }
+
+        return resonseHelper.createUnauthorizedResponse();
     }
 
     /**
@@ -237,9 +240,7 @@ public class Searchbroker {
         try {
             id = SearchController.releaseQuery(xml, authenticatedUser);
         } catch (JAXBException e) {
-            logger.error("sendQuery id internal error: " + e);
-            e.printStackTrace();
-            return resonseHelper.createInternalServerErrorResponse();
+            return resonseHelper.createInternalServerErrorResponse("sendQuery id internal error: " + e);
         }
 
         logger.info("sendQuery with id is sent");
