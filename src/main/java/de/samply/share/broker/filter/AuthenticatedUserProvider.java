@@ -13,6 +13,7 @@ import javax.enterprise.inject.Produces;
 public class AuthenticatedUserProvider {
 
     private static final int ANONYMOUS_USER_ID = 1;
+
     @Produces
     @RequestScoped
     @AuthenticatedUser
@@ -27,11 +28,6 @@ public class AuthenticatedUserProvider {
         this.authenticatedUser = createDefaultAnonymousUser();
     }
 
-    /**
-     * Hit the the database or a service to find a user by its username and return it.
-     * If no such user exists return a default anonymous user.
-     * Return the User instance
-     */
     private User findUser(String username) {
         User user = UserUtil.fetchUserByAuthId(username);
 
