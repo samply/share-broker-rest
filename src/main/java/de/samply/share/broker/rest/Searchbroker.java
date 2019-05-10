@@ -36,7 +36,6 @@ import de.samply.share.broker.filter.AuthenticatedUser;
 import de.samply.share.broker.filter.Secured;
 import de.samply.share.broker.model.db.tables.daos.InquiryDao;
 import de.samply.share.broker.model.db.tables.pojos.*;
-import de.samply.share.broker.utils.ResonseBuilderHelper;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.model.dto.SiteInfo;
@@ -55,13 +54,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.xml.bind.JAXBException;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 
 /**
  * The Class Searchbroker provides the REST resources for samply.share.client (and other similar products) to use the decentral search.
@@ -73,7 +70,6 @@ public class Searchbroker {
     private static final String CONTENT_TYPE_PDF = "application/pdf";
 
     private final Logger logger = LoggerFactory.getLogger(Searchbroker.class);
-    private final ResonseBuilderHelper resonseHelper = new ResonseBuilderHelper(logger);
 
     private final String SERVER_HEADER_VALUE = Constants.SERVER_HEADER_VALUE_PREFIX + ProjectInfo.INSTANCE.getVersionString();
 
@@ -106,7 +102,7 @@ public class Searchbroker {
             }
             return Response.ok(gson.toJson(biobankID)).build();
         } catch (Exception e) {
-            return resonseHelper.createInternalServerErrorResponse();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -118,17 +114,17 @@ public class Searchbroker {
         try {
             Inquiry inquiry = InquiryUtil.fetchInquiryById(id);
             if (inquiry == null) {
-                return resonseHelper.createNotFoundResponse();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
 
             if (inquiry.getAuthorId().equals(authenticatedUser.getId())) {
                 return Response.ok(gson.toJson(inquiry)).build();
             }
 
-            return resonseHelper.createUnauthorizedResponse();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
 
         } catch (Exception e) {
-            return resonseHelper.createInternalServerErrorResponse();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -153,6 +149,7 @@ public class Searchbroker {
             return Response.ok(userProjectsJson).build();
         } catch (Exception e) {
             e.printStackTrace();
+            //TODO: Response should be 500. Also e.getMessage() should be deleted
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), e.getMessage()).build();
         }
     }
@@ -167,14 +164,14 @@ public class Searchbroker {
             Inquiry inquiryNew = gson.fromJson(inquiryJson, Inquiry.class);
             Inquiry inquiryOld = InquiryUtil.fetchInquiryById(inquiryNew.getId());
             if (inquiryOld == null) {
-                return resonseHelper.createBadRequestResponse();
+                return Response.status(Response.Status.BAD_REQUEST).build();
             } else if (!inquiryOld.getAuthorId().equals(authenticatedUser.getId()) || !authenticatedUser.getId().equals(inquiryNew.getAuthorId())) {
-                return resonseHelper.createUnauthorizedResponse();
+                return Response.status(Response.Status.UNAUTHORIZED).build();
             }
             projectId = ProjectUtil.addProject(inquiryNew);
         } catch (SQLException e) {
             e.printStackTrace();
-            return resonseHelper.createInternalServerErrorResponse();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.ok().header("id", projectId).build();
     }
@@ -189,9 +186,9 @@ public class Searchbroker {
             inquiry.setProjectId(projectId);
             InquiryDao inquiryDao = new InquiryDao();
             inquiryDao.update(inquiry);
-            return resonseHelper.createOkResponse();
+            return Response.status(Response.Status.OK).build();
         }
-        return resonseHelper.createBadRequestResponse();
+        return Response.status(Response.Status.BAD_REQUEST).build();
     }
 
 
@@ -209,7 +206,7 @@ public class Searchbroker {
             return Response.ok().header("id", project.getId()).build();
         }
 
-        return resonseHelper.createUnauthorizedResponse();
+        return Response.status(Response.Status.UNAUTHORIZED).build();
     }
 
     /**
@@ -240,7 +237,8 @@ public class Searchbroker {
         try {
             id = SearchController.releaseQuery(xml, authenticatedUser);
         } catch (JAXBException e) {
-            return resonseHelper.createInternalServerErrorResponse("sendQuery id internal error: " + e);
+            this.logger.warn("sendQuery id internal error: " + e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
         logger.info("sendQuery with id is sent");
@@ -414,8 +412,9 @@ public class Searchbroker {
                                  @HeaderParam(HttpHeaders.USER_AGENT) String userAgent,
                                  @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader) {
 
-        if (isUnauthorized(authorizationHeader)) {
-            return resonseHelper.createUnauthorizedResponse("Unauthorized attempt to retrieve inquiry list");
+        if (isBankUnauthorized(authorizationHeader)) {
+            this.logger.warn("Unauthorized attempt to retrieve inquiry list");
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
         int bankId = Utils.getBankId(authorizationHeader);
@@ -424,12 +423,13 @@ public class Searchbroker {
         String inquiryList = Utils.fixNamespaces(inquiryHandler.list(bankId), xmlNamespaceHeader);
 
         if (StringUtils.isEmpty(inquiryList) || inquiryList.equalsIgnoreCase("error")) {
-            return resonseHelper.createInternalServerErrorResponse("There was an error while retrieving the list of inquiries");
+            this.logger.warn("There was an error while retrieving the list of inquiries");
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.ok().entity(inquiryList).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
     }
 
-    private void sendVersionReport(@HeaderParam(HttpHeaders.USER_AGENT) String userAgent, int bankId) {
+    private void sendVersionReport(String userAgent, int bankId) {
         if (userAgent != null) {
             logger.info("GET /inquiries called from: " + Utils.userAgentAndBankToJson(userAgent, bankId));
 
@@ -450,7 +450,7 @@ public class Searchbroker {
      * @param authorizationHeader the api key of the client
      * @param userAgentHeader     the user agent of the client
      * @param xmlNamespaceHeader  optional header with xml namespace
-     * @param inquiryIdString     the requested inquiry id
+     * @param inquiryId           the requested inquiry id
      * @return <CODE>200</CODE> and the serialized inquiry on success
      * <CODE>400</CODE> if the inquiry id can't be parsed
      * <CODE>401</CODE> if the provided credentials do not allow to read this inquiry
@@ -463,22 +463,11 @@ public class Searchbroker {
     public Response getInquiry(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                @HeaderParam(HttpHeaders.USER_AGENT) String userAgentHeader,
                                @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
-                               @PathParam("inquiryid") String inquiryIdString) {
+                               @PathParam("inquiryid") int inquiryId) {
 
-        if (isUnauthorized(authorizationHeader)) {
-            return resonseHelper.createUnauthorizedResponse("Unauthorized attempt to retrieve an inquiry");
-        }
-
-        if (StringUtils.isEmpty(inquiryIdString)) {
-            return resonseHelper.createNotFoundResponse();
-        }
-
-        int inquiryId;
-
-        try {
-            inquiryId = Integer.parseInt(inquiryIdString);
-        } catch (NumberFormatException e) {
-            return resonseHelper.createBadRequestResponse("Could not parse inquiry id: " + inquiryIdString);
+        if (isBankUnauthorized(authorizationHeader)) {
+            this.logger.warn("Unauthorized attempt to retrieve an inquiry");
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
         String ret = inquiryHandler.getInquiry(inquiryId, uriInfo, userAgentHeader);
@@ -508,7 +497,7 @@ public class Searchbroker {
      *
      * @param authorizationHeader the authorization header
      * @param xmlNamespaceHeader  optional header with xml namespace
-     * @param inquiryIdString     the requested inquiry id
+     * @param inquiryId           the requested inquiry id
      * @return <CODE>200</CODE> and the serialized query of the inquiry on success
      * <CODE>400</CODE> if the inquiry id can't be parsed
      * <CODE>401</CODE> if the provided credentials do not allow to read this inquiry
@@ -520,17 +509,13 @@ public class Searchbroker {
     @Produces(MediaType.APPLICATION_XML)
     public Response getQuery(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                              @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
-                             @PathParam("inquiryid") String inquiryIdString) {
+                             @PathParam("inquiryid") int inquiryId) {
 
-        return createResponseForGetInquiryDetail(
-                this::createResponseForQuery,
-                authorizationHeader,
-                xmlNamespaceHeader,
-                inquiryIdString,
-                "Unauthorized attempt to retrieve an inquiry");
-    }
+        if (isBankUnauthorized(authorizationHeader)) {
+            this.logger.warn("Unauthorized attempt to retrieve an inquiry");
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
 
-    private Response createResponseForQuery(String xmlNamespaceHeader, int inquiryId) {
         String ret = inquiryHandler.getQuery(inquiryId);
         return buildResponse(xmlNamespaceHeader, inquiryId, ret);
     }
@@ -540,7 +525,7 @@ public class Searchbroker {
      *
      * @param authorizationHeader the authorization header
      * @param xmlNamespaceHeader  optional header with xml namespace
-     * @param inquiryIdString     the requested inquiry id
+     * @param inquiryId           the requested inquiry id
      * @return <CODE>200</CODE> and the serialized viewfields for the inquiry on success
      * <CODE>204</CODE> if no viewfields are specified for this inquiry
      * <CODE>400</CODE> if the inquiry id can't be parsed
@@ -553,21 +538,17 @@ public class Searchbroker {
     @Produces(MediaType.APPLICATION_XML)
     public Response getViewFields(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                   @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
-                                  @PathParam("inquiryid") String inquiryIdString) {
+                                  @PathParam("inquiryid") int inquiryId) {
 
-        return createResponseForGetInquiryDetail(
-                this::createResponseForViewFields,
-                authorizationHeader,
-                xmlNamespaceHeader,
-                inquiryIdString,
-                "Unauthorized attempt to retrieve an inquiry");
-    }
+        if (isBankUnauthorized(authorizationHeader)) {
+            this.logger.warn("Unauthorized attempt to retrieve an inquiry");
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
 
-    private Response createResponseForViewFields(@HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader, int inquiryId) {
         String ret = inquiryHandler.getViewFields(inquiryId);
         if (StringUtils.isEmpty(ret)) {
             logger.debug("No ViewFields were set for inquiry with id " + inquiryId);
-            return resonseHelper.createOkResponse();
+            return Response.status(Response.Status.OK).build();
         }
         return buildResponse(xmlNamespaceHeader, inquiryId, ret);
     }
@@ -577,7 +558,7 @@ public class Searchbroker {
      *
      * @param authorizationHeader the authorization header
      * @param xmlNamespaceHeader  optional header with xml namespace
-     * @param inquiryIdString     the requested inquiry id
+     * @param inquiryId           the requested inquiry id
      * @return <CODE>200</CODE> and the serialized contact information for the inquiry on success
      * <CODE>400</CODE> if the inquiry id can't be parsed
      * <CODE>401</CODE> if the provided credentials do not allow to read this inquiry
@@ -589,23 +570,19 @@ public class Searchbroker {
     @Produces(MediaType.APPLICATION_XML)
     public Response getContact(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
-                               @PathParam("inquiryid") String inquiryIdString) {
+                               @PathParam("inquiryid") int inquiryId) {
 
-        return createResponseForGetInquiryDetail(
-                this::createResonseForContact,
-                authorizationHeader,
-                xmlNamespaceHeader,
-                inquiryIdString,
-                "Unauthorized attempt to retrieve a contact");
-    }
+        if (isBankUnauthorized(authorizationHeader)) {
+            this.logger.warn("Unauthorized attempt to retrieve a contact");
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
 
-    private Response createResonseForContact(String xmlNamespaceHeader, int inquiryId) {
         String ret;
         try {
             ret = inquiryHandler.getContact(inquiryId);
         } catch (JAXBException e) {
             logger.error("Error getting contact for inquiry id " + inquiryId);
-            return resonseHelper.createNotFoundResponse();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         return buildResponse(xmlNamespaceHeader, inquiryId, ret);
@@ -617,7 +594,7 @@ public class Searchbroker {
      *
      * @param authorizationHeader the authorization header
      * @param xmlNamespaceHeader  optional header with xml namespace
-     * @param inquiryIdString     the requested inquiry id
+     * @param inquiryId           the requested inquiry id
      * @return <CODE>200</CODE> and the serialized details for the inquiry on success
      * <CODE>400</CODE> if the inquiry id can't be parsed
      * <CODE>401</CODE> if the provided credentials do not allow to read this inquiry
@@ -629,48 +606,22 @@ public class Searchbroker {
     @Produces(MediaType.APPLICATION_XML)
     public Response getInfo(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                             @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
-                            @PathParam("inquiryid") String inquiryIdString) {
+                            @PathParam("inquiryid") int inquiryId) {
 
-        return createResponseForGetInquiryDetail(
-                this::createResponseForInfo,
-                authorizationHeader,
-                xmlNamespaceHeader,
-                inquiryIdString,
-                "Unauthorized attempt to retrieve a contact");
-    }
+        if (isBankUnauthorized(authorizationHeader)) {
+            this.logger.warn("Unauthorized attempt to retrieve a contact");
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
 
-    private Response createResponseForInfo(String xmlNamespaceHeader, int inquiryId) {
         String ret;
         try {
             ret = inquiryHandler.getInfo(inquiryId);
         } catch (JAXBException e) {
             logger.error("Error getting info for inquiry id " + inquiryId);
-            return resonseHelper.createNotFoundResponse();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         return buildResponse(xmlNamespaceHeader, inquiryId, ret);
-    }
-
-    private Response createResponseForGetInquiryDetail(
-            BiFunction<String, Integer, Response> responseBiFunction,
-            String authorizationHeader,
-            String xmlNamespaceHeader,
-            String inquiryIdString,
-            String messageUnauthorized) {
-        if (isUnauthorized(authorizationHeader)) {
-            return resonseHelper.createUnauthorizedResponse(messageUnauthorized);
-        }
-
-        if (StringUtils.isEmpty(inquiryIdString)) {
-            return resonseHelper.createNotFoundResponse();
-        }
-
-        try {
-            int inquiryId = Integer.parseInt(inquiryIdString);
-            return responseBiFunction.apply(xmlNamespaceHeader, inquiryId);
-        } catch (NumberFormatException e) {
-            return resonseHelper.createBadRequestResponse("Could not parse inquiry id: " + inquiryIdString);
-        }
     }
 
     /**
@@ -684,26 +635,13 @@ public class Searchbroker {
     @Path("/inquiries/{inquiryid}/hasexpose")
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public Response isSynopsisAvailable(@PathParam("inquiryid") String inquiryId) {
-        int inqId;
-
-        if (StringUtils.isEmpty(inquiryId)) {
-            return resonseHelper.createNotFoundResponse();
-        }
-
-        try {
-            inqId = Integer.parseInt(inquiryId);
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-            return resonseHelper.createBadRequestResponse();
-        }
-
-        Document expose = DocumentUtil.fetchExposeByInquiryId(inqId);
+    public Response isSynopsisAvailable(@PathParam("inquiryid") int inquiryId) {
+        Document expose = DocumentUtil.fetchExposeByInquiryId(inquiryId);
 
         if (expose == null || expose.getData() == null || expose.getData().length < 1) {
             return Response.status(Response.Status.NOT_FOUND).entity("unavailable").header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
         } else {
-            return resonseHelper.createOkResponse();
+            return Response.status(Response.Status.OK).build();
         }
     }
 
@@ -711,7 +649,7 @@ public class Searchbroker {
      * Store reply for an inquiry by a bank.
      *
      * @param authorizationHeader the authorization header
-     * @param inquiryIdString     the inquiry id
+     * @param inquiryId           the inquiry id
      * @param bankEmail           the bank email
      * @param reply               the reply content
      * @return <CODE>200</CODE> on success
@@ -724,34 +662,25 @@ public class Searchbroker {
     @PUT
     @Consumes(MediaType.TEXT_PLAIN)
     public Response putReply(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-                             @PathParam("inquiryid") String inquiryIdString,
+                             @PathParam("inquiryid") int inquiryId,
                              @PathParam("bankemail") String bankEmail,
                              String reply) {
 
         int bankId = Utils.getBankId(authorizationHeader, bankEmail);
-        int inquiryId = -1;
 
         if (bankId < 0) {
-            return resonseHelper.createUnauthorizedResponse("Unauthorized attempt to answer to an inquiry from " + bankEmail);
+            this.logger.warn("Unauthorized attempt to answer to an inquiry from " + bankEmail);
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
         if (reply == null || reply.length() < 1) {
-            return resonseHelper.createBadRequestResponse("Rejecting empty reply to inquiry from " + bankEmail);
-        }
-
-        if (inquiryIdString != null && inquiryIdString.length() > 0) {
-            try {
-                inquiryId = Integer.parseInt(inquiryIdString);
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-                return resonseHelper.createBadRequestResponse("Could not parse inquiry id: " + inquiryIdString);
-            }
-        } else {
-            return resonseHelper.createNotFoundResponse("Inquiry with id " + inquiryId + " not found");
+            this.logger.warn("Rejecting empty reply to inquiry from " + bankEmail);
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
         if (!inquiryHandler.saveReply(inquiryId, bankId, reply)) {
-            return resonseHelper.createInternalServerErrorResponse("An error occurred while trying to store a reply to inquiry " + inquiryId + " by " + bankEmail);
+            this.logger.warn("An error occurred while trying to store a reply to inquiry " + inquiryId + " by " + bankEmail);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
         logger.info("Stored reply to inquiry " + inquiryId + " from " + bankEmail);
@@ -772,21 +701,8 @@ public class Searchbroker {
     @GET
     @Produces(CONTENT_TYPE_PDF)
     public Response getSynopsis(@HeaderParam(HttpHeaders.AUTHORIZATION) String authKeyHeader,
-                                @PathParam("inquiryid") String inquiryId) {
-        int inqId;
-
-        if (inquiryId != null && inquiryId.length() > 0) {
-            try {
-                inqId = Integer.parseInt(inquiryId);
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-                return resonseHelper.createBadRequestResponse();
-            }
-        } else {
-            return resonseHelper.createNotFoundResponse();
-        }
-
-        Document expose = DocumentUtil.fetchExposeByInquiryId(inqId);
+                                @PathParam("inquiryid") int inquiryId) {
+        Document expose = DocumentUtil.fetchExposeByInquiryId(inquiryId);
 
         if (expose == null) {
             return Response.status(Response.Status.NOT_FOUND).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
@@ -809,7 +725,7 @@ public class Searchbroker {
     @GET
     @Produces(CONTENT_TYPE_PDF)
     public Response getSynopsisAlias(@HeaderParam(HttpHeaders.AUTHORIZATION) String authKeyHeader,
-                                     @PathParam("inquiryid") String inquiryId) {
+                                     @PathParam("inquiryid") int inquiryId) {
         return this.getSynopsis(authKeyHeader, inquiryId);
     }
 
@@ -830,8 +746,9 @@ public class Searchbroker {
                              @HeaderParam(HttpHeaders.USER_AGENT) String userAgent,
                              @Context HttpServletRequest request) {
 
-        if (isUnauthorized(authorizationHeader)) {
-            return resonseHelper.createUnauthorizedResponse("Unauthorized attempt to retrieve list of sites from " + request.getRemoteAddr());
+        if (isBankUnauthorized(authorizationHeader)) {
+            this.logger.warn("Unauthorized attempt to retrieve list of sites from " + request.getRemoteAddr());
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
         List<Site> sites = SiteUtil.fetchSites();
@@ -842,7 +759,8 @@ public class Searchbroker {
         try {
             returnValue = gson.toJson(sites);
         } catch (Exception e) {
-            return resonseHelper.createInternalServerErrorResponse("Error trying to return site list: " + e);
+            this.logger.warn("Error trying to return site list: " + e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
         return Response.ok().entity(returnValue).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
@@ -854,7 +772,7 @@ public class Searchbroker {
      * @param authorizationHeader the authorization header
      * @param userAgent           the user agent of the client
      * @param request             the http request
-     * @param siteIdString        the id of the site to set
+     * @param siteId        the id of the site to set
      * @return <CODE>200</CODE> on success
      * <CODE>401</CODE> on authorization error
      * <CODE>404</CODE> if the site or bank could not be found
@@ -864,19 +782,14 @@ public class Searchbroker {
     public Response setSite(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                             @HeaderParam(HttpHeaders.USER_AGENT) String userAgent,
                             @Context HttpServletRequest request,
-                            @PathParam("siteid") String siteIdString) {
-        if (isUnauthorized(authorizationHeader)) {
-            return resonseHelper.createUnauthorizedResponse("Unauthorized attempt to set a site from " + request.getRemoteAddr());
+                            @PathParam("siteid") int siteId) {
+        if (isBankUnauthorized(authorizationHeader)) {
+            this.logger.warn("Unauthorized attempt to set a site from " + request.getRemoteAddr());
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
         int bankId = Utils.getBankId(authorizationHeader);
-        try {
-            int siteId = Integer.parseInt(siteIdString);
-            BankSiteUtil.setSiteIdForBankId(bankId, siteId, false);
-        } catch (Exception e) {
-            logger.error("Error trying to set site" + e);
-            return resonseHelper.createNotFoundResponse();
-        }
+        BankSiteUtil.setSiteIdForBankId(bankId, siteId, false);
 
         return Response.ok().header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
     }
@@ -891,19 +804,21 @@ public class Searchbroker {
      */
     private Response buildResponse(String xmlNamespace, int inquiryId, String ret) {
         if (ret.equalsIgnoreCase("error")) {
-            return resonseHelper.createInternalServerErrorResponse("Could not get inquiry");
+            this.logger.warn("Could not get inquiry");
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         } else if (ret.equalsIgnoreCase("notFound")) {
-            return resonseHelper.createNotFoundResponse("Inquiry with id " + inquiryId + " not found");
+            this.logger.warn("Inquiry with id " + inquiryId + " not found");
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         ret = Utils.fixNamespaces(ret, xmlNamespace);
         return Response.ok().entity(ret).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
     }
 
-    private boolean isUnauthorized(String authorizationHeader) {
+    private boolean isBankUnauthorized(String authorizationHeader) {
         int bankId = Utils.getBankId(authorizationHeader);
 
-        return (bankId < 0);
+        return bankId < 0;
     }
 
 }
