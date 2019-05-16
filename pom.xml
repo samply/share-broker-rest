@@ -195,6 +195,11 @@
     </build>
     <dependencies>
         <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20160212</version>
+        </dependency>
+        <dependency>
             <groupId>de.samply</groupId>
             <artifactId>common-config</artifactId>
             <version>${version.samply.common.config}</version>

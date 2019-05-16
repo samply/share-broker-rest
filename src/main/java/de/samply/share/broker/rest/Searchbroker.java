@@ -257,12 +257,34 @@ public class Searchbroker {
      * @param id the id of the query
      * @return the result as JSON String
      */
+    @Secured
     @GET
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
     public Response getReply(@QueryParam("id") int id) {
         String reply = SearchController.getReplysFromQuery(id);
         return Response.ok().header("reply", reply).build();
+    }
+
+    /**
+     * Get aggregated result of the bridgeheads (without login)
+     *
+     * @param id the id of the query
+     * @return the result as JSON String
+     */
+    @GET
+    @Path("/getAnonymousReply")
+    @Consumes(MediaType.TEXT_PLAIN)
+    public Response getAnonymousReply(@QueryParam("id") int id) {
+        String reply = SearchController.getReplysFromQuery(id);
+        org.json.JSONArray jsonArr = new org.json.JSONArray(reply);
+        for (int i = 0; i < jsonArr.length(); i++)
+        {
+            org.json.JSONObject jsonObj = jsonArr.getJSONObject(i);
+            jsonObj.remove("site");
+            jsonObj.put("site", "anonymous");
+        }
+        return Response.ok().header("reply", jsonArr.toString()).build();
     }
 
     /**
