@@ -29,7 +29,7 @@
  */
 package de.samply.share.broker.rest;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import de.samply.share.broker.control.SearchController;
 import de.samply.share.broker.filter.AccessPermission;
 import de.samply.share.broker.filter.AuthenticatedUser;
@@ -45,6 +45,7 @@ import de.samply.share.common.utils.SamplyShareUtils;
 import org.jooq.tools.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
+import org.jooq.tools.json.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -277,14 +278,18 @@ public class Searchbroker {
     @Consumes(MediaType.TEXT_PLAIN)
     public Response getAnonymousReply(@QueryParam("id") int id) {
         String reply = SearchController.getReplysFromQuery(id);
-        org.json.JSONArray jsonArr = new org.json.JSONArray(reply);
-        for (int i = 0; i < jsonArr.length(); i++)
+
+        JsonParser parser = new JsonParser();
+        JsonElement tradeElement = parser.parse(reply);
+        JsonArray jsonReply = tradeElement.getAsJsonArray();
+        for (int i = 0; i < jsonReply.size(); i++)
         {
-            org.json.JSONObject jsonObj = jsonArr.getJSONObject(i);
+            JsonObject jsonObj = jsonReply.get(i).getAsJsonObject();
             jsonObj.remove("site");
-            jsonObj.put("site", "anonymous");
+            jsonObj.addProperty("site", "anonymous");
         }
-        return Response.ok().header("reply", jsonArr.toString()).build();
+
+        return Response.ok().header("reply", jsonReply.toString()).build();
     }
 
     /**
