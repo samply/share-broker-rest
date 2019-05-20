@@ -231,7 +231,7 @@ public class Searchbroker {
     @Produces(MediaType.APPLICATION_XML)
     @Consumes(MediaType.APPLICATION_XML)
     public Response sendQuery(String xml) {
-        logger.info("sendQuery called");
+        this.logger.info("sendQuery called");
 
         int id;
         try {
@@ -241,7 +241,7 @@ public class Searchbroker {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
-        logger.info("sendQuery with id is sent");
+        this.logger.info("sendQuery with id is sent");
         return Response.accepted().header("id", id).build();
     }
 
@@ -295,20 +295,20 @@ public class Searchbroker {
         String authCode = SamplyShareUtils.getAuthCodeFromHeader(authCodeHeader, Constants.REGISTRATION_HEADER_VALUE);
 
         if (!SamplyShareUtils.isEmail(email)) {
-            logger.warn("Registration attempted with invalid email: " + email);
+            this.logger.warn("Registration attempted with invalid email: " + email);
             responseStatus = Response.Status.BAD_REQUEST;
         } else if (authCode != null && authCode.length() > 0) {
             String locationId = null;
             if (accessToken != null && accessToken.length() > 0) {
                 locationId = Utils.getLocationIdFromAccessToken(accessToken);
-                logger.debug("location id = " + locationId);
+                this.logger.debug("location id = " + locationId);
             }
             tokenId = bankRegistration.activate(email, authCode, locationId);
             if ("error".equals(tokenId)) {
-                logger.warn("Activation attempted with invalid credentials from: " + email);
+                this.logger.warn("Activation attempted with invalid credentials from: " + email);
                 responseStatus = Response.Status.UNAUTHORIZED;
             } else {
-                logger.info("Bank activated: " + email);
+                this.logger.info("Bank activated: " + email);
                 responseStatus = Response.Status.CREATED;
             }
         } else {
@@ -363,7 +363,7 @@ public class Searchbroker {
     @Produces
     public Response getRegistrationstatus(@PathParam("email") String email,
                                           @HeaderParam(HttpHeaders.AUTHORIZATION) String authCodeHeader) {
-        logger.debug("Get Status is called for " + email);
+        this.logger.debug("Get Status is called for " + email);
         Response response;
         String authCode = SamplyShareUtils.getAuthCodeFromHeader(authCodeHeader, "Samply ");
 
@@ -383,7 +383,7 @@ public class Searchbroker {
             siteString = gson.toJson(siteInfo);
             response = Response.status(responseStatus).entity(siteString).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
         } catch (Exception e) {
-            logger.warn("Could not get site...no need to worry though." + e);
+            this.logger.warn("Could not get site...no need to worry though." + e);
             response = Response.status(responseStatus).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
         }
 
@@ -431,7 +431,7 @@ public class Searchbroker {
 
     private void sendVersionReport(String userAgent, int bankId) {
         if (userAgent != null) {
-            logger.info("GET /inquiries called from: " + Utils.userAgentAndBankToJson(userAgent, bankId));
+            this.logger.info("GET /inquiries called from: " + Utils.userAgentAndBankToJson(userAgent, bankId));
 
             int bankTick = tickMap.getOrDefault(bankId, 1);
 
@@ -485,7 +485,7 @@ public class Searchbroker {
                 }
             } catch (Exception e) {
                 // Just catch everything for now
-                logger.warn("Could not update InquirySite");
+                this.logger.warn("Could not update InquirySite");
             }
         }
 
@@ -547,7 +547,7 @@ public class Searchbroker {
 
         String ret = inquiryHandler.getViewFields(inquiryId);
         if (StringUtils.isEmpty(ret)) {
-            logger.debug("No ViewFields were set for inquiry with id " + inquiryId);
+            this.logger.debug("No ViewFields were set for inquiry with id " + inquiryId);
             return Response.status(Response.Status.OK).build();
         }
         return buildResponse(xmlNamespaceHeader, inquiryId, ret);
@@ -581,7 +581,7 @@ public class Searchbroker {
         try {
             ret = inquiryHandler.getContact(inquiryId);
         } catch (JAXBException e) {
-            logger.error("Error getting contact for inquiry id " + inquiryId);
+            this.logger.error("Error getting contact for inquiry id " + inquiryId);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
@@ -617,7 +617,7 @@ public class Searchbroker {
         try {
             ret = inquiryHandler.getInfo(inquiryId);
         } catch (JAXBException e) {
-            logger.error("Error getting info for inquiry id " + inquiryId);
+            this.logger.error("Error getting info for inquiry id " + inquiryId);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
@@ -683,7 +683,7 @@ public class Searchbroker {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
-        logger.info("Stored reply to inquiry " + inquiryId + " from " + bankEmail);
+        this.logger.info("Stored reply to inquiry " + inquiryId + " from " + bankEmail);
         return Response.ok().header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
     }
 
