@@ -29,7 +29,7 @@
  */
 package de.samply.share.broker.rest;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import de.samply.share.broker.control.SearchController;
 import de.samply.share.broker.filter.AccessPermission;
 import de.samply.share.broker.filter.AuthenticatedUser;
@@ -46,6 +46,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jooq.tools.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
+import org.jooq.tools.json.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -251,12 +252,38 @@ public class Searchbroker {
      * @param id the id of the query
      * @return the result as JSON String
      */
+    @Secured
     @GET
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
     public Response getReply(@QueryParam("id") int id) {
         String reply = SearchController.getReplysFromQuery(id);
         return Response.ok().header("reply", reply).build();
+    }
+
+    /**
+     * Get aggregated result of the bridgeheads (without login)
+     *
+     * @param id the id of the query
+     * @return the result as JSON String
+     */
+    @GET
+    @Path("/getAnonymousReply")
+    @Consumes(MediaType.TEXT_PLAIN)
+    public Response getAnonymousReply(@QueryParam("id") int id) {
+        String reply = SearchController.getReplysFromQuery(id);
+
+        JsonParser parser = new JsonParser();
+        JsonElement tradeElement = parser.parse(reply);
+        JsonArray jsonReply = tradeElement.getAsJsonArray();
+        for (int i = 0; i < jsonReply.size(); i++)
+        {
+            JsonObject jsonObj = jsonReply.get(i).getAsJsonObject();
+            jsonObj.remove("site");
+            jsonObj.addProperty("site", "anonymous");
+        }
+
+        return Response.ok().header("reply", jsonReply.toString()).build();
     }
 
     /**
