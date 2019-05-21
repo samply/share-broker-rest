@@ -89,7 +89,7 @@ public class Searchbroker {
     @AuthenticatedUser
     User authenticatedUser;
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/getDirectoryID")
@@ -110,7 +110,7 @@ public class Searchbroker {
         }
     }
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/getInquiry")
     @POST
@@ -132,7 +132,7 @@ public class Searchbroker {
         }
     }
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured
     @Path("/getProject")
     @GET
     public Response getProject() {
@@ -159,7 +159,7 @@ public class Searchbroker {
     }
 
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured
     @Path("/addProject")
     @POST
     public Response addProject(String inquiryJson) {
@@ -180,7 +180,7 @@ public class Searchbroker {
         return Response.ok().header("id", projectId).build();
     }
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured
     @Path("/addInquiryToProject")
     @POST
     public Response addInquiryToProject(@QueryParam("projectId") int projectId, @QueryParam("projectId") int inquiryId) {
@@ -196,7 +196,7 @@ public class Searchbroker {
     }
 
 
-    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
+    @Secured
     @Path("/checkProject")
     @GET
     public Response checkProject(@QueryParam("queryId") int queryId) {
