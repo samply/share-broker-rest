@@ -91,18 +91,21 @@ public class Searchbroker {
     @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/getBiobankID")
+    @Path("/getDirectoryID")
     @POST
-    public Response getBiobankID(List<String> biobankNameList) {
+    public Response getDirectoryID(List<String> biobankNameList) {
         try {
-            List<Integer> biobankID = new ArrayList<>();
+            JSONArray biobank= new JSONArray();
             for (String biobankName : biobankNameList) {
+                JSONObject jsonObject= new JSONObject();
                 Site site = SiteUtil.fetchSiteByNameIgnoreCase(biobankName);
-                biobankID.add(site.getId());
+                jsonObject.put("biobankId",site.getBiobankid());
+                jsonObject.put("collectionId",site.getCollectionid());
+                biobank.add(jsonObject);
             }
-            return Response.ok(gson.toJson(biobankID)).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.ok(biobank).build();
+        }catch (Exception e){
+            return Response.serverError().build();
         }
     }
 
