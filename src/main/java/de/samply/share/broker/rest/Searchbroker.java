@@ -105,7 +105,7 @@ public class Searchbroker {
             }
             return Response.ok(biobank).build();
         }catch (Exception e){
-            return Response.serverError().build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
