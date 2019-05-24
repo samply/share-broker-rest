@@ -89,7 +89,7 @@ public class Searchbroker {
     @AuthenticatedUser
     User authenticatedUser;
 
-    @Secured
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/getDirectoryID")
@@ -110,7 +110,7 @@ public class Searchbroker {
         }
     }
 
-    @Secured
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/getInquiry")
     @POST
@@ -132,7 +132,7 @@ public class Searchbroker {
         }
     }
 
-    @Secured
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Path("/getProject")
     @GET
     public Response getProject() {
@@ -159,7 +159,7 @@ public class Searchbroker {
     }
 
 
-    @Secured
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Path("/addProject")
     @POST
     public Response addProject(String inquiryJson) {
@@ -180,7 +180,7 @@ public class Searchbroker {
         return Response.ok().header("id", projectId).build();
     }
 
-    @Secured
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Path("/addInquiryToProject")
     @POST
     public Response addInquiryToProject(@QueryParam("projectId") int projectId, @QueryParam("projectId") int inquiryId) {
@@ -196,7 +196,7 @@ public class Searchbroker {
     }
 
 
-    @Secured
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @Path("/checkProject")
     @GET
     public Response checkProject(@QueryParam("queryId") int queryId) {
@@ -255,7 +255,7 @@ public class Searchbroker {
      * @param id the id of the query
      * @return the result as JSON String
      */
-    @Secured
+    @Secured({AccessPermission.GBA_SEARCHBROKER_USER, AccessPermission.DKTK_SEARCHBROKER_ADMIN})
     @GET
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
