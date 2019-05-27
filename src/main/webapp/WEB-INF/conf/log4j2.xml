@@ -58,22 +58,22 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Root level="debug">
+        <Root level="info">
             <AppenderRef ref="CONSOLE"/>
             <AppenderRef ref="CATALINA"/>
         </Root>
         <Logger name="org.apache.catalina.core.ContainerBase.[Catalina].[localhost]"
-                level="debug"
+                level="info"
                 additivity="false">
             <AppenderRef ref="LOCALHOST"/>
         </Logger>
         <Logger name="org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager]"
-                level="debug"
+                level="info"
                 additivity="false">
             <AppenderRef ref="MANAGER"/>
         </Logger>
         <Logger name="org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager]"
-                level="debug"
+                level="info"
                 additivity="false">
             <AppenderRef ref="HOST-MANAGER"/>
         </Logger>

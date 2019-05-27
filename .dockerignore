@@ -1,4 +1,4 @@
 *
 !src/docker
-!target/searchbroker
+!target/searchbroker.war
 !Dockerfile
