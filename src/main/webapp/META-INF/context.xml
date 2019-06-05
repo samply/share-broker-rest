@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context path="/">
-    <Resource name="jdbc/postgres/samply.share.broker" auth="Container"
-              type="javax.sql.DataSource" driverClassName="org.postgresql.Driver"
+    <Resource name="jdbc/postgres/samply.share.broker"
+              auth="Container"
+              type="javax.sql.DataSource"
+              driverClassName="org.postgresql.Driver"
               url="${database.url}"
-              username="${database.username}" password="${database.password}" maxActive="100" maxIdle="30"
-              maxWait="30000" removeAbandoned="true" removeAbandonedTimeout="120" logAbandoned="true"
-              testOnBorrow="true" validationQuery="select 1"/>
+              username="${database.username}"
+              password="${database.password}"
+              maxTotal="100"
+              maxIdle="30"
+              maxWaitMillis="30000"
+              removeAbandonedOnBorrow="true"
+              removeAbandonedTimeout="120"
+              logAbandoned="true"
+              testOnBorrow="true"
+              validationQuery="select 1"/>
 </Context>
