@@ -1,13 +1,14 @@
 FROM tomcat:8.5.32-jre8-alpine
-RUN ["rm", "-fr", "/usr/local/tomcat/webapps/ROOT"]
-ADD target/searchbroker                         /usr/local/tomcat/webapps/ROOT/
 
-ADD src/docker/context.xml                      /usr/local/tomcat/conf/Catalina/localhost/ROOT.xml
-ADD src/docker/samply.share.broker.conf         /etc/samply/
-ADD src/docker/log4j2.xml                       /etc/samply/
-ADD src/docker/OAuth2Client.xml                 /etc/samply/
-ADD src/docker/samply_common_config.xml         /etc/samply/
-ADD src/docker/mailSending.xml                  /etc/samply/
+RUN ["rm", "-fr", "/usr/local/tomcat/webapps"]
+ADD target/searchbroker.war                     /usr/local/tomcat/webapps/broker.war
+
+ADD src/docker/context.xml                      /usr/local/tomcat/conf/Catalina/localhost/broker.xml
+
+ADD src/docker/OAuth2Client.xml                 /usr/local/tomcat/conf/
+ADD src/docker/samply_common_config.xml         /usr/local/tomcat/conf/
+ADD src/docker/mailSending.xml                  /usr/local/tomcat/conf/
+ADD src/docker/log4j2.xml                       /usr/local/tomcat/conf/
 
 # JMX Exporter
 ENV JMX_EXPORTER_VERSION 0.3.1

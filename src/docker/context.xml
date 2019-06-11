@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/">
+<Context path="/broker">
     <Resource name="jdbc/postgres/samply.share.broker"
               auth="Container"
               type="javax.sql.DataSource"
@@ -7,10 +7,10 @@
               url="jdbc:postgresql://{postgres-host}:{postgres-port}/{postgres-db}"
               username="{postgres-user}"
               password="{postgres-pass}"
-              maxActive="100"
+              maxTotal="100"
               maxIdle="30"
-              maxWait="30000"
-              removeAbandoned="true"
+              maxWaitMillis="30000"
+              removeAbandonedOnBorrow="true"
               removeAbandonedTimeout="120"
               logAbandoned="true"
               testOnBorrow="true"
