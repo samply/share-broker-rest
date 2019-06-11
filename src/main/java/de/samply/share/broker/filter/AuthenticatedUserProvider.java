@@ -1,12 +1,9 @@
 package de.samply.share.broker.filter;
 
-/**
- * Created on 18.12.2018.
- */
-
 import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.broker.utils.db.UserUtil;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Produces;
@@ -14,6 +11,8 @@ import javax.enterprise.inject.Produces;
 
 @RequestScoped
 public class AuthenticatedUserProvider {
+
+    private static final int ANONYMOUS_USER_ID = 1;
 
     @Produces
     @RequestScoped
@@ -24,11 +23,20 @@ public class AuthenticatedUserProvider {
         this.authenticatedUser = findUser(username);
     }
 
-    /**
-     * Hit the the database or a service to find a user by its username and return it
-     * Return the User instance
-     */
+    @PostConstruct
+    private void init() {
+        this.authenticatedUser = createDefaultAnonymousUser();
+    }
+
     private User findUser(String username) {
-        return UserUtil.fetchUserByAuthId(username);
+        User user = UserUtil.fetchUserByAuthId(username);
+
+        return (user != null) ? user : createDefaultAnonymousUser();
+    }
+
+    private User createDefaultAnonymousUser() {
+        User user = new User();
+        user.setId(ANONYMOUS_USER_ID);
+        return user;
     }
 }
