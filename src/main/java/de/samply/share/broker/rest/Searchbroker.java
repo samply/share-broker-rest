@@ -292,14 +292,18 @@ public class Searchbroker {
     /**
      * Get the count of the sites
      *
-     * @param id Inquiry ID
      * @return the count of the sites
      */
     @GET
     @Path("/getSize")
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response getSize(@QueryParam("id") int id) {
-        int size = InquirySiteUtil.fetchInquirySitesForInquiryId(id).size();
+    public Response getSize() {
+        int size = 0;
+        for (Site site : SiteUtil.fetchSites()){
+            if (site.getDeactivateInDonut() == null || site.getDeactivateInDonut() == false){
+                size++;
+            }
+        }
         return Response.ok().header("size", size).build();
     }
 

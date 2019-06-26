@@ -125,13 +125,6 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         if (ContactUtil.getContactForUser(user) == null) {
             ContactUtil.createContactForUser(user);
         }
-        // handle locations-user relationship (not tested or used)
-        TimeZone.setDefault(TimeZone.getTimeZone("CET"));
-        List<LocationDTO> userLocations = jwtIdToken.getLocations();
-        LocationListDTO locationList = new LocationListDTO();
-        locationList.setLocations(userLocations);
-        SiteUtil.insertSites(locationList);
-        UserSiteUtil.updateUserLocations(user, userLocations);
     }
 
 }
