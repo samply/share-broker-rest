@@ -22,7 +22,7 @@
                 <project.context>samply</project.context>
                 <database.username>${project.context}</database.username>
                 <database.password>${project.context}</database.password>
-                <database.url>jdbc:postgresql://localhost:5432/${project.context}.searchbroker</database.url>
+                <database.url>jdbc:postgresql://localhost:5433/${project.context}.searchbroker</database.url>
                 <database.schema>${project.context}</database.schema>
             </properties>
         </profile>

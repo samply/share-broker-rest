@@ -300,7 +300,7 @@ public class Searchbroker {
     public Response getSize() {
         int size = 0;
         for (Site site : SiteUtil.fetchSites()){
-            if (site.getDeactivateInDonut() == null || site.getDeactivateInDonut() == false){
+            if (site.getInactive() == null || site.getInactive() == false){
                 size++;
             }
         }
