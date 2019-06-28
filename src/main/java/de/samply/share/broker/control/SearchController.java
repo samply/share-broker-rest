@@ -30,7 +30,6 @@ import de.samply.share.broker.messages.Messages;
 import de.samply.share.broker.model.db.enums.InquiryStatus;
 import de.samply.share.broker.model.db.tables.pojos.*;
 import de.samply.share.broker.rest.InquiryHandler;
-import de.samply.share.broker.utils.Config;
 import de.samply.share.broker.utils.MailUtils;
 import de.samply.share.broker.utils.SimpleQueryDto2ShareXmlTransformer;
 import de.samply.share.broker.utils.Utils;
@@ -40,9 +39,7 @@ import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.QueryTreeUtil;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.model.common.Query;
-import de.samply.share.query.entity.*;
-import de.samply.share.query.field.*;
-import de.samply.share.query.value.*;
+import de.samply.share.query.entity.SimpleQueryDto;
 import de.samply.share.utils.QueryConverter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -90,7 +87,7 @@ public class SearchController extends AbstractSearchController {
 
     /**
      * Store and release an inquiry
-     *
+     * <p>
      * Release may be held back if confirmation by project management is needed
      *
      * @return the resulting navigation case
@@ -347,9 +344,9 @@ public class SearchController extends AbstractSearchController {
      * If necessary, spawn a project linked with the inquiry
      *
      * @param bypassExamination if true, spawning of a project will be skipped
-     * @param inquiry the inquiry to check
-     * @param hadProjectBefore if true, the inquiry already is linked to a project
-     * @param inquiryHandler the inquiry handler to use
+     * @param inquiry           the inquiry to check
+     * @param hadProjectBefore  if true, the inquiry already is linked to a project
+     * @param inquiryHandler    the inquiry handler to use
      */
     private void spawnProjectIfNeeded(boolean bypassExamination, Inquiry inquiry, boolean hadProjectBefore, InquiryHandler inquiryHandler) {
         if (ProjectInfo.INSTANCE.getProjectName().equalsIgnoreCase("dktk") && !bypassExamination) {
@@ -436,15 +433,16 @@ public class SearchController extends AbstractSearchController {
 
     /**
      * release query from UI for bridgeheads
+     *
      * @param simpleQueryDtoXml the query
-     * @param loggedUser the logged User
+     * @param loggedUser        the logged User
      * @return the query ID
      * @throws JAXBException
      */
 
     public static int releaseQuery(String simpleQueryDtoXml, User loggedUser) throws JAXBException {
         JAXBContext jaxbContext = JAXBContext.newInstance(SimpleQueryDto.class);
-        SimpleQueryDto simpleQueryDto=QueryConverter.unmarshal(simpleQueryDtoXml,jaxbContext,SimpleQueryDto.class);
+        SimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, SimpleQueryDto.class);
         Query query = new SimpleQueryDto2ShareXmlTransformer().toQuery(simpleQueryDto);
         InquiryHandler inquiryHandler = new InquiryHandler();
         int inquiryId = inquiryHandler.storeAndRelease(query, loggedUser.getId(), "", "", -1, -1, new ArrayList<String>(), true);
@@ -458,6 +456,7 @@ public class SearchController extends AbstractSearchController {
 
     /**
      * get replys from the bridgeheads of the query
+     *
      * @param id the id of the query
      * @return all results as JSON String
      */
