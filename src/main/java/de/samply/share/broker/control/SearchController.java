@@ -457,15 +457,16 @@ public class SearchController extends AbstractSearchController {
     public static String getReplysFromQuery(int id) {
         List<Reply> replyList = ReplyUtil.getReplyforInquriy(id);
         JSONArray jsonArray = new JSONArray();
-
+        JSONParser parser = new JSONParser();
         for (Reply reply : replyList) {
-            JSONParser parser = new JSONParser();
-            JSONObject json;
-            try {
-                json = (JSONObject) parser.parse(reply.getContent());
-                jsonArray.put(json);
-            } catch (ParseException e) {
-                e.printStackTrace();
+            Boolean inactive = SiteUtil.fetchSiteById(BankSiteUtil.fetchBankSiteByBankId(reply.getBankId()).getSiteId()).getInactive();
+            if (inactive == null || inactive == false){
+                try {
+                    JSONObject json = (JSONObject) parser.parse(reply.getContent());
+                    jsonArray.put(json);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
             }
         }
         logger.info("Sending replys to UI...");
