@@ -32,6 +32,7 @@ import de.samply.share.broker.model.db.tables.pojos.*;
 import de.samply.share.broker.rest.InquiryHandler;
 import de.samply.share.broker.utils.Config;
 import de.samply.share.broker.utils.MailUtils;
+import de.samply.share.broker.utils.SimpleQueryDto2ShareXmlTransformer;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.control.uiquerybuilder.AbstractSearchController;
@@ -39,6 +40,9 @@ import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.QueryTreeUtil;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.model.common.Query;
+import de.samply.share.query.entity.*;
+import de.samply.share.query.field.*;
+import de.samply.share.query.value.*;
 import de.samply.share.utils.QueryConverter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -49,6 +53,7 @@ import org.jooq.tools.json.JSONParser;
 import org.jooq.tools.json.ParseException;
 
 import javax.faces.application.FacesMessage;
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.List;
@@ -431,14 +436,16 @@ public class SearchController extends AbstractSearchController {
 
     /**
      * release query from UI for bridgeheads
-     * @param xmlQuery the query
+     * @param simpleQueryDtoXml the query
      * @param loggedUser the logged User
      * @return the query ID
      * @throws JAXBException
      */
 
-    public static int releaseQuery(String xmlQuery, User loggedUser) throws JAXBException {
-        Query query = QueryConverter.xmlToQuery(xmlQuery);
+    public static int releaseQuery(String simpleQueryDtoXml, User loggedUser) throws JAXBException {
+        JAXBContext jaxbContext = JAXBContext.newInstance(SimpleQueryDto.class, DonorDto.class, SampleContextDto.class, SampleDto.class, EventDto.class, FieldDateDto.class, FieldDateTimeDto.class, FieldDecimalDto.class, FieldPermittedValueDto.class, FieldStringDto.class, ValueDateDto.class, ValueDateTimeDto.class, ValueDecimalDto.class, ValueIntegerDto.class, ValuePermittedValuesDto.class,ValueStringDto.class);
+        SimpleQueryDto simpleQueryDto=QueryConverter.unmarshal(simpleQueryDtoXml,jaxbContext,SimpleQueryDto.class);
+        Query query = new SimpleQueryDto2ShareXmlTransformer().toQuery(simpleQueryDto);
         InquiryHandler inquiryHandler = new InquiryHandler();
         int inquiryId = inquiryHandler.storeAndRelease(query, loggedUser.getId(), "", "", -1, -1, new ArrayList<String>(), true);
         List<String> siteIds = new ArrayList<>();
