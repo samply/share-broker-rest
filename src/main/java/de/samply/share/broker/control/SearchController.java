@@ -443,7 +443,7 @@ public class SearchController extends AbstractSearchController {
      */
 
     public static int releaseQuery(String simpleQueryDtoXml, User loggedUser) throws JAXBException {
-        JAXBContext jaxbContext = JAXBContext.newInstance(SimpleQueryDto.class, DonorDto.class, SampleContextDto.class, SampleDto.class, EventDto.class, FieldDateDto.class, FieldDateTimeDto.class, FieldDecimalDto.class, FieldPermittedValueDto.class, FieldStringDto.class, ValueDateDto.class, ValueDateTimeDto.class, ValueDecimalDto.class, ValueIntegerDto.class, ValuePermittedValuesDto.class,ValueStringDto.class);
+        JAXBContext jaxbContext = JAXBContext.newInstance(SimpleQueryDto.class);
         SimpleQueryDto simpleQueryDto=QueryConverter.unmarshal(simpleQueryDtoXml,jaxbContext,SimpleQueryDto.class);
         Query query = new SimpleQueryDto2ShareXmlTransformer().toQuery(simpleQueryDto);
         InquiryHandler inquiryHandler = new InquiryHandler();
