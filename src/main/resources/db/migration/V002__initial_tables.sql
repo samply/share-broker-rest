@@ -29,11 +29,18 @@ CREATE TABLE inquiry (
   expires     DATE                        DEFAULT (now() + '28 days' :: INTERVAL),
   author_id   INTEGER        NOT NULL,
   archived    BOOLEAN,
-  criteria    TEXT           NOT NULL,
   viewfields  TEXT,
   status      INQUIRY_STATUS NOT NULL,
   revision    INTEGER,
   result_type TEXT
+);
+
+CREATE TABLE inquiry_details (
+  id          SERIAL PRIMARY KEY,
+  inquiry_id  INTEGER,
+  criteria    TEXT           NOT NULL,
+  type        INQUIRY_DETAILS_TYPE NOT NULL,
+  entity_type TEXT
 );
 
 CREATE TABLE project (

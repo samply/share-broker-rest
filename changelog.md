@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Refactored Flyway scripts
 - Moved SimpleQueryDto2ShareXmlTransformaer from UI to REST
+- Split table Inquiry into Inquiry and InquiryDetails
 
 ## [2.2.0 - 2019-06-06]
 ### Changed

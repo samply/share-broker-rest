@@ -31,10 +31,7 @@ package de.samply.share.broker.control;
 
 import com.itextpdf.text.DocumentException;
 import de.samply.share.broker.model.EnumProjectType;
-import de.samply.share.broker.model.db.enums.ActionType;
-import de.samply.share.broker.model.db.enums.DocumentType;
-import de.samply.share.broker.model.db.enums.InquiryStatus;
-import de.samply.share.broker.model.db.enums.ProjectStatus;
+import de.samply.share.broker.model.db.enums.*;
 import de.samply.share.broker.model.db.tables.pojos.*;
 import de.samply.share.broker.rest.InquiryHandler;
 import de.samply.share.broker.utils.MailUtils;
@@ -45,6 +42,7 @@ import de.samply.share.common.model.uiquerybuilder.QueryItem;
 import de.samply.share.common.utils.QueryTreeUtil;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.model.common.Query;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.omnifaces.model.tree.ListTreeModel;
@@ -395,9 +393,19 @@ public class ProjectController implements Serializable {
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             Inquiry firstInquiryForProject = ProjectUtil.fetchFirstInquiryForProject(selectedProjectId);
             if (firstInquiryForProject != null) {
-                StringReader stringReader = new StringReader(firstInquiryForProject.getCriteria());
-                Query query = (Query) unmarshaller.unmarshal(stringReader);
-                criteriaTree = QueryTreeUtil.queryToTree(query);
+                Integer inquiryId = firstInquiryForProject.getId();
+                String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
+
+                if (!StringUtils.isEmpty(criteria)) {
+                    StringReader stringReader = new StringReader(criteria);
+                    Query query = (Query) unmarshaller.unmarshal(stringReader);
+                    criteriaTree = QueryTreeUtil.queryToTree(query);
+                    logger.debug("Loaded inquiry details with inqiuryId " + inquiryId + " and type '" + InquiryDetailsType.CQL  + "' from db.");
+                } else {
+                    criteriaTree = new ListTreeModel<>();
+                    logger.debug("Inquiry details for with inquiryId " + inquiryId + " and type '" + InquiryDetailsType.CQL  + "' not found.");
+                }
+
             }
         } catch (JAXBException e) {
             e.printStackTrace();

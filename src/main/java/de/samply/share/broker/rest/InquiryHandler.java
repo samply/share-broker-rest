@@ -34,10 +34,7 @@ import com.google.common.base.Splitter;
 import com.itextpdf.awt.geom.misc.Messages;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
-import de.samply.share.broker.model.db.enums.ActionType;
-import de.samply.share.broker.model.db.enums.DocumentType;
-import de.samply.share.broker.model.db.enums.InquiryStatus;
-import de.samply.share.broker.model.db.enums.ProjectStatus;
+import de.samply.share.broker.model.db.enums.*;
 import de.samply.share.broker.model.db.tables.daos.ContactDao;
 import de.samply.share.broker.model.db.tables.daos.InquiryDao;
 import de.samply.share.broker.model.db.tables.daos.ReplyDao;
@@ -49,12 +46,10 @@ import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.model.common.Contact;
 import de.samply.share.model.common.*;
+import de.samply.share.model.common.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jooq.Configuration;
-import org.jooq.DSLContext;
-import org.jooq.Record;
-import org.jooq.SQLDialect;
+import org.jooq.*;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
@@ -76,6 +71,7 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The Class InquiryHandler.
@@ -83,6 +79,8 @@ import java.util.List;
 public class InquiryHandler {
 
     private static final Logger logger = LogManager.getLogger(InquiryHandler.class);
+
+    private static final String ENTITY_TYPE_FOR_QUERY = "Donor + Sample";
 
     public InquiryHandler() {
     }
@@ -159,9 +157,14 @@ public class InquiryHandler {
             marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
             marshaller.marshal(query, stringWriter);
 
-            inquiry.setCriteria(stringWriter.toString());
-            inquiry.setStatus(InquiryStatus.IS_DRAFT);
+            Optional<InquiryDetails> inquiryDetailsOptional = InquiryDetailsUtil.fetchInquiryDetailsForInquiryIdTypeQuery(inquiry.getId());
+            if (inquiryDetailsOptional.isPresent()) {
+                InquiryDetails inquiryDetails = inquiryDetailsOptional.get();
+                inquiryDetails.setCriteria(stringWriter.toString());
+                saveInquiryDetails(inquiryDetails, dslContext);
+            }
 
+            inquiry.setStatus(InquiryStatus.IS_DRAFT);
 
             String joinedResultTypes = "";
             if (isDktk) {
@@ -170,17 +173,10 @@ public class InquiryHandler {
             }
             inquiry.setResultType(joinedResultTypes);
 
-            Record record = dslContext
-                    .insertInto(Tables.INQUIRY, Tables.INQUIRY.AUTHOR_ID, Tables.INQUIRY.CRITERIA, Tables.INQUIRY.STATUS,
-                            Tables.INQUIRY.REVISION, Tables.INQUIRY.LABEL, Tables.INQUIRY.DESCRIPTION, Tables.INQUIRY.RESULT_TYPE,
-                            Tables.INQUIRY.EXPIRES)
-                    .values(inquiry.getAuthorId(), inquiry.getCriteria(), inquiry.getStatus(), inquiry.getRevision(),
-                            inquiry.getLabel(), inquiry.getDescription(), inquiry.getResultType(), null)
-                    .returning(Tables.INQUIRY.ID, Tables.INQUIRY.CREATED)
-                    .fetchOne();
+            Record inquiryRecord = saveInquiry(inquiry, dslContext);
 
-            inquiry.setCreated(record.getValue(Tables.INQUIRY.CREATED));
-            inquiry.setId(record.getValue(Tables.INQUIRY.ID));
+            inquiry.setCreated(inquiryRecord.getValue(Tables.INQUIRY.CREATED));
+            inquiry.setId(inquiryRecord.getValue(Tables.INQUIRY.ID));
 
             if (exposeId > 0) {
                 Document expose = DocumentUtil.getDocumentById(exposeId);
@@ -205,7 +201,6 @@ public class InquiryHandler {
 
         return returnValue;
     }
-
 
     /**
      * Release an inquiry and spawn a new project if needed
@@ -388,13 +383,19 @@ public class InquiryHandler {
             marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
             marshaller.marshal(query, stringWriter);
 
-            inquiry.setCriteria(stringWriter.toString());
+            Optional<InquiryDetails> inquiryDetailsOptional = InquiryDetailsUtil.fetchInquiryDetailsForInquiryIdTypeQuery(inquiry.getId());
+            if (inquiryDetailsOptional.isPresent()) {
+                InquiryDetails inquiryDetails = inquiryDetailsOptional.get();
+                inquiryDetails.setCriteria(stringWriter.toString());
+                saveInquiryDetails(inquiryDetails, dslContext);
+            }
+
             inquiry.setStatus(InquiryStatus.IS_DRAFT);
 
             Record record = dslContext
-                    .insertInto(Tables.INQUIRY, Tables.INQUIRY.AUTHOR_ID, Tables.INQUIRY.CRITERIA, Tables.INQUIRY.STATUS,
+                    .insertInto(Tables.INQUIRY, Tables.INQUIRY.AUTHOR_ID, Tables.INQUIRY.STATUS,
                             Tables.INQUIRY.REVISION)
-                    .values(inquiry.getAuthorId(), inquiry.getCriteria(), inquiry.getStatus(), inquiry.getRevision())
+                    .values(inquiry.getAuthorId(), inquiry.getStatus(), inquiry.getRevision())
                     .returning(Tables.INQUIRY.ID, Tables.INQUIRY.CREATED).fetchOne();
 
             returnValue = record.getValue(Tables.INQUIRY.ID);
@@ -582,10 +583,12 @@ public class InquiryHandler {
             inq.setDescription(inquiry.getDescription());
 
             // Unmarshal the criteria String into a Query Object
+            String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
+            StringReader stringReader = new StringReader(criteria);
+
             JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             Marshaller marshaller = jaxbContext.createMarshaller();
-            StringReader stringReader = new StringReader(inquiry.getCriteria());
             Query query = (Query) unmarshaller.unmarshal(stringReader);
 
             inq.setQuery(query);
@@ -668,7 +671,8 @@ public class InquiryHandler {
                 return "notFound";
             }
 
-            returnValue.append(inquiry.getCriteria());
+            String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
+            returnValue.append(criteria);
         } catch (SQLException e) {
             e.printStackTrace();
             returnValue.replace(0, returnValue.length(), "error");
@@ -815,6 +819,41 @@ public class InquiryHandler {
         return ret;
     }
 
+
+    private void saveInquiryDetails(InquiryDetails inquiryDetails, DSLContext dslContext) {
+        dslContext
+                .insertInto(Tables.INQUIRY_DETAILS,
+                        Tables.INQUIRY_DETAILS.INQUIRY_ID,
+                        Tables.INQUIRY_DETAILS.TYPE,
+                        Tables.INQUIRY_DETAILS.CRITERIA,
+                        Tables.INQUIRY_DETAILS.ENTITY_TYPE)
+                .values(inquiryDetails.getInquiryId(),
+                        inquiryDetails.getType(),
+                        inquiryDetails.getCriteria(),
+                        inquiryDetails.getEntityType());
+    }
+
+    private Record saveInquiry(Inquiry inquiry, DSLContext dslContext) {
+        return dslContext
+                .insertInto(Tables.INQUIRY,
+                        Tables.INQUIRY.AUTHOR_ID,
+                        Tables.INQUIRY.STATUS,
+                        Tables.INQUIRY.REVISION,
+                        Tables.INQUIRY.LABEL,
+                        Tables.INQUIRY.DESCRIPTION,
+                        Tables.INQUIRY.RESULT_TYPE,
+                        Tables.INQUIRY.EXPIRES)
+                .values(inquiry.getAuthorId(),
+                        inquiry.getStatus(),
+                        inquiry.getRevision(),
+                        inquiry.getLabel(),
+                        inquiry.getDescription(),
+                        inquiry.getResultType(),
+                        null)
+                .returning(Tables.INQUIRY.ID, Tables.INQUIRY.CREATED)
+                .fetchOne();
+    }
+
     /**
      * Save a reply to a given inquiry.
      *
@@ -828,14 +867,14 @@ public class InquiryHandler {
         Reply reply;
         ReplyDao replyDao;
         JSONParser parser = new JSONParser();
-        JSONObject json= new JSONObject();
+        JSONObject json = new JSONObject();
         try {
             json = (JSONObject) parser.parse(content);
             json.put("site", SiteUtil.fetchSiteById(BankSiteUtil.fetchBankSiteByBankId(bankId).getSiteId()).getName());
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        content=json.toString();
+        content = json.toString();
 
         try (Connection connection = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(connection).set(SQLDialect.POSTGRES);
