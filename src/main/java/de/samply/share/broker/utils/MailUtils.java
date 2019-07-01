@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 Working Group on Joint Research, University Medical Center Mainz
  * Contact: info@osse-register.de
  *
@@ -888,11 +888,6 @@ public class MailUtils {
      * @param site the site the user wants to be associated with
      */
     public static void sendUserSiteMail(User user, Site site) {
-//        if (Utils.getProjectStage().equals(ProjectStage.Development)) {
-//            logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
-//            return;
-//        }
-
         OutgoingEmail email = new OutgoingEmail();
         String projectName = ProjectInfo.INSTANCE.getProjectName();
 
@@ -914,7 +909,6 @@ public class MailUtils {
             email.addAddressee(addressee);
         }
 
-//            email.addAddressee(ProjectInfo.INSTANCE.getConfig().getProperty(ADMIN_MAIL));
         email.setLocale(locale);
         email.putParameter("userName", user.getName());
         email.putParameter("userAuthId", user.getAuthid());
@@ -944,11 +938,6 @@ public class MailUtils {
      * @param site the site the user wants to be associated with
      */
     public static void sendBankSiteMail(Bank bank, Site site) {
-//        if (Utils.getProjectStage().equals(ProjectStage.Development)) {
-//            logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
-//            return;
-//        }
-
         OutgoingEmail email = new OutgoingEmail();
         String projectName = ProjectInfo.INSTANCE.getProjectName();
 
@@ -970,7 +959,6 @@ public class MailUtils {
             email.addAddressee(addressee);
         }
 
-//            email.addAddressee(ProjectInfo.INSTANCE.getConfig().getProperty(ADMIN_MAIL));
         email.setLocale(locale);
         email.putParameter("bankMail", bankMail);
         email.putParameter("bankId", Integer.toString(bank.getId()));

@@ -13,5 +13,5 @@ INSERT INTO samply.site (name) VALUES ('München-TUM');
 INSERT INTO samply.site (name) VALUES ('Würzburg');
 INSERT INTO samply.site (name) VALUES ('Teststandort');
 
-INSERT INTO samply.contact(id, firstname, lastname, email) VALUES ('600', 'GBA', 'Searchbroker', 'no-reply@vm.vmitro.de');
-INSERT INTO samply.user(id, username, email, name, authid, contact_id) VALUES ('1', 'Searchbroker', 'no-reply@vm.vmitro.de', 'GBA Searchbroker', '600', '600');
+INSERT INTO samply.contact(id, firstname, lastname, email) VALUES ('1', 'GBA', 'Searchbroker', 'no-reply@vm.vmitro.de');
+INSERT INTO samply.user(id, username, email, name, contact_id) VALUES ('1', 'Searchbroker', 'no-reply@vm.vmitro.de', 'GBA Searchbroker', '1');

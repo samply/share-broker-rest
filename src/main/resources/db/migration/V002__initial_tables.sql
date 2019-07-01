@@ -1,9 +1,9 @@
 CREATE TABLE "user" (
   id         SERIAL PRIMARY KEY,
-  username   TEXT        NOT NULL,
+  username   TEXT NOT NULL,
   email      TEXT,
   name       TEXT,
-  authid     TEXT UNIQUE NOT NULL,
+  authid     TEXT UNIQUE,
   contact_id INTEGER
 );
 
