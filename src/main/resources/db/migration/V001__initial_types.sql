@@ -1,5 +1,5 @@
 CREATE SCHEMA IF NOT EXISTS samply;
-SET search_path TO samply,public;
+SET search_path TO samply;
 
 CREATE TYPE ACTION_TYPE AS ENUM (
   'AT_NEW_PROJECT',

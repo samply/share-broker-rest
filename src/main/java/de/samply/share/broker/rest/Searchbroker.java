@@ -298,12 +298,8 @@ public class Searchbroker {
     @Path("/getSize")
     @Consumes(MediaType.TEXT_PLAIN)
     public Response getSize() {
-        int size = 0;
-        for (Site site : SiteUtil.fetchSites()){
-            if (site.getInactive() == null || site.getInactive() == false){
-                size++;
-            }
-        }
+        long size = SiteUtil.fetchSites().stream().filter(Site::getActive).count();
+
         return Response.ok().header("size", size).build();
     }
 
