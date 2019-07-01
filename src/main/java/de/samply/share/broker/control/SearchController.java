@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 Working Group on Joint Research, University Medical Center Mainz
  * Contact: info@osse-register.de
  * <p>
@@ -445,7 +445,7 @@ public class SearchController extends AbstractSearchController {
         SimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, SimpleQueryDto.class);
         Query query = new SimpleQueryDto2ShareXmlTransformer().toQuery(simpleQueryDto);
         InquiryHandler inquiryHandler = new InquiryHandler();
-        int inquiryId = inquiryHandler.storeAndRelease(query, loggedUser.getId(), "", "", -1, -1, new ArrayList<String>(), true);
+        int inquiryId = inquiryHandler.storeAndRelease(query, loggedUser.getId(), "", "", -1, -1, new ArrayList<>(), true);
         List<String> siteIds = new ArrayList<>();
         for (Site site : SiteUtil.fetchSites()) {
             siteIds.add(site.getId().toString());
@@ -462,11 +462,14 @@ public class SearchController extends AbstractSearchController {
      */
     public static String getReplysFromQuery(int id) {
         List<Reply> replyList = ReplyUtil.getReplyforInquriy(id);
+        if (replyList == null) {
+            return new JSONArray().toString();
+        }
+
         JSONArray jsonArray = new JSONArray();
         JSONParser parser = new JSONParser();
         for (Reply reply : replyList) {
-            Boolean inactive = SiteUtil.fetchSiteById(BankSiteUtil.fetchBankSiteByBankId(reply.getBankId()).getSiteId()).getInactive();
-            if (inactive == null || inactive == false){
+             if (isActiveSite(reply)){
                 try {
                     JSONObject json = (JSONObject) parser.parse(reply.getContent());
                     jsonArray.put(json);
@@ -475,8 +478,22 @@ public class SearchController extends AbstractSearchController {
                 }
             }
         }
-        logger.info("Sending replys to UI...");
         return jsonArray.toString();
+    }
+
+    private static boolean isActiveSite(Reply reply) {
+        BankSite bankSite = BankSiteUtil.fetchBankSiteByBankId(reply.getBankId());
+        if (bankSite == null) {
+            return false;
+        }
+
+
+        Site site = SiteUtil.fetchSiteById(bankSite.getSiteId());
+        if (site == null) {
+            return false;
+        }
+
+        return site.getActive();
     }
 
     @Override

@@ -71,7 +71,6 @@ CREATE TABLE reply (
   inquiry_id INTEGER NOT NULL
 );
 
--- maybe set email to unique?
 CREATE TABLE tokenrequest (
   id       SERIAL PRIMARY KEY,
   issued   TIMESTAMP NOT NULL DEFAULT now(),
@@ -84,7 +83,10 @@ CREATE TABLE site (
   name          TEXT UNIQUE NOT NULL,
   name_extended TEXT,
   description   TEXT,
-  contact       TEXT
+  contact       TEXT,
+  biobankId     TEXT,
+  collectionId  TEXT,
+  active        BOOLEAN NOT NULL DEFAULT true
 );
 
 CREATE TABLE user_site (

@@ -1,2 +1,0 @@
-ALTER TABLE site
-  ADD COLUMN inactive BOOLEAN;

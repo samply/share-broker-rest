@@ -106,7 +106,7 @@
                         <schema>${database.schema}</schema>
                     </schemas>
                     <locations>
-                        <location>filesystem:src/main/resources/db/migration/${project.context}</location>
+                        <location>filesystem:src/main/resources/db/migration</location>
                     </locations>
                 </configuration>
             </plugin>
