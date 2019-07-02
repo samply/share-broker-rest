@@ -51,16 +51,6 @@ import java.util.List;
 public class SearchDetailsBean implements Serializable {
 
     private static final long serialVersionUID = -4671575946697123638L;
-    private static final Logger logger = LogManager.getLogger(SearchDetailsBean.class);
-
-    private static final String createEventhandlers = "createEventhandlers();";
-    private static final String resetExposeFileinput = "$('#exposeUpload').fileinput('reset');";
-    private static final String hideExposeFileinput = "$('#exposeBoxForm').hide();";
-    private static final String showExposeFileinput = "$('#exposeBoxForm').show();";
-
-    private static final String resetVoteFileinput = "$('#voteUpload').fileinput('reset');";
-    private static final String hideVoteFileinput = "$('#voteBoxForm').hide();";
-    private static final String showVoteFileinput = "$('#voteBoxForm').show();";
 
     private String inquiryName;
     private String inquiryDescription;
@@ -68,12 +58,8 @@ public class SearchDetailsBean implements Serializable {
     private List<String> resultTypes;
     private Inquiry inquiry;
     private Document expose;
-    private Part newExpose;
     private Document vote;
-    private Part newVote;
-    private boolean cooperationAvailable;
     private boolean edit = false;
-    private boolean validationActive = false;
 
     private String serializedQuery;
 
@@ -83,19 +69,19 @@ public class SearchDetailsBean implements Serializable {
         resultTypes = new ArrayList<>();
     }
 
-    public String getInquiryName() {
+    String getInquiryName() {
         return inquiryName;
     }
 
-    public String getInquiryDescription() {
+    String getInquiryDescription() {
         return inquiryDescription;
     }
 
-    public List<String> getSelectedSites() {
+    List<String> getSelectedSites() {
         return selectedSites;
     }
 
-    public List<String> getResultTypes() {
+    List<String> getResultTypes() {
         return resultTypes;
     }
 
@@ -107,23 +93,19 @@ public class SearchDetailsBean implements Serializable {
         return expose;
     }
 
-    public Document getVote() {
+    Document getVote() {
         return vote;
     }
 
-    public void setCooperationAvailable(boolean cooperationAvailable) {
-        this.cooperationAvailable = cooperationAvailable;
-    }
-
-    public boolean isEdit() {
+    boolean isEdit() {
         return edit;
     }
 
-    public String getSerializedQuery() {
+    String getSerializedQuery() {
         return serializedQuery;
     }
 
-    public void setSerializedQuery(String serializedQuery) {
+    void setSerializedQuery(String serializedQuery) {
         this.serializedQuery = serializedQuery;
     }
 
@@ -132,28 +114,9 @@ public class SearchDetailsBean implements Serializable {
     }
 
     /**
-     * Load the expose for the inquiry that is being created
-     */
-    private void loadExpose() {
-        if (inquiry != null) {
-            expose = DocumentUtil.fetchExposeByInquiry(inquiry);
-        }
-    }
-
-    /**
-     * Load the vote for the inquiry that is being created
-     */
-    private void loadVote() {
-        if (inquiry != null) {
-            vote = DocumentUtil.fetchVoteByInquiry(inquiry);
-            setCooperationAvailable((vote != null) && (vote.getId() >= 0));
-        }
-    }
-
-    /**
      * Clear all variables
      */
-    public void clearStuff() {
+    void clearStuff() {
         inquiryDescription = "";
         inquiryName = "";
         selectedSites = new ArrayList<>();
@@ -162,90 +125,6 @@ public class SearchDetailsBean implements Serializable {
         serializedQuery = "";
         expose = null;
         vote = null;
-        cooperationAvailable = false;
         edit = false;
     }
-
-    /**
-     * Load the inquiry with the given id from the database
-     *
-     * @param inquiryId the id of the inquiry to be loaded
-     */
-    public void loadFromDb(int inquiryId) {
-        clearStuff();
-        edit = true;
-        inquiry = InquiryUtil.fetchInquiryById(inquiryId);
-        if (inquiry == null) {
-            logger.fatal("Error while trying to load inquiry from db. id=" + inquiryId);
-            return;
-        }
-
-        if (inquiry.getRevision() == 0) {
-            logger.debug("Inbound from central search");
-            resultTypes = new ArrayList<>();
-            FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_INFO, Messages.getString("csTransferHeader"), Messages.getString("csTransferMessage"));
-            org.omnifaces.util.Messages.addFlashGlobal(msg);
-        } else {
-            loadExpose();
-            loadVote();
-            List<Site> sites = SiteUtil.fetchSitesForInquiry(inquiry.getId());
-
-            inquiryDescription = inquiry.getDescription();
-            inquiryName = inquiry.getLabel();
-            for (Site site : sites) {
-                selectedSites.add(String.valueOf(site.getId()));
-            }
-
-            try {
-                List<String> helperList = Arrays.asList(inquiry.getResultType().split(","));
-                resultTypes.addAll(helperList);
-            } catch (Exception e) {
-                logger.debug("Could not split result type. Maybe none was set. This is perfectly normal when transferring from central search. Creating empty list");
-                resultTypes = new ArrayList<>();
-            }
-
-        }
-
-        String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
-
-        if (!StringUtils.isEmpty(criteria)) {
-            serializedQuery = criteria;
-            logger.debug("Loaded inquiry details with inqiuryId " + inquiryId + " and type '" + InquiryDetailsType.CQL  + "' from db.");
-        } else {
-            serializedQuery = StringUtils.EMPTY;
-            logger.debug("Inquiry details for with inquiryId " + inquiryId + " and type '" + InquiryDetailsType.CQL  + "' not found.");
-        }
-    }
-
-    /**
-     * Load an inquiry and go to the inquiry details page
-     *
-     * @param inquiryId the id of the inquiry to load
-     * @return navigation to the first page of the inquiry creation process
-     */
-    public String editQueryGotoStep1(String inquiryId) {
-        loadFromDb(Integer.parseInt(inquiryId));
-        return "search_details?edit=true&faces-redirect=true";
-    }
-
-    /**
-     * Check if an expose is needed to create the inquiry
-     *
-     * @return true, if the user sends the inquiry to his own site only
-     */
-    private boolean needExpose() {
-        //TODO replace new User()
-        User loggedUser = new User();
-        if (loggedUser == null) {
-            return true;
-        }
-        Integer loggedUserSiteId = UserUtil.getSiteIdForUser(loggedUser);
-        UserSite userSite = UserSiteUtil.fetchUserSiteByUser(loggedUser);
-        if (loggedUserSiteId == null || userSite == null || !userSite.getApproved()) {
-            return true;
-        } else {
-            return !(selectedSites != null && selectedSites.size() == 1 && selectedSites.contains(Integer.toString(loggedUserSiteId)));
-        }
-    }
-
 }

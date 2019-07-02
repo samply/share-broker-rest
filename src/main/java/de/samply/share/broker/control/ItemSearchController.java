@@ -78,12 +78,7 @@ public class ItemSearchController extends AbstractItemSearchController {
 
     private static final Logger logger
             = LogManager.getLogger(ItemSearchController.class);
-    public static final String URN_ADT_DATAELEMENTGROUP = "urn:adt:dataelementgroup:17:4";
-
-    /**
-     * The mdr urn (devoid of the version nr) of the CCP IT group.
-     */
-    private final String CCP_IT_DATAELEMENGROUP_MAJOR = "urn:dktk:dataelementgroup:9:";
+    private static final String URN_ADT_DATAELEMENTGROUP = "urn:adt:dataelementgroup:17:4";
 
     /**
      * The DKTK entity catalogue
@@ -111,26 +106,11 @@ public class ItemSearchController extends AbstractItemSearchController {
     private final String GBA_NAMESPACE = "mdr16";
 
     /**
-     * The namespace of the ADT.
-     */
-    private final String ADT_NAMESPACE = "adt";
-
-    /**
      * The namespace of DKTK.
      */
     private final String DKTK_NAMESPACE = "dktk";
 
-    /**
-     * The Slot Name where the DKTK Search XML Snippets are stored
-     */
-    private final String DKTK_SEARCH_SLOTNAME = "DKTK_SEARCH";
-
     private static boolean SHOW_ADT = false;
-
-    /**
-     * The DKTK Entity Catalogue (temporarily store it here until codes and subcodes are correctly given from MDR)
-     */
-    private transient Catalogue dktkCatalogue;
 
     /**
      * A list of urns, identifying the groups that shall be included in the mdr elements. Used for DKTK
@@ -153,21 +133,14 @@ public class ItemSearchController extends AbstractItemSearchController {
         System.out.println(Utils.getLocaleController().getLanguage());
         includeGroups = new ArrayList<>();
         shownAdtElements = new ArrayList<>();
-        String langugageCode = "";
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse((FileFinderUtil.findFile(LANGUAGE_FILE, ProjectInfo.INSTANCE.getProjectName())));
             NodeList nodeList = document.getElementsByTagName("dkt:language");
             Node node = nodeList.item(0);
-            langugageCode = node.getTextContent();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
+            node.getTextContent();
+        } catch (IOException | ParserConfigurationException | SAXException e) {
             e.printStackTrace();
         }
 
@@ -298,9 +271,8 @@ public class ItemSearchController extends AbstractItemSearchController {
                         EnumElementType.CATALOGUEGROUP,
                         MdrUtils.getDesignation(catalogue.getRoot().getDesignations()),
                         MdrUtils.getDefinition(catalogue.getRoot().getDesignations()),
-                        new ArrayList<MenuItem>(), null);
+                        new ArrayList<>(), null);
                 menuItems.add(menuItem);
-                setDktkCatalogue(catalogue);
             } catch (ExecutionException | MdrInvalidResponseException | MdrConnectionException ex) {
                 throw new RuntimeException("Error loading MDR root elements", ex);
             }
@@ -319,87 +291,14 @@ public class ItemSearchController extends AbstractItemSearchController {
             }
         }
 
-
-        
-        
-        
-        /*
-        else {
-        	// To discuss: Currently adding everything from dktk namespace AND adt.
-        	results = getMdrRootElements(ADT_NAMESPACE).getResults();
-        	results.addAll(getMdrRootElements().getResults());
-        	//     	
-            //results = getMdrRootElements().getResults();
-        	
-            try {
-                Catalogue catalogue = mdrClient.getCatalogue(DKTK_ENTITY_CATALOGUE, languageCode);
-                MenuItem menuItem = MenuItemTreeManager.buildMenuItem(catalogue.getRoot().getIdentification().getUrn(),
-                		EnumElementType.CATALOGUEGROUP,
-                        MdrUtils.getDesignation(catalogue.getRoot().getDesignations()),
-                        MdrUtils.getDefinition(catalogue.getRoot().getDesignations()),
-                        new ArrayList<MenuItem>(), null);
-                menuItems.add(menuItem);
-                setDktkCatalogue(catalogue);
-            } catch (ExecutionException | MdrInvalidResponseException | MdrConnectionException ex) {
-                throw new RuntimeException("Error loading MDR root elements", ex);
-            }
-
-        }
-        */
-
-        // The following is a quick hack until CCPIT-261 is decided
-        if (ProjectInfo.INSTANCE.getProjectName().equalsIgnoreCase("dktk")) {
-            List<Result> filteredAndSortedResults = filterAndSortResultList(results);
-            for (Result r : filteredAndSortedResults) {
-                MenuItem menuItem = MenuItemTreeManager.buildMenuItem(r.getId(),
-                        EnumElementType.valueOf(r.getType()),
-                        MdrUtils.getDesignation(r.getDesignations()),
-                        MdrUtils.getDefinition(r.getDesignations()),
-                        new ArrayList<MenuItem>(), null);
-                menuItems.add(menuItem);
-            }
-        } else {
-            for (Result r : results) {
-                MenuItem menuItem = MenuItemTreeManager.buildMenuItem(r.getId(),
-                        EnumElementType.valueOf(r.getType()),
-                        MdrUtils.getDesignation(r.getDesignations()),
-                        MdrUtils.getDefinition(r.getDesignations()),
-                        new ArrayList<MenuItem>(), null);
-                menuItems.add(menuItem);
-            }
-        }
-        /*
         for (Result r : results) {
-
-            // Skip the "CCP-IT" group, which only holds elements relevant to the central search upload
-            if (r.getId().startsWith(CCP_IT_DATAELEMENGROUP_MAJOR)) {
-                continue;
-            }
-            // Also skip "loose" Dataelements - only add groups
-            if (r.getType().equalsIgnoreCase("dataelement")) {
-                continue;
-            }
-            // If group is not in list of groups from config...skip as well
-            if (!includeGroups.contains(r.getId().substring(0, r.getId().lastIndexOf(":") + 1))) {
-                continue;
-            }
-            
-            List<String> blacklist = Utils.getAB().getMdrKeyBlacklist();
-            
-            if (blacklist != null && blacklist.contains(r.getId())) {
-            	logger.debug(r.getId() + " is marked as unsupported. Skipping...");
-            	continue;
-            }
-
             MenuItem menuItem = MenuItemTreeManager.buildMenuItem(r.getId(),
                     EnumElementType.valueOf(r.getType()),
                     MdrUtils.getDesignation(r.getDesignations()),
                     MdrUtils.getDefinition(r.getDesignations()),
-                    new ArrayList<MenuItem>(), null);
+                    new ArrayList<>(), null);
             menuItems.add(menuItem);
         }
-        */
-
 
         if (SHOW_ADT) {
             // CCP-340 demands to add select ADT elements without any further hierarchy information
@@ -412,7 +311,7 @@ public class ItemSearchController extends AbstractItemSearchController {
                         EnumElementType.valueOf(adtElement.getType()),
                         MdrUtils.getDesignation(adtElement.getDesignations()),
                         MdrUtils.getDefinition(adtElement.getDesignations()),
-                        new ArrayList<MenuItem>(), null);
+                        new ArrayList<>(), null);
                 MenuItemTreeManager.addMenuItem(menuItem, adtRootItem);
             }
         }
@@ -429,57 +328,7 @@ public class ItemSearchController extends AbstractItemSearchController {
                 EnumElementType.valueOf(EnumElementType.DATAELEMENTGROUP.name()),
                 "ADT (Auswahl)",
                 "ADT (Auswahl)",
-                new ArrayList<MenuItem>(), null);
-    }
-
-    // The following is a quick hack until CCPIT-261 is decided
-
-    /**
-     * Remove unbound dataelements from resultlist and sort the list if necessary
-     *
-     * @param sourceList the original list as obtained from the mdr
-     * @return the filtered and sorted list
-     */
-    private List<Result> filterAndSortResultList(List<Result> sourceList) {
-        List<Result> filterList = new ArrayList<>();
-        List<Result> resultList;
-
-        // Filter
-        for (Result r : sourceList) {
-
-            // Skip the "CCP-IT" group, which only holds elements relevant to the central search upload
-            if (r.getId().startsWith(CCP_IT_DATAELEMENGROUP_MAJOR)) {
-                continue;
-            }
-            // Also skip "loose" Dataelements - only add groups
-            if (r.getType().equalsIgnoreCase(EnumElementType.DATAELEMENT.name())) {
-                continue;
-            }
-            // If group is not in list of groups from config...skip as well
-            if (!includeGroups.contains(new MdrIdDatatype(r.getId()).getMajor() + MdrIdDatatype.SEPARATOR)) {
-                continue;
-            }
-
-        }
-
-        // sort
-        Result[] filterArray = new Result[filterList.size()];
-        int offset = 0;
-
-        // sort
-        for (Result r : filterList) {
-            MdrIdDatatype id = new MdrIdDatatype(r.getId());
-            int i = includeGroups.indexOf(id.getMajor() + MdrIdDatatype.SEPARATOR);
-            if (i >= 0) {
-                filterArray[i] = r;
-            } else {
-                filterArray[filterArray.length - 1 - offset] = r;
-                offset++;
-            }
-        }
-
-        resultList = new ArrayList<>(Arrays.asList(filterArray));
-        return resultList;
+                new ArrayList<>(), null);
     }
 
     @Override
@@ -505,87 +354,5 @@ public class ItemSearchController extends AbstractItemSearchController {
             MenuItemTreeManager.setItemAndParentsOpen(parent);
             Ajax.update(getItemNavigationPanel().getClientId());
         }
-
-    }
-
-    /**
-     * Event called when the user clicks on a catalogue group. Load a menu item children list. The handling differs from DataElement Groups
-     *
-     * @param mdrId the MDR ID of the parent catalogue group
-     */
-    public void onCatalogueGroupClick(final String mdrId) {
-        logger.debug("Loading subcodes...");
-        MenuItem parent = MenuItemTreeManager.getMenuItem(menuItems, mdrId);
-
-        if (MenuItemTreeManager.isItemOpen(parent)) { // just let javascript close the drawer
-            MenuItemTreeManager.cleanMenuItemStyleClass(parent);
-        } else {
-            MenuItemTreeManager.cleanMenuItemsStyleClass(menuItems);
-            MenuItemTreeManager.clearMenuItemChildren(parent);
-
-            Optional<Code> clickedCodeOptional = Iterables.tryFind(getDktkCatalogue().getCodes(), new CodeUrnPredicate(mdrId));
-            if (clickedCodeOptional.isPresent()) {
-                Code clickedCode = clickedCodeOptional.get();
-                for (Object obj : clickedCode.getSubCodes()) {
-                    Optional<Code> subCodeOptional = Iterables.tryFind(getDktkCatalogue().getCodes(), new CodePredicate((String) obj));
-                    visitSubCodes(parent, obj, subCodeOptional);
-                }
-                MenuItemTreeManager.setItemAndParentsOpen(parent);
-                Ajax.update(getItemNavigationPanel().getClientId());
-
-            } else if (mdrId.equalsIgnoreCase(getDktkCatalogue().getRoot().getIdentification().getUrn())) {
-                // The root node was clicked
-                for (Object obj : getDktkCatalogue().getRoot().getSubCodes()) {
-                    Optional<Code> subCodeOptional = Iterables.tryFind(getDktkCatalogue().getCodes(), new CodePredicate((String) obj));
-                    visitSubCodes(parent, obj, subCodeOptional);
-                    MenuItemTreeManager.setItemAndParentsOpen(parent);
-                    Ajax.update(getItemNavigationPanel().getClientId());
-                }
-            } else {
-                logger.warn("Clicked Code URN not found in catalogue: " + mdrId);
-            }
-        }
-
-    }
-
-    private void visitSubCodes(MenuItem parent, Object obj, Optional<Code> subCodeOptional) {
-        if (subCodeOptional.isPresent()) {
-            Code subCode = subCodeOptional.get();
-            EnumElementType elementType = EnumElementType.CATALOGUEGROUP;
-            String searchString = null;
-            if (subCode.getSubCodes() == null || subCode.getSubCodes().size() < 1) {
-                elementType = EnumElementType.CATALOGUEELEMENT;
-                try {
-                    ArrayList<Slot> codeSlots = mdrClient.getCodeSlots(getDktkCatalogue().getRoot().getIdentification().getUrn(), subCode.getIdentification().getUrn());
-                    Optional<Slot> slot = Iterables.tryFind(codeSlots, new SlotNamePredicate(DKTK_SEARCH_SLOTNAME));
-                    if (slot.isPresent()) {
-                        // TODO: The "replace" part of the call can be deleted when (if) the namespaces are changed in the slots
-                        searchString = slot.get().getSlotValue().replace("http://schema.samply.de/osse/", "http://schema.samply.de/common/");
-                    } else {
-                        logger.warn("DKTK Search Slot not found...");
-                    }
-                } catch (MdrConnectionException | MdrInvalidResponseException | ExecutionException e) {
-                    logger.warn("Could not get slots...");
-                }
-            }
-            MenuItem menuItem = MenuItemTreeManager.buildMenuItem(subCode.getIdentification().getUrn(),
-                    elementType,
-                    MdrUtils.getDesignation(subCode.getDesignations()),
-                    MdrUtils.getDefinition(subCode.getDesignations()),
-                    new ArrayList<>(),
-                    parent,
-                    searchString);
-            MenuItemTreeManager.addMenuItem(menuItem, parent);
-        } else {
-            logger.warn("Subcode not found in catalogue: " + obj);
-        }
-    }
-
-    public Catalogue getDktkCatalogue() {
-        return dktkCatalogue;
-    }
-
-    public void setDktkCatalogue(Catalogue dktkCatalogue) {
-        this.dktkCatalogue = dktkCatalogue;
     }
 }

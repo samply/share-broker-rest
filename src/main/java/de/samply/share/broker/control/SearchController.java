@@ -50,6 +50,7 @@ import org.jooq.tools.json.JSONParser;
 import org.jooq.tools.json.ParseException;
 
 import javax.faces.application.FacesMessage;
+import javax.inject.Inject;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public class SearchController extends AbstractSearchController {
 
     private static final String CCP_OFFICE_MAIL = "mail.receiver.ccpoffice";
 
-
+    @Inject
     private SearchDetailsBean searchDetailsBean;
 
     private static final Logger logger = LogManager.getLogger(SearchController.class);
@@ -201,16 +202,6 @@ public class SearchController extends AbstractSearchController {
             logger.debug("No expose found");
             exposeId = -1;
         }
-
-        int voteId;
-        try {
-            voteId = searchDetailsBean.getVote().getId();
-        } catch (Exception e) {
-            logger.debug("No vote found");
-            voteId = -1;
-        }
-
-        searchDetailsBean.setCooperationAvailable(voteId >= 0);
 
         Inquiry inquiry = searchDetailsBean.getInquiry();
         if (inquiry == null) {
