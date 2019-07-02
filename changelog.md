@@ -4,10 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.1.0 - 2019-07-02]
+### Changed
+- Cleaner code
+- Removed unused model classes (Note and UserConsent)
+
 ## [3.0.0 - 2019-07-01]
 ### Changed
 - Refactored Flyway scripts
-- Moved SimpleQueryDto2ShareXmlTransformaer from UI to REST
+- Moved SimpleQueryDto2ShareXmlTransformer from UI to REST
 - Split table Inquiry into Inquiry and InquiryDetails
 
 ## [2.2.0 - 2019-06-06]
