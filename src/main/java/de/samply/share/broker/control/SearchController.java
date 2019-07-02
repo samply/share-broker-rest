@@ -54,6 +54,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * holds methods and information necessary to create and display queries
@@ -222,10 +223,15 @@ public class SearchController extends AbstractSearchController {
         inquiry.setCreated(SamplyShareUtils.getCurrentSqlTimestamp());
         DocumentUtil.setInquiryIdForDocument(exposeId, inquiry.getId());
 
-        try {
-            inquiry.setCriteria(QueryConverter.queryToXml(query));
-        } catch (JAXBException e) {
-            logger.error("Error while trying to convert the query to xml...");
+        Optional<InquiryDetails> inquiryDetailsOptional = InquiryDetailsUtil.fetchInquiryDetailsForInquiryIdTypeQuery(inquiry.getId());
+        if (inquiryDetailsOptional.isPresent()) {
+            InquiryDetails inquiryDetails = inquiryDetailsOptional.get();
+            try {
+                inquiryDetails.setCriteria(QueryConverter.queryToXml(query));
+                InquiryDetailsUtil.updateInquiryDetails(inquiryDetails);
+            } catch (JAXBException e) {
+                logger.error("Error while trying to convert the query to xml...");
+            }
         }
 
         String joinedResultTypes = "";
@@ -296,10 +302,15 @@ public class SearchController extends AbstractSearchController {
         inquiry.setStatus(InquiryStatus.IS_RELEASED);
         DocumentUtil.setInquiryIdForDocument(exposeId, inquiry.getId());
 
-        try {
-            inquiry.setCriteria(QueryConverter.queryToXml(query));
-        } catch (JAXBException e) {
-            logger.error("Error while trying to convert the query to xml...");
+        Optional<InquiryDetails> inquiryDetailsOptional = InquiryDetailsUtil.fetchInquiryDetailsForInquiryIdTypeQuery(inquiry.getId());
+        if (inquiryDetailsOptional.isPresent()) {
+            InquiryDetails inquiryDetails = inquiryDetailsOptional.get();
+            try {
+                inquiryDetails.setCriteria(QueryConverter.queryToXml(query));
+                InquiryDetailsUtil.updateInquiryDetails(inquiryDetails);
+            } catch (JAXBException e) {
+                logger.error("Error while trying to convert the query to xml...");
+            }
         }
 
         String joinedResultTypes = "";
@@ -408,13 +419,18 @@ public class SearchController extends AbstractSearchController {
             errorMsg.add("resultTypeRequired");
         }
 
-        try {
-            Query query = QueryConverter.xmlToQuery(inquiry.getCriteria());
-            if (query.getWhere().getAndOrEqOrLike().isEmpty()) {
-                errorMsg.add("noCriteria");
+        String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(inquiry.getId());
+        if (!StringUtils.isEmpty(criteria)) {
+            try {
+                Query query = QueryConverter.xmlToQuery(criteria);
+                if (query.getWhere().getAndOrEqOrLike().isEmpty()) {
+                    errorMsg.add("noCriteria");
+                }
+            } catch (JAXBException | NullPointerException e) {
+                errorMsg.add("errorInQuery");
             }
-        } catch (JAXBException | NullPointerException e) {
-            errorMsg.add("errorInQuery");
+        } else {
+            errorMsg.add("noInquiryDetails");
         }
 
         List<Site> sites = SiteUtil.fetchSitesForInquiry(inquiry.getId());
@@ -469,7 +485,7 @@ public class SearchController extends AbstractSearchController {
         JSONArray jsonArray = new JSONArray();
         JSONParser parser = new JSONParser();
         for (Reply reply : replyList) {
-             if (isActiveSite(reply)){
+            if (isActiveSite(reply)) {
                 try {
                     JSONObject json = (JSONObject) parser.parse(reply.getContent());
                     jsonArray.put(json);
