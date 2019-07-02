@@ -41,11 +41,15 @@ import de.samply.share.broker.model.db.tables.daos.ReplyDao;
 import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.utils.SimpleQueryDto2ShareXmlTransformer;
 import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.model.common.Contact;
 import de.samply.share.model.common.*;
+import de.samply.share.query.entity.SimpleQueryDto;
+import de.samply.share.utils.QueryConverter;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
@@ -82,6 +86,8 @@ public class InquiryHandler {
     private static final Logger logger = LogManager.getLogger(InquiryHandler.class);
 
     private static final String ENTITY_TYPE_FOR_QUERY = "Donor + Sample";
+    private static final String ENTITY_TYPE_FOR_CQL_PATIENT = "Patient";
+    private static final String ENTITY_TYPE_FOR_CQL_SPECIMEN = "Specimen";
 
     public InquiryHandler() {
     }
@@ -89,7 +95,7 @@ public class InquiryHandler {
     /**
      * Store an inquiry and release it (or wait for ccp office authorization first)
      *
-     * @param query              the query criteria of the inquiry
+     * @param simpleQueryDtoXml  the query criteria of the inquiry as SimpleQueryDto represented as XML
      * @param userid             the id of the user that releases the inquiry
      * @param inquiryName        the label of the inquiry
      * @param inquiryDescription the description of the inquiry
@@ -99,8 +105,8 @@ public class InquiryHandler {
      * @param bypassExamination  if true, no check by the ccp office is required
      * @return the id of the inquiry
      */
-    public int storeAndRelease(Query query, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes, boolean bypassExamination) {
-        int inquiryId = store(query, userid, inquiryName, inquiryDescription, exposeId, voteId, resultTypes);
+    public int storeAndRelease(String simpleQueryDtoXml, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes, boolean bypassExamination) {
+        int inquiryId = store(simpleQueryDtoXml, userid, inquiryName, inquiryDescription, exposeId, voteId, resultTypes);
         Inquiry inquiry = InquiryUtil.fetchInquiryById(inquiryId);
         release(inquiry, bypassExamination);
         return inquiryId;
@@ -109,7 +115,7 @@ public class InquiryHandler {
     /**
      * Store a new inquiry draft
      *
-     * @param query              the query criteria of the inquiry
+     * @param simpleQueryDtoXml  the query criteria of the inquiry as SimpleQueryDto represented as XML
      * @param userid             the id of the user that releases the inquiry
      * @param inquiryName        the label of the inquiry
      * @param inquiryDescription the description of the inquiry
@@ -118,7 +124,7 @@ public class InquiryHandler {
      * @param resultTypes        list of the entities that are searched for
      * @return the id of the inquiry draft
      */
-    public int store(Query query, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes) {
+    private int store(String simpleQueryDtoXml, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes) {
         int returnValue = 0;
         UserDao userDao;
         User user;
@@ -142,15 +148,6 @@ public class InquiryHandler {
             inquiry.setLabel(inquiryName);
             inquiry.setDescription(inquiryDescription);
 
-            // If the query is null, create an empty query and fill it with the default AND
-            if (query == null) {
-                query = new Query();
-                Where where = new Where();
-                And and = new And();
-                where.getAndOrEqOrLike().add(and);
-                query.setWhere(where);
-            }
-
             inquiry.setStatus(InquiryStatus.IS_DRAFT);
 
             String joinedResultTypes = "";
@@ -165,7 +162,7 @@ public class InquiryHandler {
             inquiry.setCreated(inquiryRecord.getValue(Tables.INQUIRY.CREATED));
             inquiry.setId(inquiryRecord.getValue(Tables.INQUIRY.ID));
 
-            createAndSaveInquiryDetails(query, inquiry, connection);
+            createAndSaveInquiryDetails(simpleQueryDtoXml, inquiry, connection);
 
             if (exposeId > 0) {
                 Document expose = DocumentUtil.getDocumentById(exposeId);
@@ -235,10 +232,8 @@ public class InquiryHandler {
 
                 inquiryDao = new InquiryDao(configuration);
                 inquiryDao.update(inquiry);
-                int appNr = record.getValue(Tables.PROJECT.APPLICATION_NUMBER);
 
                 int inquiryId = inquiry.getId();
-                Integer exposeId = DocumentUtil.getExposeIdByInquiryId(inquiryId);
 
                 DocumentUtil.setProjectIdForDocumentByInquiryId(inquiryId, projectId);
 
@@ -367,7 +362,7 @@ public class InquiryHandler {
 
             returnValue = saveTentativeInquiry(inquiry, connection).getValue(Tables.INQUIRY.ID);
 
-            createAndSaveInquiryDetails(query, inquiry, connection);
+            createAndSaveInquiryDetailsTypeQuery(query, inquiry, connection);
         } catch (JAXBException e1) {
             e1.printStackTrace();
             return 0;
@@ -390,7 +385,7 @@ public class InquiryHandler {
      * @param documentType     the type of the document (expose, vote, report...)
      * @return the id of the newly added document
      */
-    public int addDocument(Integer projectId, Integer inquiryId, int userId, File documentData, String documentFilename, String documentFiletype, DocumentType documentType) {
+    int addDocument(Integer projectId, Integer inquiryId, int userId, File documentData, String documentFilename, String documentFiletype, DocumentType documentType) {
         int returnValue = 0;
 
         try (Connection connection = ResourceManager.getConnection()) {
@@ -790,7 +785,67 @@ public class InquiryHandler {
         return ret;
     }
 
-    private void createAndSaveInquiryDetails(Query query, Inquiry inquiry, Connection connection) throws JAXBException {
+    private void createAndSaveInquiryDetails(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
+        createAndSaveInquiryDetailsTypeCql(simpleQueryDtoXml, inquiry, connection);
+        createAndSaveInquiryDetailsTypeQuery(simpleQueryDtoXml, inquiry, connection);
+    }
+
+    private void createAndSaveInquiryDetailsTypeCql(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) {
+        createAndSaveInquiryDetailsTypeCqlPatient(simpleQueryDtoXml, inquiry, connection);
+        createAndSaveInquiryDetailsTypeCqlSpecimen(simpleQueryDtoXml, inquiry, connection);
+    }
+
+    private void createAndSaveInquiryDetailsTypeCqlPatient(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) {
+        String cql = createCqlPatient(simpleQueryDtoXml);
+
+        createAndSaveInquiryDetailsTypeCql(cql, inquiry, connection, ENTITY_TYPE_FOR_CQL_PATIENT);
+    }
+
+    private void createAndSaveInquiryDetailsTypeCqlSpecimen(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) {
+        String cql = createCqlSpecimen(simpleQueryDtoXml);
+
+        createAndSaveInquiryDetailsTypeCql(cql, inquiry, connection, ENTITY_TYPE_FOR_CQL_SPECIMEN);
+    }
+
+    private String createCqlPatient(String simpleQueryDtoXml) {
+        // TODO: return real CQL query for patient according to simpleQueryDto
+        return "DUMMY CQL - Patient";
+    }
+
+    private String createCqlSpecimen(String simpleQueryDtoXml) {
+        // TODO: return real CQL query for patient according to simpleQueryDto
+        return "DUMMY CQL - Specimen";
+    }
+
+    private void createAndSaveInquiryDetailsTypeCql(String cql, Inquiry inquiry, Connection connection, String entityType) {
+        InquiryDetails inquiryDetails = new InquiryDetails();
+        inquiryDetails.setCriteria(cql);
+        inquiryDetails.setInquiryId(inquiry.getId());
+        inquiryDetails.setType(InquiryDetailsType.CQL);
+        inquiryDetails.setEntityType(entityType);
+
+        saveInquiryDetails(inquiryDetails, connection);
+    }
+
+    private void createAndSaveInquiryDetailsTypeQuery(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
+        Query query;
+
+        if (!StringUtils.isEmpty(simpleQueryDtoXml)) {
+            JAXBContext jaxbContext = JAXBContext.newInstance(SimpleQueryDto.class);
+            SimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, SimpleQueryDto.class);
+            query = new SimpleQueryDto2ShareXmlTransformer().toQuery(simpleQueryDto);
+        } else {
+            query = new Query();
+            Where where = new Where();
+            And and = new And();
+            where.getAndOrEqOrLike().add(and);
+            query.setWhere(where);
+        }
+
+        createAndSaveInquiryDetailsTypeQuery(query, inquiry, connection);
+    }
+
+    private void createAndSaveInquiryDetailsTypeQuery(Query query, Inquiry inquiry, Connection connection) throws JAXBException {
         JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
         StringWriter stringWriter = new StringWriter();
         Marshaller marshaller = jaxbContext.createMarshaller();
