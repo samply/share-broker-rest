@@ -157,13 +157,6 @@ public class InquiryHandler {
             marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
             marshaller.marshal(query, stringWriter);
 
-            Optional<InquiryDetails> inquiryDetailsOptional = InquiryDetailsUtil.fetchInquiryDetailsForInquiryIdTypeQuery(inquiry.getId());
-            if (inquiryDetailsOptional.isPresent()) {
-                InquiryDetails inquiryDetails = inquiryDetailsOptional.get();
-                inquiryDetails.setCriteria(stringWriter.toString());
-                saveInquiryDetails(inquiryDetails, dslContext);
-            }
-
             inquiry.setStatus(InquiryStatus.IS_DRAFT);
 
             String joinedResultTypes = "";
@@ -177,6 +170,14 @@ public class InquiryHandler {
 
             inquiry.setCreated(inquiryRecord.getValue(Tables.INQUIRY.CREATED));
             inquiry.setId(inquiryRecord.getValue(Tables.INQUIRY.ID));
+
+            InquiryDetails inquiryDetails = new InquiryDetails();
+            inquiryDetails.setCriteria(stringWriter.toString());
+            inquiryDetails.setInquiryId(inquiry.getId());
+            inquiryDetails.setType(InquiryDetailsType.QUERY);
+            inquiryDetails.setEntityType(ENTITY_TYPE_FOR_QUERY);
+
+            saveInquiryDetails(inquiryDetails, dslContext);
 
             if (exposeId > 0) {
                 Document expose = DocumentUtil.getDocumentById(exposeId);
