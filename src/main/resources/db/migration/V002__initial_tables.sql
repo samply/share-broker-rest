@@ -1,9 +1,9 @@
 CREATE TABLE "user" (
   id         SERIAL PRIMARY KEY,
-  username   TEXT        NOT NULL,
+  username   TEXT NOT NULL,
   email      TEXT,
   name       TEXT,
-  authid     TEXT UNIQUE NOT NULL,
+  authid     TEXT UNIQUE,
   contact_id INTEGER
 );
 
@@ -29,11 +29,18 @@ CREATE TABLE inquiry (
   expires     DATE                        DEFAULT (now() + '28 days' :: INTERVAL),
   author_id   INTEGER        NOT NULL,
   archived    BOOLEAN,
-  criteria    TEXT           NOT NULL,
   viewfields  TEXT,
   status      INQUIRY_STATUS NOT NULL,
   revision    INTEGER,
   result_type TEXT
+);
+
+CREATE TABLE inquiry_details (
+  id          SERIAL PRIMARY KEY,
+  inquiry_id  INTEGER,
+  criteria    TEXT           NOT NULL,
+  type        INQUIRY_DETAILS_TYPE NOT NULL,
+  entity_type TEXT
 );
 
 CREATE TABLE project (
@@ -71,7 +78,6 @@ CREATE TABLE reply (
   inquiry_id INTEGER NOT NULL
 );
 
--- maybe set email to unique?
 CREATE TABLE tokenrequest (
   id       SERIAL PRIMARY KEY,
   issued   TIMESTAMP NOT NULL DEFAULT now(),
@@ -84,7 +90,10 @@ CREATE TABLE site (
   name          TEXT UNIQUE NOT NULL,
   name_extended TEXT,
   description   TEXT,
-  contact       TEXT
+  contact       TEXT,
+  biobankId     TEXT,
+  collectionId  TEXT,
+  active        BOOLEAN NOT NULL DEFAULT true
 );
 
 CREATE TABLE user_site (

@@ -27,7 +27,7 @@ public class Migration {
     private static void upgradeSamply(DataSource dataSource) throws FlywayException {
         Flyway flyway = new Flyway();
         flyway.setDataSource(dataSource);
-        flyway.setLocations("db/migration/samply");
+        flyway.setLocations("db/migration");
         flyway.setSchemas("samply");
         flyway.migrate();
     }

@@ -38,6 +38,7 @@ import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.model.uiquerybuilder.EnumOperator;
 import de.samply.share.common.model.uiquerybuilder.QueryItem;
 import de.samply.share.common.utils.QueryTreeUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.omnifaces.model.tree.TreeModel;
@@ -153,11 +154,14 @@ public class PdfUtils {
         document.add(p);
         p.clear();
 
-        if (inquiry.getCriteria() == null) {
+        String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(inquiry.getId());
+
+        if (StringUtils.isEmpty(criteria)) {
             p.add("Keine Suchkriterien ausgewählt.");
         } else {
-            p = queryStringToItextParagraph(inquiry.getCriteria());
+            p = queryStringToItextParagraph(criteria);
         }
+
         p.setFont(contentFont);
         document.add(p);
         p.clear();

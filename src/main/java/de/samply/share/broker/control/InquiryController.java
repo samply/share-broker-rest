@@ -29,13 +29,20 @@
  */
 package de.samply.share.broker.control;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import com.itextpdf.text.DocumentException;
+import de.samply.share.broker.messages.Messages;
+import de.samply.share.broker.model.db.enums.InquiryStatus;
+import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.utils.PdfUtils;
+import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.model.uiquerybuilder.QueryItem;
+import de.samply.share.common.utils.QueryTreeUtil;
+import de.samply.share.model.common.Query;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.omnifaces.model.tree.ListTreeModel;
+import org.omnifaces.model.tree.TreeModel;
+import org.omnifaces.util.Faces;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
@@ -46,26 +53,13 @@ import javax.faces.context.FacesContext;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-
-import com.itextpdf.text.DocumentException;
-import de.samply.share.broker.model.db.tables.pojos.BankSite;
-import de.samply.share.broker.model.db.tables.pojos.Reply;
-import de.samply.share.broker.utils.PdfUtils;
-import de.samply.share.broker.utils.db.*;
-import de.samply.share.common.utils.QueryTreeUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.omnifaces.model.tree.ListTreeModel;
-import org.omnifaces.model.tree.TreeModel;
-
-import de.samply.share.broker.messages.Messages;
-import de.samply.share.broker.model.db.enums.InquiryStatus;
-import de.samply.share.broker.model.db.tables.pojos.Inquiry;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.model.db.tables.pojos.User;
-import de.samply.share.common.model.uiquerybuilder.QueryItem;
-import de.samply.share.model.common.Query;
-import org.omnifaces.util.Faces;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * A JSF Managed Bean that is valid for the lifetime of a view.
@@ -74,35 +68,53 @@ import org.omnifaces.util.Faces;
 @ViewScoped
 public class InquiryController implements Serializable {
 
-    /** The Constant serialVersionUID. */
+    /**
+     * The Constant serialVersionUID.
+     */
     private static final long serialVersionUID = -5890029855627854464L;
 
     private static final Logger logger = LogManager.getLogger(InquiryController.class);
 
-    /** The List of inquiry drafts. */
+    /**
+     * The List of inquiry drafts.
+     */
     private List<Inquiry> inquiryDrafts;
 
-    /** The List of released inquiries. */
+    /**
+     * The List of released inquiries.
+     */
     private List<Inquiry> releasedInquiries;
 
-    /** The List of released inquiries that are associated with a project. */
+    /**
+     * The List of released inquiries that are associated with a project.
+     */
     private List<Inquiry> releasedInquiriesWithProjects;
 
-    /** The List of archived inquiries. */
+    /**
+     * The List of archived inquiries.
+     */
     private List<Inquiry> outdatedInquiries;
 
-    /** The selected inquiry. */
+    /**
+     * The selected inquiry.
+     */
     private Inquiry selectedInquiry;
 
-    /** The id of the selected inquiry. */
+    /**
+     * The id of the selected inquiry.
+     */
     private int selectedInquiryId;
-    
+
     private boolean selectedInquiryHasExpose;
 
-    /** A tree holding query items (and conjunction groups). Basically "the inquiry" */
+    /**
+     * A tree holding query items (and conjunction groups). Basically "the inquiry"
+     */
     private TreeModel<QueryItem> criteriaTree;
 
-    /** Inject the managed bean "login controller". */
+    /**
+     * Inject the managed bean "login controller".
+     */
     @ManagedProperty(value = "#{loginController}")
     private LoginController loginController;
 
@@ -202,9 +214,9 @@ public class InquiryController implements Serializable {
 
     /**
      * Check if the selected inquiry has an expose stored. Used to control whether a link shall be displayed or not
-     * 
+     *
      * @return true if the selected inquiry has an associated expose,
-     *         false otherwise
+     * false otherwise
      */
     public boolean isSelectedInquiryHasExpose() {
         return selectedInquiryHasExpose;
@@ -277,7 +289,7 @@ public class InquiryController implements Serializable {
     /**
      * Load the list of inquiries from the database. Only those that belong to the current user are loaded.
      */
-    private void loadInquiries() {    
+    private void loadInquiries() {
         User user = UserUtil.fetchUserByAuthId(loginController.getLoggedUsername());
         inquiryDrafts = InquiryUtil.fetchInquiryDraftsFromUserOrderByDate(user.getId());
         releasedInquiries = InquiryUtil.fetchReleasedInquiriesFromUserOrderByDate(user.getId());
@@ -290,7 +302,7 @@ public class InquiryController implements Serializable {
      */
     public void loadInquiry() {
         selectedInquiry = InquiryUtil.fetchInquiryById(selectedInquiryId);
-        if(Objects.equals(loginController.getUser().getId(), selectedInquiry.getAuthorId())) { // only signed in users can see his inqueries
+        if (Objects.equals(loginController.getUser().getId(), selectedInquiry.getAuthorId())) { // only signed in users can see his inqueries
             selectedInquiryHasExpose = InquiryUtil.inquiryHasExpose(selectedInquiryId);
 
             populateCriteriaTree();
@@ -298,7 +310,7 @@ public class InquiryController implements Serializable {
                 projectController.setSelectedProjectId(selectedInquiry.getProjectId());
                 projectController.loadProject(false);
             }
-        }else{
+        } else {
             try {
                 FacesContext.getCurrentInstance().getExternalContext().redirect("https://google.de");
                 FacesContext.getCurrentInstance().responseComplete();
@@ -310,7 +322,7 @@ public class InquiryController implements Serializable {
 
     /**
      * Load the inquiry with the id that was previously set via query parameter and redirect to the query builder
-     * 
+     *
      * @return the navigation outcome to the query details page
      */
     public String editInquiry() {
@@ -320,8 +332,8 @@ public class InquiryController implements Serializable {
             return "dashboard";
         }
         loadInquiry();
-        
-        if (selectedInquiry == null || (!selectedInquiry.getAuthorId().equals(user.getId())) ) {
+
+        if (selectedInquiry == null || (!selectedInquiry.getAuthorId().equals(user.getId()))) {
             if (selectedInquiry == null) {
                 logger.error("selectedInquiry is null");
             } else {
@@ -343,20 +355,22 @@ public class InquiryController implements Serializable {
         }
 
         try {
+            String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(selectedInquiryId);
+            StringReader stringReader = new StringReader(criteria);
+
             JAXBContext jaxbContext = JAXBContext.newInstance(Query.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            StringReader stringReader = new StringReader(selectedInquiry.getCriteria());
             Query query = (Query) unmarshaller.unmarshal(stringReader);
             criteriaTree = QueryTreeUtil.queryToTree(query);
 
         } catch (JAXBException ex) {
-           throw new RuntimeException("Error populating criteria tree", ex);
+            throw new RuntimeException("Error populating criteria tree", ex);
         }
     }
-    
+
     /**
      * Delete the selected inquiry from the database (only allowed for drafts)
-     * 
+     *
      * @return the navigation outcome to the drafts page
      */
     public String deleteSelectedInquiry() {
@@ -364,7 +378,7 @@ public class InquiryController implements Serializable {
         if (!InquiryUtil.deleteInquiryDraft(selectedInquiry)) {
             msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", Messages.getString("inquiryDraftDeleteError"));
             org.omnifaces.util.Messages.addGlobal(msg);
-            return "";            
+            return "";
         } else {
             msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "OK", Messages.getString("inquiryDraftDeleted"));
             org.omnifaces.util.Messages.addFlashGlobal(msg);
@@ -389,7 +403,7 @@ public class InquiryController implements Serializable {
         InquiryUtil.expireInquiryById(selectedInquiryId);
         selectedInquiry = InquiryUtil.fetchInquiryById(selectedInquiryId);
     }
-    
+
     public boolean isDeleteable() {
         if (selectedInquiry == null) {
             return false;
@@ -406,7 +420,7 @@ public class InquiryController implements Serializable {
      */
     public void exportInquiry() throws IOException, DocumentException {
         logger.debug("Export Inquiry called for inquiry " + selectedInquiry.getId());
-        ByteArrayOutputStream bos =  PdfUtils.createPdfOutputstream(selectedInquiry);
+        ByteArrayOutputStream bos = PdfUtils.createPdfOutputstream(selectedInquiry);
         String filename = "Unbenannt";
         if (selectedInquiry.getLabel() != null) {
             filename = selectedInquiry.getLabel();

@@ -30,8 +30,10 @@
 package de.samply.share.broker.control;
 
 import de.samply.share.broker.messages.Messages;
+import de.samply.share.broker.model.db.enums.InquiryDetailsType;
 import de.samply.share.broker.model.db.tables.pojos.*;
 import de.samply.share.broker.utils.db.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,7 +46,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- *  holds all details linked with an inquiry
+ * holds all details linked with an inquiry
  */
 public class SearchDetailsBean implements Serializable {
 
@@ -55,7 +57,7 @@ public class SearchDetailsBean implements Serializable {
     private static final String resetExposeFileinput = "$('#exposeUpload').fileinput('reset');";
     private static final String hideExposeFileinput = "$('#exposeBoxForm').hide();";
     private static final String showExposeFileinput = "$('#exposeBoxForm').show();";
-    
+
     private static final String resetVoteFileinput = "$('#voteUpload').fileinput('reset');";
     private static final String hideVoteFileinput = "$('#voteBoxForm').hide();";
     private static final String showVoteFileinput = "$('#voteBoxForm').show();";
@@ -144,7 +146,7 @@ public class SearchDetailsBean implements Serializable {
     private void loadVote() {
         if (inquiry != null) {
             vote = DocumentUtil.fetchVoteByInquiry(inquiry);
-            setCooperationAvailable( (vote != null) && (vote.getId() >=0) );
+            setCooperationAvailable((vote != null) && (vote.getId() >= 0));
         }
     }
 
@@ -177,7 +179,7 @@ public class SearchDetailsBean implements Serializable {
             logger.fatal("Error while trying to load inquiry from db. id=" + inquiryId);
             return;
         }
-        
+
         if (inquiry.getRevision() == 0) {
             logger.debug("Inbound from central search");
             resultTypes = new ArrayList<>();
@@ -193,7 +195,7 @@ public class SearchDetailsBean implements Serializable {
             for (Site site : sites) {
                 selectedSites.add(String.valueOf(site.getId()));
             }
-            
+
             try {
                 List<String> helperList = Arrays.asList(inquiry.getResultType().split(","));
                 resultTypes.addAll(helperList);
@@ -201,11 +203,18 @@ public class SearchDetailsBean implements Serializable {
                 logger.debug("Could not split result type. Maybe none was set. This is perfectly normal when transferring from central search. Creating empty list");
                 resultTypes = new ArrayList<>();
             }
-            
+
         }
-        
-        serializedQuery = inquiry.getCriteria();
-        logger.debug("Loaded inquiry with id " + inquiryId + " from db.");
+
+        String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
+
+        if (!StringUtils.isEmpty(criteria)) {
+            serializedQuery = criteria;
+            logger.debug("Loaded inquiry details with inqiuryId " + inquiryId + " and type '" + InquiryDetailsType.CQL  + "' from db.");
+        } else {
+            serializedQuery = StringUtils.EMPTY;
+            logger.debug("Inquiry details for with inquiryId " + inquiryId + " and type '" + InquiryDetailsType.CQL  + "' not found.");
+        }
     }
 
     /**

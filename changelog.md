@@ -4,13 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-##[3.2.0 - 2019-06-06]
+## [3.0.0 - 2019-07-01]
+### Changed
+- Refactored Flyway scripts
+- Moved SimpleQueryDto2ShareXmlTransformaer from UI to REST
+- Split table Inquiry into Inquiry and InquiryDetails
+
+## [2.2.0 - 2019-06-06]
 ### Changed
 - Update version of samply.common.config 3.0.3 -> 3.1.0 
 - Update version of samply.share.common 3.1.3 -> 3.2.0 
 - Update version of samply.common.mailing 2.1.3 -> 2.2.0 
 
-## [?.?.? - 2018-06-14]
+## [2.1.0 - 2018-05-07]
 ### Changed
 - Update share.common: 3.0.0 -> 3.1.0 (including new samply.mdrfaces without jquery)
 - Update other samply dependencies
@@ -21,7 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Webjar select2: 4.0.3 -> 4.0.5
 - Update other general and webjar dependencies
 
-## [2.0.0 - 2018-05-30]
+## [2.0.0 - 2018-03-19]
 ### Added
 - Parent POM 10.1 (Java 8 )
 - Introduce profiles for setting type of project (osse, dktk, gbn)

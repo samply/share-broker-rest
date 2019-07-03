@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>war</packaging>
     <artifactId>share.broker.rest</artifactId>
-    <version>2.2.0</version>
+    <version>3.0.0</version>
     <name>Searchbroker</name>
 
     <parent>
@@ -45,7 +45,7 @@
         <common-http.version>5.0.0</common-http.version>
         <jsf-renderer.version>2.0.0</jsf-renderer.version>
         <share-common.version>3.2.0</share-common.version>
-
+        <share-dto.version>4.2.0</share-dto.version>
         <!-- general dependencies -->
         <!-- We must keep the older mojarra version as the opening of elements
              in the search_query.xhtml is not working, otherwise. -->
@@ -106,7 +106,7 @@
                         <schema>${database.schema}</schema>
                     </schemas>
                     <locations>
-                        <location>filesystem:src/main/resources/db/migration/${project.context}</location>
+                        <location>filesystem:src/main/resources/db/migration</location>
                     </locations>
                 </configuration>
             </plugin>
@@ -194,6 +194,11 @@
         </plugins>
     </build>
     <dependencies>
+        <dependency>
+            <groupId>de.samply</groupId>
+            <artifactId>share-dto</artifactId>
+            <version>${share-dto.version}</version>
+        </dependency>
         <dependency>
             <groupId>de.samply</groupId>
             <artifactId>common-config</artifactId>
