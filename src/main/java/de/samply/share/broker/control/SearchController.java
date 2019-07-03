@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 Working Group on Joint Research, University Medical Center Mainz
  * Contact: info@osse-register.de
  * <p>
@@ -30,8 +30,8 @@ import de.samply.share.broker.messages.Messages;
 import de.samply.share.broker.model.db.enums.InquiryStatus;
 import de.samply.share.broker.model.db.tables.pojos.*;
 import de.samply.share.broker.rest.InquiryHandler;
-import de.samply.share.broker.utils.Config;
 import de.samply.share.broker.utils.MailUtils;
+import de.samply.share.broker.utils.SimpleQueryDto2ShareXmlTransformer;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.control.uiquerybuilder.AbstractSearchController;
@@ -39,6 +39,7 @@ import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.QueryTreeUtil;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.model.common.Query;
+import de.samply.share.query.entity.SimpleQueryDto;
 import de.samply.share.utils.QueryConverter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -49,9 +50,11 @@ import org.jooq.tools.json.JSONParser;
 import org.jooq.tools.json.ParseException;
 
 import javax.faces.application.FacesMessage;
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * holds methods and information necessary to create and display queries
@@ -85,7 +88,7 @@ public class SearchController extends AbstractSearchController {
 
     /**
      * Store and release an inquiry
-     *
+     * <p>
      * Release may be held back if confirmation by project management is needed
      *
      * @return the resulting navigation case
@@ -220,10 +223,15 @@ public class SearchController extends AbstractSearchController {
         inquiry.setCreated(SamplyShareUtils.getCurrentSqlTimestamp());
         DocumentUtil.setInquiryIdForDocument(exposeId, inquiry.getId());
 
-        try {
-            inquiry.setCriteria(QueryConverter.queryToXml(query));
-        } catch (JAXBException e) {
-            logger.error("Error while trying to convert the query to xml...");
+        Optional<InquiryDetails> inquiryDetailsOptional = InquiryDetailsUtil.fetchInquiryDetailsForInquiryIdTypeQuery(inquiry.getId());
+        if (inquiryDetailsOptional.isPresent()) {
+            InquiryDetails inquiryDetails = inquiryDetailsOptional.get();
+            try {
+                inquiryDetails.setCriteria(QueryConverter.queryToXml(query));
+                InquiryDetailsUtil.updateInquiryDetails(inquiryDetails);
+            } catch (JAXBException e) {
+                logger.error("Error while trying to convert the query to xml...");
+            }
         }
 
         String joinedResultTypes = "";
@@ -294,10 +302,15 @@ public class SearchController extends AbstractSearchController {
         inquiry.setStatus(InquiryStatus.IS_RELEASED);
         DocumentUtil.setInquiryIdForDocument(exposeId, inquiry.getId());
 
-        try {
-            inquiry.setCriteria(QueryConverter.queryToXml(query));
-        } catch (JAXBException e) {
-            logger.error("Error while trying to convert the query to xml...");
+        Optional<InquiryDetails> inquiryDetailsOptional = InquiryDetailsUtil.fetchInquiryDetailsForInquiryIdTypeQuery(inquiry.getId());
+        if (inquiryDetailsOptional.isPresent()) {
+            InquiryDetails inquiryDetails = inquiryDetailsOptional.get();
+            try {
+                inquiryDetails.setCriteria(QueryConverter.queryToXml(query));
+                InquiryDetailsUtil.updateInquiryDetails(inquiryDetails);
+            } catch (JAXBException e) {
+                logger.error("Error while trying to convert the query to xml...");
+            }
         }
 
         String joinedResultTypes = "";
@@ -342,9 +355,9 @@ public class SearchController extends AbstractSearchController {
      * If necessary, spawn a project linked with the inquiry
      *
      * @param bypassExamination if true, spawning of a project will be skipped
-     * @param inquiry the inquiry to check
-     * @param hadProjectBefore if true, the inquiry already is linked to a project
-     * @param inquiryHandler the inquiry handler to use
+     * @param inquiry           the inquiry to check
+     * @param hadProjectBefore  if true, the inquiry already is linked to a project
+     * @param inquiryHandler    the inquiry handler to use
      */
     private void spawnProjectIfNeeded(boolean bypassExamination, Inquiry inquiry, boolean hadProjectBefore, InquiryHandler inquiryHandler) {
         if (ProjectInfo.INSTANCE.getProjectName().equalsIgnoreCase("dktk") && !bypassExamination) {
@@ -406,13 +419,18 @@ public class SearchController extends AbstractSearchController {
             errorMsg.add("resultTypeRequired");
         }
 
-        try {
-            Query query = QueryConverter.xmlToQuery(inquiry.getCriteria());
-            if (query.getWhere().getAndOrEqOrLike().isEmpty()) {
-                errorMsg.add("noCriteria");
+        String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(inquiry.getId());
+        if (!StringUtils.isEmpty(criteria)) {
+            try {
+                Query query = QueryConverter.xmlToQuery(criteria);
+                if (query.getWhere().getAndOrEqOrLike().isEmpty()) {
+                    errorMsg.add("noCriteria");
+                }
+            } catch (JAXBException | NullPointerException e) {
+                errorMsg.add("errorInQuery");
             }
-        } catch (JAXBException | NullPointerException e) {
-            errorMsg.add("errorInQuery");
+        } else {
+            errorMsg.add("noInquiryDetails");
         }
 
         List<Site> sites = SiteUtil.fetchSitesForInquiry(inquiry.getId());
@@ -431,16 +449,19 @@ public class SearchController extends AbstractSearchController {
 
     /**
      * release query from UI for bridgeheads
-     * @param xmlQuery the query
-     * @param loggedUser the logged User
+     *
+     * @param simpleQueryDtoXml the query
+     * @param loggedUser        the logged User
      * @return the query ID
      * @throws JAXBException
      */
 
-    public static int releaseQuery(String xmlQuery, User loggedUser) throws JAXBException {
-        Query query = QueryConverter.xmlToQuery(xmlQuery);
+    public static int releaseQuery(String simpleQueryDtoXml, User loggedUser) throws JAXBException {
+        JAXBContext jaxbContext = JAXBContext.newInstance(SimpleQueryDto.class);
+        SimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, SimpleQueryDto.class);
+        Query query = new SimpleQueryDto2ShareXmlTransformer().toQuery(simpleQueryDto);
         InquiryHandler inquiryHandler = new InquiryHandler();
-        int inquiryId = inquiryHandler.storeAndRelease(query, loggedUser.getId(), "", "", -1, -1, new ArrayList<String>(), true);
+        int inquiryId = inquiryHandler.storeAndRelease(query, loggedUser.getId(), "", "", -1, -1, new ArrayList<>(), true);
         List<String> siteIds = new ArrayList<>();
         for (Site site : SiteUtil.fetchSites()) {
             siteIds.add(site.getId().toString());
@@ -451,25 +472,44 @@ public class SearchController extends AbstractSearchController {
 
     /**
      * get replys from the bridgeheads of the query
+     *
      * @param id the id of the query
      * @return all results as JSON String
      */
     public static String getReplysFromQuery(int id) {
         List<Reply> replyList = ReplyUtil.getReplyforInquriy(id);
-        JSONArray jsonArray = new JSONArray();
+        if (replyList == null) {
+            return new JSONArray().toString();
+        }
 
+        JSONArray jsonArray = new JSONArray();
+        JSONParser parser = new JSONParser();
         for (Reply reply : replyList) {
-            JSONParser parser = new JSONParser();
-            JSONObject json;
-            try {
-                json = (JSONObject) parser.parse(reply.getContent());
-                jsonArray.put(json);
-            } catch (ParseException e) {
-                e.printStackTrace();
+            if (isActiveSite(reply)) {
+                try {
+                    JSONObject json = (JSONObject) parser.parse(reply.getContent());
+                    jsonArray.put(json);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
             }
         }
-        logger.info("Sending replys to UI...");
         return jsonArray.toString();
+    }
+
+    private static boolean isActiveSite(Reply reply) {
+        BankSite bankSite = BankSiteUtil.fetchBankSiteByBankId(reply.getBankId());
+        if (bankSite == null) {
+            return false;
+        }
+
+
+        Site site = SiteUtil.fetchSiteById(bankSite.getSiteId());
+        if (site == null) {
+            return false;
+        }
+
+        return site.getActive();
     }
 
     @Override

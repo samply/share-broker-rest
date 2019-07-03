@@ -292,14 +292,14 @@ public class Searchbroker {
     /**
      * Get the count of the sites
      *
-     * @param id Inquiry ID
      * @return the count of the sites
      */
     @GET
     @Path("/getSize")
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response getSize(@QueryParam("id") int id) {
-        int size = InquirySiteUtil.fetchInquirySitesForInquiryId(id).size();
+    public Response getSize() {
+        long size = SiteUtil.fetchSites().stream().filter(Site::getActive).count();
+
         return Response.ok().header("size", size).build();
     }
 
