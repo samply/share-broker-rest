@@ -72,9 +72,9 @@ public class CentralSearchPlug {
 
     private static final Logger logger = LogManager.getLogger(CentralSearchPlug.class);
 
-    final String SERVER_HEADER_KEY = "Server";
+    private final String SERVER_HEADER_KEY = "Server";
 
-    final String SERVER_HEADER_VALUE = "Samply.Share.Broker/" + ProjectInfo.INSTANCE.getVersionString();
+    private final String SERVER_HEADER_VALUE = "Samply.Share.Broker/" + ProjectInfo.INSTANCE.getVersionString();
 
     @Context
     UriInfo uriInfo;
@@ -129,8 +129,6 @@ public class CentralSearchPlug {
             MdrClient mdrClient = MdrContext.getMdrContext().getMdrClient();
             QueryValidator queryValidator = new QueryValidator(mdrClient);
             queryValidator.fixBooleans(queryTree);
-            // Workaround for date-trouble (slot and validation format differ)
-//            queryValidator.reformatDateFromSlotFormat(queryTree);
             
             query = QueryTreeUtil.treeToQuery(queryTree);
         } catch (JAXBException e1) {

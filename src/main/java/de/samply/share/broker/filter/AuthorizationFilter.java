@@ -1,7 +1,8 @@
 package de.samply.share.broker.filter;
 
 
-import de.samply.auth.rest.RoleDTO;;
+import de.samply.auth.rest.RoleDTO;
+
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.Priorities;
@@ -34,7 +35,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     List<RoleDTO> roles;
 
     @Override
-    public void filter(ContainerRequestContext requestContext) throws IOException {
+    public void filter(ContainerRequestContext requestContext) {
         // Get the resource class which matches with the requested URL
         // Extract the permissions declared by it
         Class<?> resourceClass = resourceInfo.getResourceClass();
@@ -63,11 +64,11 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     // Extract the permissions from the annotated element
     private List<AccessPermission> extractPermissions(AnnotatedElement annotatedElement) {
         if (annotatedElement == null) {
-            return new ArrayList<AccessPermission>();
+            return new ArrayList<>();
         } else {
             Secured secured = annotatedElement.getAnnotation(Secured.class);
             if (secured == null) {
-                return new ArrayList<AccessPermission>();
+                return new ArrayList<>();
             } else {
                 AccessPermission[] allowedPermissions = secured.value();
                 return Arrays.asList(allowedPermissions);

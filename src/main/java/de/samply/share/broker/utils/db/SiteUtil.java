@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 Working Group on Joint Research, University Medical Center Mainz
  * Contact: info@osse-register.de
  *
@@ -125,7 +125,6 @@ public final class SiteUtil {
             DSLContext create = ResourceManager.getDSLContext(conn);
 
             sites = create.select()
-//                    .from(Tables.INQUIRY.join(Tables.INQUIRY_SITE).on(Tables.INQUIRY_SITE.INQUIRY_ID.equal(Tables.INQUIRY.ID)))
                     .from(Tables.INQUIRY.join(Tables.INQUIRY_SITE).onKey().join(Tables.SITE).onKey())
                     .where((Tables.INQUIRY.ID).equal(inquiryId)).fetchInto(Site.class);
         } catch (SQLException e) {

@@ -45,13 +45,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class IcingaConnector {
 
-    public static final String CFG_ICINGA_HOST = "icinga.host";
-    public static final String CFG_ICINGA_PATH = "icinga.path";
-    public static final String CFG_ICINGA_USERNAME = "icinga.username";
-    public static final String CFG_ICINGA_PASSWORD = "icinga.password";
-    public static final String CFG_ICINGA_SITE_SUFFIX = "icinga.site_suffix";
+    private static final String CFG_ICINGA_HOST = "icinga.host";
+    private static final String CFG_ICINGA_PATH = "icinga.path";
+    private static final String CFG_ICINGA_USERNAME = "icinga.username";
+    private static final String CFG_ICINGA_PASSWORD = "icinga.password";
+    private static final String CFG_ICINGA_SITE_SUFFIX = "icinga.site_suffix";
 
-    public static final String ICINGA_PREFIX = "BK ";
+    private static final String ICINGA_PREFIX = "BK ";
 
     private static CloseableHttpClient httpClient;
     private static HttpHost httpHost;
@@ -138,22 +138,6 @@ public class IcingaConnector {
             icingaReportItem.setPlugin_output(statusReportItem.getStatus_text());
             httpPost.setEntity(new StringEntity(gson.toJson(icingaReportItem), Consts.UTF_8));
 
-
-            // only for local test with proxy
-//            HttpHost httpHost = new HttpHost("193.174.53.221", 3128);
-//            SSLContextBuilder builder = new SSLContextBuilder();
-//            builder.loadTrustMaterial(null, new TrustStrategy() {
-//                public boolean isTrusted(final X509Certificate[] chain, String authType) {
-//                    return true;
-//                }
-//            });
-//            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
-//            CloseableHttpClient httpClient = HttpClients
-//                    .custom()
-//                    .setSSLSocketFactory(sslsf).setProxy(httpHost).setDefaultCredentialsProvider(credentialsProvider)
-//                    .build();
-
-
             CloseableHttpResponse response = httpClient.execute(httpPost);
             EntityUtils.consume(response.getEntity());
         } catch (NoHttpResponseException nhre) {
@@ -167,12 +151,6 @@ public class IcingaConnector {
             }
         } catch (URISyntaxException | IOException e) {
             throw new IcingaConnectorException(e);
-//        } catch (KeyManagementException e) {
-//            e.printStackTrace();
-//        } catch (NoSuchAlgorithmException e) {
-//            e.printStackTrace();
-//        } catch (KeyStoreException e) {
-//            e.printStackTrace();
         }
     }
 
@@ -213,21 +191,6 @@ public class IcingaConnector {
 
             httpPost.setEntity(new StringEntity(gson.toJson(icingaReportItem), Consts.UTF_8));
 
-            // only for local test with proxy
-//            HttpHost httpHost = new HttpHost("193.174.53.221", 3128);
-//            SSLContextBuilder builder = new SSLContextBuilder();
-//            builder.loadTrustMaterial(null, new TrustStrategy() {
-//                public boolean isTrusted(final X509Certificate[] chain, String authType) {
-//                    return true;
-//                }
-//            });
-//            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
-//            CloseableHttpClient httpClient = HttpClients
-//                    .custom()
-//                    .setSSLSocketFactory(sslsf).setProxy(httpHost).setDefaultCredentialsProvider(credentialsProvider)
-//                    .build();
-
-
             CloseableHttpResponse response = httpClient.execute(httpPost);
             EntityUtils.consume(response.getEntity());
         } catch (NoHttpResponseException nhre) {
@@ -241,12 +204,6 @@ public class IcingaConnector {
             }
         } catch (URISyntaxException | IOException e) {
             throw new IcingaConnectorException(e);
-//        } catch (KeyManagementException e) {
-//            e.printStackTrace();
-//        } catch (NoSuchAlgorithmException e) {
-//            e.printStackTrace();
-//        } catch (KeyStoreException e) {
-//            e.printStackTrace();
         }
     }
 
@@ -313,6 +270,4 @@ public class IcingaConnector {
         credentialsProvider.setCredentials(authScope, credentials);
         return credentialsProvider;
     }
-
-
 }

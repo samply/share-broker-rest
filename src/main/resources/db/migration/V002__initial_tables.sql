@@ -145,29 +145,6 @@ CREATE TABLE action (
   icon       TEXT
 );
 
-CREATE TABLE note (
-  id         SERIAL PRIMARY KEY,
-  content    TEXT,
-  created    TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
-  author_id  INTEGER                     NOT NULL,
-  project_id INTEGER                     NOT NULL
-);
-
-CREATE TABLE consent (
-  id      SERIAL PRIMARY KEY,
-  version TEXT UNIQUE NOT NULL,
-  content TEXT        NOT NULL,
-  created DATE        NOT NULL DEFAULT now()
-);
-
-CREATE TABLE user_consent (
-  user_id    INTEGER NOT NULL,
-  consent_id INTEGER NOT NULL,
-  granted    TIMESTAMP WITHOUT TIME ZONE,
-  revoked    TIMESTAMP WITHOUT TIME ZONE,
-  PRIMARY KEY (user_id, consent_id)
-);
-
 -- preemptive assignment of email address to site
 CREATE TABLE email_site (
   id    SERIAL PRIMARY KEY,
@@ -193,13 +170,5 @@ ALTER TABLE reply
   ADD FOREIGN KEY (inquiry_id) REFERENCES inquiry (id) ON DELETE CASCADE;
 ALTER TABLE "user"
   ADD FOREIGN KEY (contact_id) REFERENCES contact (id) ON DELETE SET NULL;
-ALTER TABLE note
-  ADD FOREIGN KEY (project_id) REFERENCES project (id) ON DELETE CASCADE;
-ALTER TABLE note
-  ADD FOREIGN KEY (author_id) REFERENCES "user" (id) ON DELETE CASCADE;
 ALTER TABLE project
   ADD FOREIGN KEY (projectleader_id) REFERENCES "user" (id) ON DELETE SET NULL;
-ALTER TABLE user_consent
-  ADD FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE;
-ALTER TABLE user_consent
-  ADD FOREIGN KEY (consent_id) REFERENCES consent (id) ON DELETE CASCADE;

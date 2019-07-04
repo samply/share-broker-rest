@@ -5,11 +5,7 @@ import de.samply.share.query.entity.SimpleQueryDto;
 import de.samply.share.query.field.AbstractQueryFieldDto;
 import de.samply.share.query.value.AbstractQueryValueDto;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import java.io.Serializable;
-import java.io.StringWriter;
 import java.util.List;
 
 public class SimpleQueryDto2ShareXmlTransformer {
