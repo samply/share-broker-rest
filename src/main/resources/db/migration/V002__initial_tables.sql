@@ -35,11 +35,11 @@ CREATE TABLE inquiry (
   result_type TEXT
 );
 
-CREATE TABLE inquiry_details (
+CREATE TABLE inquiry_criteria (
   id          SERIAL PRIMARY KEY,
   inquiry_id  INTEGER,
   criteria    TEXT           NOT NULL,
-  type        INQUIRY_DETAILS_TYPE NOT NULL,
+  type        INQUIRY_CRITERIA_TYPE NOT NULL,
   entity_type TEXT
 );
 

@@ -162,7 +162,7 @@ public class InquiryHandler {
             inquiry.setCreated(inquiryRecord.getValue(Tables.INQUIRY.CREATED));
             inquiry.setId(inquiryRecord.getValue(Tables.INQUIRY.ID));
 
-            createAndSaveInquiryDetails(simpleQueryDtoXml, inquiry, connection);
+            createAndSaveInquiryCriteria(simpleQueryDtoXml, inquiry, connection);
 
             if (exposeId > 0) {
                 Document expose = DocumentUtil.getDocumentById(exposeId);
@@ -362,7 +362,7 @@ public class InquiryHandler {
 
             returnValue = saveTentativeInquiry(inquiry, connection).getValue(Tables.INQUIRY.ID);
 
-            createAndSaveInquiryDetailsTypeQuery(query, inquiry, connection);
+            createAndSaveInquiryCriteriaTypeQuery(query, inquiry, connection);
         } catch (JAXBException e1) {
             e1.printStackTrace();
             return 0;
@@ -549,7 +549,7 @@ public class InquiryHandler {
             inq.setDescription(inquiry.getDescription());
 
             // Unmarshal the criteria String into a Query Object
-            String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
+            String criteria = InquiryCriteriaUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
             StringReader stringReader = new StringReader(criteria);
 
             JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
@@ -637,7 +637,7 @@ public class InquiryHandler {
                 return "notFound";
             }
 
-            String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
+            String criteria = InquiryCriteriaUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
             returnValue.append(criteria);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -785,26 +785,26 @@ public class InquiryHandler {
         return ret;
     }
 
-    private void createAndSaveInquiryDetails(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
-        createAndSaveInquiryDetailsTypeCql(simpleQueryDtoXml, inquiry, connection);
-        createAndSaveInquiryDetailsTypeQuery(simpleQueryDtoXml, inquiry, connection);
+    private void createAndSaveInquiryCriteria(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
+        createAndSaveInquiryCriteriaTypeCql(simpleQueryDtoXml, inquiry, connection);
+        createAndSaveInquiryCriteriaTypeQuery(simpleQueryDtoXml, inquiry, connection);
     }
 
-    private void createAndSaveInquiryDetailsTypeCql(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) {
-        createAndSaveInquiryDetailsTypeCqlPatient(simpleQueryDtoXml, inquiry, connection);
-        createAndSaveInquiryDetailsTypeCqlSpecimen(simpleQueryDtoXml, inquiry, connection);
+    private void createAndSaveInquiryCriteriaTypeCql(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) {
+        createAndSaveInquiryCriteriaTypeCqlPatient(simpleQueryDtoXml, inquiry, connection);
+        createAndSaveInquiryCriteriaTypeCqlSpecimen(simpleQueryDtoXml, inquiry, connection);
     }
 
-    private void createAndSaveInquiryDetailsTypeCqlPatient(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) {
+    private void createAndSaveInquiryCriteriaTypeCqlPatient(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) {
         String cql = createCqlPatient(simpleQueryDtoXml);
 
-        createAndSaveInquiryDetailsTypeCql(cql, inquiry, connection, ENTITY_TYPE_FOR_CQL_PATIENT);
+        createAndSaveInquiryCriteriaTypeCql(cql, inquiry, connection, ENTITY_TYPE_FOR_CQL_PATIENT);
     }
 
-    private void createAndSaveInquiryDetailsTypeCqlSpecimen(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) {
+    private void createAndSaveInquiryCriteriaTypeCqlSpecimen(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) {
         String cql = createCqlSpecimen(simpleQueryDtoXml);
 
-        createAndSaveInquiryDetailsTypeCql(cql, inquiry, connection, ENTITY_TYPE_FOR_CQL_SPECIMEN);
+        createAndSaveInquiryCriteriaTypeCql(cql, inquiry, connection, ENTITY_TYPE_FOR_CQL_SPECIMEN);
     }
 
     private String createCqlPatient(String simpleQueryDtoXml) {
@@ -817,17 +817,17 @@ public class InquiryHandler {
         return "DUMMY CQL - Specimen";
     }
 
-    private void createAndSaveInquiryDetailsTypeCql(String cql, Inquiry inquiry, Connection connection, String entityType) {
-        InquiryDetails inquiryDetails = new InquiryDetails();
-        inquiryDetails.setCriteria(cql);
-        inquiryDetails.setInquiryId(inquiry.getId());
-        inquiryDetails.setType(InquiryDetailsType.CQL);
-        inquiryDetails.setEntityType(entityType);
+    private void createAndSaveInquiryCriteriaTypeCql(String cql, Inquiry inquiry, Connection connection, String entityType) {
+        InquiryCriteria inquiryCriteria = new InquiryCriteria();
+        inquiryCriteria.setCriteria(cql);
+        inquiryCriteria.setInquiryId(inquiry.getId());
+        inquiryCriteria.setType(InquiryCriteriaType.IC_CQL);
+        inquiryCriteria.setEntityType(entityType);
 
-        saveInquiryDetails(inquiryDetails, connection);
+        saveInquiryCriteria(inquiryCriteria, connection);
     }
 
-    private void createAndSaveInquiryDetailsTypeQuery(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
+    private void createAndSaveInquiryCriteriaTypeQuery(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
         Query query;
 
         if (!StringUtils.isEmpty(simpleQueryDtoXml)) {
@@ -842,38 +842,38 @@ public class InquiryHandler {
             query.setWhere(where);
         }
 
-        createAndSaveInquiryDetailsTypeQuery(query, inquiry, connection);
+        createAndSaveInquiryCriteriaTypeQuery(query, inquiry, connection);
     }
 
-    private void createAndSaveInquiryDetailsTypeQuery(Query query, Inquiry inquiry, Connection connection) throws JAXBException {
+    private void createAndSaveInquiryCriteriaTypeQuery(Query query, Inquiry inquiry, Connection connection) throws JAXBException {
         JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
         StringWriter stringWriter = new StringWriter();
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
         marshaller.marshal(query, stringWriter);
 
-        InquiryDetails inquiryDetails = new InquiryDetails();
-        inquiryDetails.setCriteria(stringWriter.toString());
-        inquiryDetails.setInquiryId(inquiry.getId());
-        inquiryDetails.setType(InquiryDetailsType.QUERY);
-        inquiryDetails.setEntityType(ENTITY_TYPE_FOR_QUERY);
+        InquiryCriteria inquiryCriteria = new InquiryCriteria();
+        inquiryCriteria.setCriteria(stringWriter.toString());
+        inquiryCriteria.setInquiryId(inquiry.getId());
+        inquiryCriteria.setType(InquiryCriteriaType.IC_QUERY);
+        inquiryCriteria.setEntityType(ENTITY_TYPE_FOR_QUERY);
 
-        saveInquiryDetails(inquiryDetails, connection);
+        saveInquiryCriteria(inquiryCriteria, connection);
     }
 
-    private void saveInquiryDetails(InquiryDetails inquiryDetails, Connection connection) {
+    private void saveInquiryCriteria(InquiryCriteria inquiryCriteria, Connection connection) {
         DSLContext dslContext = ResourceManager.getDSLContext(connection);
 
         dslContext
-                .insertInto(Tables.INQUIRY_DETAILS,
-                        Tables.INQUIRY_DETAILS.INQUIRY_ID,
-                        Tables.INQUIRY_DETAILS.TYPE,
-                        Tables.INQUIRY_DETAILS.CRITERIA,
-                        Tables.INQUIRY_DETAILS.ENTITY_TYPE)
-                .values(inquiryDetails.getInquiryId(),
-                        inquiryDetails.getType(),
-                        inquiryDetails.getCriteria(),
-                        inquiryDetails.getEntityType())
+                .insertInto(Tables.INQUIRY_CRITERIA,
+                        Tables.INQUIRY_CRITERIA.INQUIRY_ID,
+                        Tables.INQUIRY_CRITERIA.TYPE,
+                        Tables.INQUIRY_CRITERIA.CRITERIA,
+                        Tables.INQUIRY_CRITERIA.ENTITY_TYPE)
+                .values(inquiryCriteria.getInquiryId(),
+                        inquiryCriteria.getType(),
+                        inquiryCriteria.getCriteria(),
+                        inquiryCriteria.getEntityType())
                 .execute();
     }
 
