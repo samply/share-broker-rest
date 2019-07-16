@@ -25,37 +25,22 @@
  */
 package de.samply.share.broker.control;
 
-import com.google.common.base.Joiner;
-import de.samply.share.broker.messages.Messages;
-import de.samply.share.broker.model.db.enums.InquiryStatus;
-import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.model.db.tables.pojos.BankSite;
+import de.samply.share.broker.model.db.tables.pojos.Reply;
+import de.samply.share.broker.model.db.tables.pojos.Site;
+import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.broker.rest.InquiryHandler;
-import de.samply.share.broker.utils.MailUtils;
-import de.samply.share.broker.utils.SimpleQueryDto2ShareXmlTransformer;
-import de.samply.share.broker.utils.Utils;
-import de.samply.share.broker.utils.db.*;
-import de.samply.share.common.control.uiquerybuilder.AbstractSearchController;
-import de.samply.share.common.utils.ProjectInfo;
-import de.samply.share.common.utils.QueryTreeUtil;
-import de.samply.share.common.utils.SamplyShareUtils;
-import de.samply.share.model.common.Query;
-import de.samply.share.query.entity.SimpleQueryDto;
-import de.samply.share.utils.QueryConverter;
-import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import de.samply.share.broker.utils.db.BankSiteUtil;
+import de.samply.share.broker.utils.db.ReplyUtil;
+import de.samply.share.broker.utils.db.SiteUtil;
 import org.codehaus.jettison.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
 import org.jooq.tools.json.ParseException;
 
-import javax.faces.application.FacesMessage;
-import javax.inject.Inject;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * holds methods and information necessary to create and display queries
@@ -68,10 +53,9 @@ public class SearchController {
      * @param simpleQueryDtoXml the query
      * @param loggedUser        the logged User
      * @return the query ID
-     * @throws JAXBException
      */
 
-    public static int releaseQuery(String simpleQueryDtoXml, User loggedUser) throws JAXBException {
+    public static int releaseQuery(String simpleQueryDtoXml, User loggedUser) {
         InquiryHandler inquiryHandler = new InquiryHandler();
         int inquiryId = inquiryHandler.storeAndRelease(simpleQueryDtoXml, loggedUser.getId(), "", "", -1, -1, new ArrayList<>(), true);
         List<String> siteIds = new ArrayList<>();

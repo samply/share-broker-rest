@@ -2,7 +2,6 @@ search = Search
 IN = One of
 OR = OR
 inquiries=Inquiries
-AT_INQUIRY_EDITED=Updated by user
 email=E-Mail
 date=Date
 inquiry=Inquiry
