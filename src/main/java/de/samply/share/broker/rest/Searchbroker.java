@@ -238,12 +238,7 @@ public class Searchbroker {
         this.logger.info("sendQuery called");
 
         int id;
-        try {
-            id = SearchController.releaseQuery(xml, authenticatedUser);
-        } catch (JAXBException e) {
-            this.logger.warn("sendQuery id internal error: " + e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
+        id = SearchController.releaseQuery(xml, authenticatedUser);
 
         this.logger.info("sendQuery with id is sent");
         return Response.accepted().header("id", id).build();

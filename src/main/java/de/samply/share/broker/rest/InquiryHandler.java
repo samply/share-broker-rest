@@ -31,7 +31,6 @@ package de.samply.share.broker.rest;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.itextpdf.awt.geom.misc.Messages;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
 import de.samply.share.broker.model.db.enums.*;
@@ -275,7 +274,7 @@ public class InquiryHandler {
 
             Action action = new Action();
             action.setProjectId(project.getId());
-            action.setMessage(Messages.getString(ActionType.AT_INQUIRY_EDITED.toString()));
+            action.setMessage(ActionType.AT_INQUIRY_EDITED.toString());
             action.setType(ActionType.AT_PROJECT_CALLBACK_RECEIVED);
             action.setTime(SamplyShareUtils.getCurrentTime());
             action.setUserId(userid);
