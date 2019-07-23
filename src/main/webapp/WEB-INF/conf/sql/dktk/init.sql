@@ -11,5 +11,6 @@ INSERT INTO "site" (name) VALUES ('München (TUM)');
 INSERT INTO "site" (name) VALUES ('Tübingen');
 INSERT INTO "site" (name) VALUES ('Teststandort');
 
-INSERT INTO samply.contact(id, firstname, lastname, email) VALUES ('1', 'DKTK', 'Searchbroker', 'no-reply@vm.vmitro.de');
-INSERT INTO samply.user(id, username, email, name, contact_id) VALUES ('1', 'Searchbroker', 'no-reply@vm.vmitro.de', 'DKTK Searchbroker', '1');
+INSERT INTO samply.contact(firstname, lastname, email) VALUES ('DKTK', 'Searchbroker', 'no-reply@vm.vmitro.de');
+INSERT INTO samply.user(username, email, name, contact_id) VALUES ('Searchbroker', 'no-reply@vm.vmitro.de', 'DKTK Searchbroker',
+                                                                   (SELECT MAX(id) FROM samply.contact t WHERE t.firstname = 'GBA' AND t.lastname = 'Searchbroker'));
