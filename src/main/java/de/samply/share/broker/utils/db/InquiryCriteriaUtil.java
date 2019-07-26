@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class InquiryCriteriaUtil {
 
@@ -20,7 +21,7 @@ public class InquiryCriteriaUtil {
         List<InquiryCriteria> inquiryCriteria;
         InquiryCriteriaDao inquiryCriteriaDao;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             inquiryCriteriaDao = new InquiryCriteriaDao(configuration);
 
@@ -32,20 +33,21 @@ public class InquiryCriteriaUtil {
         return new ArrayList<>();
     }
 
-    public static String fetchCriteriaForInquiryIdTypeQuery(int inquiryId) {
-        Optional<InquiryCriteria> inquiryCriteriaOptional = fetchInquiryCriteriaForInquiryId(inquiryId, InquiryCriteriaType.IC_QUERY);
-
-        return inquiryCriteriaOptional.isPresent() ? inquiryCriteriaOptional.get().getCriteria() : "";
-    }
-
-    public static Optional<InquiryCriteria> fetchInquiryCriteriaForInquiryIdTypeQuery(int inquiryId) {
-        return fetchInquiryCriteriaForInquiryId(inquiryId, InquiryCriteriaType.IC_QUERY);
-    }
-
-    public static Optional<InquiryCriteria> fetchInquiryCriteriaForInquiryId(int inquiryId, InquiryCriteriaType type) {
+    public static List<InquiryCriteria> fetchCriteriaListForInquiryIdTypeCql(int inquiryId) {
         List<InquiryCriteria> inquiryCriteria = fetchInquiryCriteriaForInquiryId(inquiryId);
 
-        return inquiryCriteria.stream().filter(inquiryCriteriaTemp -> inquiryCriteriaTemp.getType() == type).findFirst();
+        return inquiryCriteria.stream().filter(inquiryCriteriaTemp -> inquiryCriteriaTemp.getType() == InquiryCriteriaType.IC_CQL).collect(Collectors.toList());
+    }
+
+    public static String fetchCriteriaForInquiryIdTypeQuery(int inquiryId) {
+        List<InquiryCriteria> inquiryCriteria = fetchInquiryCriteriaForInquiryId(inquiryId);
+
+        Optional<InquiryCriteria> inquiryCriteriaOptional =
+                inquiryCriteria.stream().
+                        filter(inquiryCriteriaTemp -> inquiryCriteriaTemp.getType() == InquiryCriteriaType.IC_QUERY).
+                        findFirst();
+
+        return inquiryCriteriaOptional.isPresent() ? inquiryCriteriaOptional.get().getCriteria() : "";
     }
 
     public static void updateInquiryCriteria(InquiryCriteria inquiryCriteria) {

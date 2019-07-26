@@ -67,6 +67,9 @@ import java.util.Map;
 @Path("/searchbroker")
 public class Searchbroker {
 
+    // TODO: Move to share-common class Constants
+    private static final String QUERY_LANGUAGE = "query-language";
+
     private static final String CONFIG_PROPERTY_BROKER_NAME = "broker.name";
     private static final String CONTENT_TYPE_PDF = "application/pdf";
 
@@ -488,6 +491,7 @@ public class Searchbroker {
     public Response getInquiry(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                @HeaderParam(HttpHeaders.USER_AGENT) String userAgentHeader,
                                @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
+                               @HeaderParam(QUERY_LANGUAGE) String queryLanguage,
                                @PathParam("inquiryid") int inquiryId) {
 
         if (isBankUnauthorized(authorizationHeader)) {
@@ -495,7 +499,7 @@ public class Searchbroker {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
-        String ret = inquiryHandler.getInquiry(inquiryId, uriInfo, userAgentHeader);
+        String ret = inquiryHandler.getInquiry(inquiryId, uriInfo, userAgentHeader, queryLanguage);
 
         Response response = buildResponse(xmlNamespaceHeader, inquiryId, ret);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
