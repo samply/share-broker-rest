@@ -46,6 +46,8 @@ import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.model.common.Contact;
 import de.samply.share.model.common.*;
+import de.samply.share.model.cql.CqlQuery;
+import de.samply.share.model.cql.CqlQueryList;
 import de.samply.share.query.entity.SimpleQueryDto;
 import de.samply.share.utils.QueryConverter;
 import org.apache.commons.lang.StringUtils;
@@ -87,6 +89,9 @@ public class InquiryHandler {
     private static final String ENTITY_TYPE_FOR_QUERY = "Donor + Sample";
     private static final String ENTITY_TYPE_FOR_CQL_PATIENT = "Patient";
     private static final String ENTITY_TYPE_FOR_CQL_SPECIMEN = "Specimen";
+
+    private static final String QUERYLANGUAGE_QUERY = "QUERY";
+    private static final String QUERYLANGUAGE_CQL = "CQL";
 
     public InquiryHandler() {
     }
@@ -506,9 +511,10 @@ public class InquiryHandler {
      * @param inquiryId       the id of the inquiry to get
      * @param uriInfo         the uri info object linked with the request
      * @param userAgentHeader the user agent header of the requesting client
+     * @param queryLanguage   either "CQL" or "QUERY"
      * @return the serialized inquiry
      */
-    String getInquiry(int inquiryId, UriInfo uriInfo, String userAgentHeader) {
+    String getInquiry(int inquiryId, UriInfo uriInfo, String userAgentHeader, String queryLanguage) {
         StringBuilder returnValue = new StringBuilder();
         Inquiry inquiry;
         InquiryDao inquiryDao;
@@ -547,16 +553,13 @@ public class InquiryHandler {
             inq.setLabel(inquiry.getLabel());
             inq.setDescription(inquiry.getDescription());
 
-            // Unmarshal the criteria String into a Query Object
-            String criteria = InquiryCriteriaUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
-            StringReader stringReader = new StringReader(criteria);
+            if (isQueryLanguageViewQuery(queryLanguage)) {
+                addCriteriaForViewQuery(inquiryId, inq);
+            }
 
-            JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            Query query = (Query) unmarshaller.unmarshal(stringReader);
-
-            inq.setQuery(query);
+            if (isQueryLanguageCql(queryLanguage)) {
+                addCriteriaForCql(inquiryId, inq);
+            }
 
             Contact authorInfo = getContact(author);
             inq.setAuthor(authorInfo);
@@ -572,6 +575,8 @@ public class InquiryHandler {
             }
 
             StringWriter stringWriter = new StringWriter();
+            JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
 
             ObjectFactory objectFactory = new ObjectFactory();
@@ -588,6 +593,40 @@ public class InquiryHandler {
         }
 
         return returnValue.toString();
+    }
+
+    private boolean isQueryLanguageViewQuery(String queryLanguage) {
+        return StringUtils.equalsIgnoreCase(queryLanguage, QUERYLANGUAGE_QUERY);
+    }
+
+    private boolean isQueryLanguageCql(String queryLanguage) {
+        return StringUtils.equalsIgnoreCase(queryLanguage, QUERYLANGUAGE_CQL);
+    }
+
+    private void addCriteriaForViewQuery(int inquiryId, de.samply.share.model.common.Inquiry inq) throws JAXBException {
+        String criteria = InquiryCriteriaUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
+        StringReader stringReader = new StringReader(criteria);
+
+        JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        Query query = (Query) unmarshaller.unmarshal(stringReader);
+
+        inq.setQuery(query);
+    }
+
+    private void addCriteriaForCql(int inquiryId, de.samply.share.model.common.Inquiry inq) {
+        List<InquiryCriteria> criteriaList = InquiryCriteriaUtil.fetchCriteriaListForInquiryIdTypeCql(inquiryId);
+
+        CqlQueryList cqlQueryList = new CqlQueryList();
+        for (InquiryCriteria singleCriteria : criteriaList) {
+            CqlQuery cqlQuery = new CqlQuery();
+            cqlQuery.setEntityType(singleCriteria.getEntityType());
+            cqlQuery.setCql(singleCriteria.getCriteria());
+
+            cqlQueryList.getQueries().add(cqlQuery);
+        }
+
+        inq.setCqlQueryList(cqlQueryList);
     }
 
     /**
