@@ -448,7 +448,7 @@ public class Searchbroker {
         int bankId = Utils.getBankId(authorizationHeader);
         sendVersionReport(userAgent, bankId);
 
-        String inquiryList = Utils.fixNamespaces(inquiryHandler.list(bankId), xmlNamespaceHeader);
+        String inquiryList = inquiryHandler.list(bankId);
 
         if (StringUtils.isEmpty(inquiryList) || inquiryList.equalsIgnoreCase("error")) {
             this.logger.warn("There was an error while retrieving the list of inquiries");

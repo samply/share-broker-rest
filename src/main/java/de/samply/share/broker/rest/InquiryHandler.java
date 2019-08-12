@@ -77,6 +77,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -453,14 +454,14 @@ public class InquiryHandler {
      * @return the serialized list of inquiry ids
      */
     protected String list(int bankId) {
-        StringBuilder returnValue = new StringBuilder();
-        List<Inquiry> inquiries;
+        List<Inquiry> inquiryList;
+        InquiriesIdList inquiriesIdList = new InquiriesIdList();
 
         try {
             BankSite bankSite = BankSiteUtil.fetchBankSiteByBankId(bankId);
             if (bankSite == null) {
                 logger.warn("No Bank site for bank id '" + bankId + "' is found. Not providing any inquiries.");
-                return "<Inquiries />";
+                return writeXml(inquiriesIdList);
             }
 
             Site site = SiteUtil.fetchSiteById(bankSite.getSiteId());
@@ -468,39 +469,53 @@ public class InquiryHandler {
 
             if (siteIdForBank == null || siteIdForBank < 1) {
                 logger.warn("Bank " + bankId + " is not associated with a site. Not providing any inquiries.");
-                return "<Inquiries />";
+                return writeXml(inquiriesIdList);
             }
 
             if (!bankSite.getApproved()) {
                 logger.warn("Bank " + bankId + " is associated with a site, but that association has not been approved. Not providing any inquiries.");
-                return "<Inquiries />";
+                return writeXml(inquiriesIdList);
             }
 
-            inquiries = InquiryUtil.fetchInquiriesForSite(siteIdForBank);
+            inquiryList = InquiryUtil.fetchInquiriesForSite(siteIdForBank);
 
-            returnValue.append("<Inquiries>");
-            for (Inquiry inquiry : inquiries) {
+            for (Inquiry inquiry : inquiryList) {
                 if ((inquiry.getRevision() < 1)) {
                     continue;
                 }
 
-                returnValue.append("<Inquiry>");
-                returnValue.append("<Id>").append(inquiry.getId()).append("</Id>");
-                if (inquiry.getRevision() != null) {
-                    returnValue.append("<Revision>").append(inquiry.getRevision()).append("</Revision>");
-                } else {
-                    returnValue.append("<Revision>1</Revision>");
-                }
-                returnValue.append("</Inquiry>");
-            }
-            returnValue.append("</Inquiries>");
+                InquiriesIdList.Inquiry inquiryXml = new InquiriesIdList.Inquiry();
+                inquiriesIdList.getInquiries().add(inquiryXml);
 
+                inquiryXml.setId(Integer.toString(inquiry.getId()));
+                if (inquiry.getRevision() != null) {
+                    inquiryXml.setRevision(Integer.toString(inquiry.getRevision()));
+                } else {
+                    inquiryXml.setRevision("1");
+                }
+            }
         } catch (NullPointerException npe) {
             logger.warn("Nullpointer exception caught while trying to list inquiries. This might be caused by a missing connection between bank and site. Check the DB. Returning empty list for now.");
-            return "<Inquiries />";
+            inquiriesIdList.setInquiries(new ArrayList<>());
+
+            return writeXml(inquiriesIdList);
         }
 
-        return returnValue.toString();
+        return writeXml(inquiriesIdList);
+    }
+
+    private String writeXml(InquiriesIdList inquiries) {
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(InquiriesIdList.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
+            StringWriter writer = new StringWriter();
+            marshaller.marshal(inquiries, writer);
+
+            return writer.toString();
+        } catch (JAXBException e) {
+            logger.warn("JAXBException occured: " + e.getMessage());
+            return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Inquiries xmlns=\"http://schema.samply.de/common/Query\"></Inquiries>";
+        }
     }
 
     // TODO: bankId parameter is currently basically useless - may change with access restrictions
