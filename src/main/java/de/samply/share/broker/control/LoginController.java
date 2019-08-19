@@ -35,16 +35,16 @@ import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.broker.utils.db.SiteUtil;
 
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
+import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.Serializable;
 import java.util.List;
 
 /**
  * A JSF Managed Bean that is existent for a whole session. It handles user access.
  */
-@ManagedBean(name = "loginController")
+@Named
 @SessionScoped
 public class LoginController implements Serializable {
 
