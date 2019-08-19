@@ -94,6 +94,30 @@ public class InquiryHandler {
     private static final String QUERYLANGUAGE_QUERY = "QUERY";
     private static final String QUERYLANGUAGE_CQL = "CQL";
 
+    private static final String DUMMY_QUERY_MALE =
+            "library Retrieve\n" +
+                    "using FHIR version '4.0.0'\n" +
+                    "include FHIRHelpers version '4.0.0'\n" +
+                    "\n" +
+                    "codesystem gender: 'http://hl7.org/fhir/administrative-gender'\n" +
+                    "\n" +
+                    "context Patient\n" +
+                    "\n" +
+                    "define InInitialPopulation:\n" +
+                    "  Patient.gender ~ Code 'male' from gender";
+
+    private static final String DUMMY_QUERY_FEMALE =
+            "library Retrieve\n" +
+                    "using FHIR version '4.0.0'\n" +
+                    "include FHIRHelpers version '4.0.0'\n" +
+                    "\n" +
+                    "codesystem gender: 'http://hl7.org/fhir/administrative-gender'\n" +
+                    "\n" +
+                    "context Patient\n" +
+                    "\n" +
+                    "define InInitialPopulation:\n" +
+                    "  Patient.gender ~ Code 'female' from gender";
+
     public InquiryHandler() {
     }
 
@@ -862,12 +886,12 @@ public class InquiryHandler {
 
     private String createCqlPatient(String simpleQueryDtoXml) {
         // TODO: return real CQL query for patient according to simpleQueryDto
-        return "DUMMY CQL - Patient";
+        return DUMMY_QUERY_MALE;
     }
 
     private String createCqlSpecimen(String simpleQueryDtoXml) {
         // TODO: return real CQL query for patient according to simpleQueryDto
-        return "DUMMY CQL - Specimen";
+        return DUMMY_QUERY_FEMALE;
     }
 
     private void createAndSaveInquiryCriteriaTypeCql(String cql, Inquiry inquiry, Connection connection, String entityType) {
