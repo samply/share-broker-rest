@@ -42,6 +42,7 @@ import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.*;
 import de.samply.share.broker.utils.SimpleQueryDto2ShareXmlTransformer;
 import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.model.common.Contact;
@@ -594,10 +595,10 @@ public class InquiryHandler {
 
             if (isQueryLanguageViewQuery(queryLanguage)) {
                 addCriteriaForViewQuery(inquiryId, inq);
-            }
-
-            if (isQueryLanguageCql(queryLanguage)) {
+            } else if (isQueryLanguageCql(queryLanguage)) {
                 addCriteriaForCql(inquiryId, inq);
+            } else {
+                logger.warn("Header parameter '" + Constants.HEADER_KEY_QUERY_LANGUAGE + "' has invalid value '" + queryLanguage + "'");
             }
 
             Contact authorInfo = getContact(author);

@@ -46,7 +46,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jooq.tools.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
-import org.jooq.tools.json.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +55,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.xml.bind.JAXBException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,9 +64,6 @@ import java.util.Map;
  */
 @Path("/searchbroker")
 public class Searchbroker {
-
-    // TODO: Move to share-common class Constants
-    private static final String QUERY_LANGUAGE = "query-language";
 
     private static final String CONFIG_PROPERTY_BROKER_NAME = "broker.name";
     private static final String CONTENT_TYPE_PDF = "application/pdf";
@@ -491,7 +486,7 @@ public class Searchbroker {
     public Response getInquiry(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                @HeaderParam(HttpHeaders.USER_AGENT) String userAgentHeader,
                                @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
-                               @HeaderParam(QUERY_LANGUAGE) String queryLanguage,
+                               @HeaderParam(Constants.HEADER_KEY_QUERY_LANGUAGE) @DefaultValue("QUERY") String queryLanguage,
                                @PathParam("inquiryid") int inquiryId) {
 
         if (isBankUnauthorized(authorizationHeader)) {
