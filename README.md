@@ -57,22 +57,24 @@ If postgres connection errors occur, try your ip for POSTGRES_HOST.
 
     docker network create gba
     
+    
     docker rm pg-searchbroker
     
     docker run \
         --name pg-searchbroker \
         --network=gba \
-        -e POSTGRES_USER=searchbroker \
-        -e POSTGRES_DB=searchbroker \
-        -e POSTGRES_PASSWORD=ChangeMe \
+        -e POSTGRES_USER=samply \
+        -e POSTGRES_DB=samply.searchbroker \
+        -e POSTGRES_PASSWORD=samply \
         -p 5432:5432 \
     postgres:9.6
     
-    docker build . -t searchbroker:latest
     
     docker kill searchbroker
 
     docker rm searchbroker
+    
+    docker build . -t searchbroker:latest
     
     docker run \
         --name=searchbroker \
@@ -81,9 +83,9 @@ If postgres connection errors occur, try your ip for POSTGRES_HOST.
         -e TOMCAT_USERNAME='admin' \
         -e TOMCAT_PASSWORD='ChangeMe' \
         -e POSTGRES_HOST='pg-searchbroker' \
-        -e POSTGRES_DB='searchbroker' \
-        -e POSTGRES_USER='searchbroker' \
-        -e POSTGRES_PASS='ChangeMe' \
+        -e POSTGRES_DB='samply.searchbroker' \
+        -e POSTGRES_USER='samply' \
+        -e POSTGRES_PASS='samply' \
         -e MAIL_HOST='DUMMY' \
         -e MAIL_FROM_ADDRESS='DUMMY' \
         -e MAIL_FROM_NAME='DUMMY' \
