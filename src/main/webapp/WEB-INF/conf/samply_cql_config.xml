@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cqlConfig>
+    <preamble>
+        library Retrieve
+        using FHIR version ''4.0.0''
+        include FHIRHelpers version ''4.0.0''
+
+        context {0}
+
+        define InInitialPopulation:
+        true
+    </preamble>
+    <ui-field>
+        <!-- Patient / Gender -->
+        <mdrUrn>urn:mdr16:dataelement:23:1</mdrUrn>
+        <entity-type>
+            <entityType>Patient</entityType>
+            <pathExpression>{0}</pathExpression>
+            <atomic-expression>
+                <operator>DEFAULT</operator>
+                <atomicExpression>Patient.gender {0} ''{1}''</atomicExpression>
+            </atomic-expression>
+            <atomic-expression>
+                <operator>...</operator>
+                <atomicExpression>(Patient.gender &lt; ''{2}'' and Patient.gender &gt; ''{1}'')</atomicExpression>
+            </atomic-expression>
+        </entity-type>
+        <entity-type>
+            <entityType>Specimen</entityType>
+            <pathExpression>exists(from [Patient] P where {0})</pathExpression>
+            <atomic-expression>
+                <operator>DEFAULT</operator>
+                <atomicExpression>P.gender {0} ''{1}''</atomicExpression>
+            </atomic-expression>
+            <atomic-expression>
+                <operator>...</operator>
+                <atomicExpression>(P.gender &lt; ''{2}'' and P.gender &gt; ''{1}'')</atomicExpression>
+            </atomic-expression>
+        </entity-type>
+    </ui-field>
+</cqlConfig>

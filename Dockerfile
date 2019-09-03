@@ -7,6 +7,7 @@ ADD src/docker/context.xml                      /usr/local/tomcat/conf/Catalina/
 
 ADD src/docker/OAuth2Client.xml                 /usr/local/tomcat/conf/
 ADD src/docker/samply_common_config.xml         /usr/local/tomcat/conf/
+ADD src/docker/samply_cql_config.xml            /usr/local/tomcat/conf/
 ADD src/docker/mailSending.xml                  /usr/local/tomcat/conf/
 ADD src/docker/log4j2.xml                       /usr/local/tomcat/conf/
 
