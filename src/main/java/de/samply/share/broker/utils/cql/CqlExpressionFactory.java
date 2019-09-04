@@ -12,7 +12,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.MessageFormat;
 
-public class CqlExpressionFactory {
+class CqlExpressionFactory {
 
     private final MultiKeyMap<String, CqlConfig.CqlAtomicExpressionEntry> mapAtomicExpressions = new MultiKeyMap<>();
     private final MultiKeyMap<String, CqlConfig.CqlEntityTypeEntry> mapPathExpressions = new MultiKeyMap<>();
@@ -29,6 +29,14 @@ public class CqlExpressionFactory {
             return;
         }
 
+        initMaps(cqlConfigFile);
+    }
+
+    CqlExpressionFactory(File cqlConfigFile) {
+        initMaps(cqlConfigFile);
+    }
+
+    private void initMaps(File cqlConfigFile) {
         CqlConfig mapping;
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(CqlConfig.class);
@@ -39,10 +47,6 @@ public class CqlExpressionFactory {
             return;
         }
 
-        initMaps(mapping);
-    }
-
-    public CqlExpressionFactory(CqlConfig mapping) {
         initMaps(mapping);
     }
 

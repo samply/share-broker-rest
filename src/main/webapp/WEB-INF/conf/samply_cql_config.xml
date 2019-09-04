@@ -8,7 +8,6 @@
         context {0}
 
         define InInitialPopulation:
-        true
     </preamble>
     <ui-field>
         <!-- Patient / Gender -->

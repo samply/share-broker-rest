@@ -11,20 +11,33 @@ import java.util.List;
 
 public class SimpleQueryDto2CqlTransformer {
 
-    private CqlExpressionFactory cqlExpressionFactory = new CqlExpressionFactory();
+    private final CqlExpressionFactory cqlExpressionFactory;
+
+    public SimpleQueryDto2CqlTransformer() {
+        this(new CqlExpressionFactory());
+    }
+
+    SimpleQueryDto2CqlTransformer(CqlExpressionFactory cqlExpressionFactory) {
+        this.cqlExpressionFactory = cqlExpressionFactory;
+    }
 
     public String toQuery(SimpleQueryDto queryDto, String entityType) {
         StringBuilder cqlQueryPredicateBuilder = new StringBuilder(MessageFormat.format(cqlExpressionFactory.getPreambleTemplate(), entityType));
 
         addTermsToAndExpression(cqlQueryPredicateBuilder, entityType, queryDto.getDonorDto().getFieldsDto());
+        cqlQueryPredicateBuilder.append(" and ");
         addTermsToAndExpression(cqlQueryPredicateBuilder, entityType, queryDto.getSampleContextDto().getFieldsDto());
+        cqlQueryPredicateBuilder.append(" and ");
         addTermsToAndExpression(cqlQueryPredicateBuilder, entityType, queryDto.getSampleDto().getFieldsDto());
+        cqlQueryPredicateBuilder.append(" and ");
         addTermsToAndExpression(cqlQueryPredicateBuilder, entityType, queryDto.getEventDto().getFieldsDto());
 
         return cqlQueryPredicateBuilder.toString();
     }
 
     private void addTermsToAndExpression(StringBuilder cqlQueryPredicateBuilder, String entityType, List<AbstractQueryFieldDto<?, ?>> fieldsDto) {
+        boolean isFirstField = true;
+
         for (AbstractQueryFieldDto<?, ?> fieldDto : fieldsDto) {
             String mdrUrn = fieldDto.getUrn();
 
@@ -32,8 +45,19 @@ public class SimpleQueryDto2CqlTransformer {
 
             if (!StringUtils.isEmpty(atomicExpressions)) {
                 String pathExpression = cqlExpressionFactory.getPathExpression(mdrUrn, entityType, atomicExpressions);
-                cqlQueryPredicateBuilder.append(" and (").append(pathExpression).append(")");
+                if (isFirstField) {
+                    isFirstField = false;
+                } else {
+                    cqlQueryPredicateBuilder.append(" and ");
+                }
+
+                cqlQueryPredicateBuilder.append(pathExpression);
             }
+        }
+
+        // if expression would be empty
+        if (isFirstField) {
+            cqlQueryPredicateBuilder.append("true");
         }
     }
 
@@ -45,8 +69,8 @@ public class SimpleQueryDto2CqlTransformer {
             isFirstAtomicExpression = addSingleAtomicExpression(atomicExpressionBuilder, mdrUrn, entityType, isFirstAtomicExpression, valueDto);
         }
 
+        // if atomic expression would be empty
         if (isFirstAtomicExpression) {
-            // if no values have been added
             atomicExpressionBuilder.append("true");
         }
 

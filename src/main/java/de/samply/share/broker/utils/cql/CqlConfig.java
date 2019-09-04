@@ -9,55 +9,55 @@ import java.util.List;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class CqlConfig {
+class CqlConfig {
 
     private String preamble;
 
     @XmlElement(name = "ui-field")
     private List<CqlMdrFieldEntry> mdrFieldEntryList = new ArrayList<>();
 
-    public String getPreamble() {
+    String getPreamble() {
         return preamble;
     }
 
-    public void setPreamble(String preamble) {
+    void setPreamble(String preamble) {
         this.preamble = preamble;
     }
 
-    public List<CqlMdrFieldEntry> getMdrFieldEntryList() {
+    List<CqlMdrFieldEntry> getMdrFieldEntryList() {
         return mdrFieldEntryList;
     }
 
-    public void setMdrFieldEntryList(List<CqlMdrFieldEntry> mdrFieldEntryList) {
+    void setMdrFieldEntryList(List<CqlMdrFieldEntry> mdrFieldEntryList) {
         this.mdrFieldEntryList = mdrFieldEntryList;
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class CqlMdrFieldEntry {
+    static class CqlMdrFieldEntry {
         private String mdrUrn;
 
         @XmlElement(name = "entity-type")
         private List<CqlEntityTypeEntry> entityTypeEntryList = new ArrayList<>();
 
-        public String getMdrUrn() {
+        String getMdrUrn() {
             return mdrUrn;
         }
 
-        public void setMdrUrn(String mdrUrn) {
+        void setMdrUrn(String mdrUrn) {
             this.mdrUrn = mdrUrn;
         }
 
-        public List<CqlEntityTypeEntry> getEntityTypeEntryList() {
+        List<CqlEntityTypeEntry> getEntityTypeEntryList() {
             return entityTypeEntryList;
         }
 
-        public void setEntityTypeEntryList(List<CqlEntityTypeEntry> entityTypeEntryList) {
+        void setEntityTypeEntryList(List<CqlEntityTypeEntry> entityTypeEntryList) {
             this.entityTypeEntryList = entityTypeEntryList;
         }
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class CqlEntityTypeEntry {
+    static class CqlEntityTypeEntry {
         private String entityType;
 
         private String pathExpression;
@@ -65,50 +65,50 @@ public class CqlConfig {
         @XmlElement(name = "atomic-expression")
         private List<CqlAtomicExpressionEntry> atomicExpressionList = new ArrayList<>();
 
-        public String getPathExpression() {
+        String getPathExpression() {
             return pathExpression;
         }
 
-        public String getEntityType() {
+        String getEntityType() {
             return entityType;
         }
 
-        public void setEntityType(String entityType) {
+        void setEntityType(String entityType) {
             this.entityType = entityType;
         }
 
-        public void setPathExpression(String pathExpression) {
+        void setPathExpression(String pathExpression) {
             this.pathExpression = pathExpression;
         }
 
-        public List<CqlAtomicExpressionEntry> getAtomicExpressionList() {
+        List<CqlAtomicExpressionEntry> getAtomicExpressionList() {
             return atomicExpressionList;
         }
 
-        public void setAtomicExpressionList(List<CqlAtomicExpressionEntry> atomicExpressionList) {
+        void setAtomicExpressionList(List<CqlAtomicExpressionEntry> atomicExpressionList) {
             this.atomicExpressionList = atomicExpressionList;
         }
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class CqlAtomicExpressionEntry {
+    static class CqlAtomicExpressionEntry {
         private String operator;
 
         private String atomicExpression;
 
-        public String getOperator() {
+        String getOperator() {
             return operator;
         }
 
-        public void setOperator(String operator) {
+        void setOperator(String operator) {
             this.operator = operator;
         }
 
-        public String getAtomicExpression() {
+        String getAtomicExpression() {
             return atomicExpression;
         }
 
-        public void setAtomicExpression(String atomicExpression) {
+        void setAtomicExpression(String atomicExpression) {
             this.atomicExpression = atomicExpression;
         }
     }
