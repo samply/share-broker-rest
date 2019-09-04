@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+	This config file defines snipets for CQL queries.
+
+	The <preamble> must contain information about FHIR libraries and a variable {0} where the context (Specimen, Patient) will be inserted.
+
+	The <pathExpression> represents the path starting at the resource corresponding to the context ending with the field in the FHIR resource corresponding to the UI field.
+	At the variable {0} the atomic expressions will be inserted.
+
+	Every atomic expression <atomic-expression> represents one condition for a field given by an operator and one or two values.
+	It will be choosen dependent on the <operator>. If no operator-specific snipet is provided the connector will use the snipet
+	defined for <operator>DEFAULT</operator>.
+	The operator will be inserted at {0}. The first value at {1} and the second value (max. value) at {2}.
+
+	IMPORTANT:
+		A single apostrophe ' must be escaped by a double apostrophe ''
+		Additionally characters such as > < ... must be encoded as &lt; &gt; ... according to XML (see https://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references)
+-->
 <cqlConfig>
     <preamble>
         library Retrieve
