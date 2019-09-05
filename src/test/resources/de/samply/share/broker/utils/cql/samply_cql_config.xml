@@ -7,11 +7,11 @@
         {0}     context (Specimen, Patient)
         {1}     codesystem statements
 
-	The <pathExpression> represents the path starting at the resource corresponding to the context ending with the field in the FHIR resource corresponding to the UI field.
+	The <pathCqlExpression> represents the path starting at the resource corresponding to the context ending with the field in the FHIR resource corresponding to the UI field.
     Variable binding:
 	    {0}     atomic expressions will be inserted here.
 
-	Every atomic expression <atomic-expression> represents one condition for a field given by an operator and one or two values.
+	Every atomic expression <atomicExpression> represents one condition for a field given by an operator and one or two values.
 	It will be choosen dependent on the <operator>. If no operator-specific snippet is provided the connector will use the snippet
 	defined for <operator>DEFAULT</operator>.
 	Variable binding:
@@ -37,98 +37,98 @@
 
         define InInitialPopulation:
     </preamble>
-    <ui-field>
+    <uiField>
         <mdrUrn>urn:mdr16:dataelement:23:1</mdrUrn>
-        <codeSystemName>    </codeSystemName>
-        <codeSystemUrl>     </codeSystemUrl>
-        <extensionName>     </extensionName>
-        <entity-type>
-            <entityType>Patient</entityType>
-            <pathExpression>{0}</pathExpression>
-            <atomic-expression>
+        <codesystemName>   </codesystemName>
+        <codesystemUrl>   </codesystemUrl>
+        <extensionUrl>   </extensionUrl>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>{0}</pathCqlExpression>
+            <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicExpression>Patient.gender {0} ''{3}''</atomicExpression>
-            </atomic-expression>
-            <atomic-expression>
+                <atomicCqlExpression>Patient.gender {0} ''{3}''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
                 <operator>...</operator>
-                <atomicExpression>(Patient.gender &lt; ''{4}'' and Patient.gender &gt; ''{3}'')</atomicExpression>
-            </atomic-expression>
-        </entity-type>
-        <entity-type>
-            <entityType>Specimen</entityType>
-            <pathExpression>exists(from [Patient] P where {0})</pathExpression>
-            <atomic-expression>
+                <atomicCqlExpression>(Patient.gender &lt; ''{4}'' and Patient.gender &gt; ''{3}'')</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <pathCqlExpression>exists(from [Patient] P where {0})</pathCqlExpression>
+            <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicExpression>P.gender {0} ''{3}''</atomicExpression>
-            </atomic-expression>
-            <atomic-expression>
+                <atomicCqlExpression>P.gender {0} ''{3}''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
                 <operator>...</operator>
-                <atomicExpression>(P.gender &lt; ''{4}'' and P.gender &gt; ''{3}'')</atomicExpression>
-            </atomic-expression>
-        </entity-type>
-    </ui-field>
-    <ui-field>
+                <atomicCqlExpression>(P.gender &lt; ''{4}'' and P.gender &gt; ''{3}'')</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+    </uiField>
+    <uiField>
         <mdrUrn>urn:mdr16:dataelement:17:1</mdrUrn>
-        <codeSystemName>StorageTemperature</codeSystemName>
-        <codeSystemUrl>https://fhir.bbmri.de/CodeSystem/StorageTemperature</codeSystemUrl>
-        <extensionName>https://fhir.bbmri.de/StructureDefinition/StorageTemperature</extensionName>
-        <entity-type>
-            <entityType>Patient</entityType>
-            <pathExpression>
+        <codesystemName>StorageTemperature</codesystemName>
+        <codesystemUrl>https://fhir.bbmri.de/CodeSystem/StorageTemperature</codesystemUrl>
+        <extensionUrl>https://fhir.bbmri.de/StructureDefinition/StorageTemperature</extensionUrl>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
                 exists(
                 from [Specimen] S where {0})
-            </pathExpression>
-            <atomic-expression>
+            </pathCqlExpression>
+            <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicExpression>
+                <atomicCqlExpression>
                     exists(
                     from S.extension E
                     where E.url = ''{2}''
                     and E.value.coding contains Code ''{3}'' from {1})
-                </atomicExpression>
-            </atomic-expression>
-        </entity-type>
-        <entity-type>
-            <entityType>Specimen</entityType>
-            <pathExpression>{0}</pathExpression>
-            <atomic-expression>
+                </atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <pathCqlExpression>{0}</pathCqlExpression>
+            <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicExpression>
-                    Exists(
+                <atomicCqlExpression>
+                    exists(
                     from Specimen.extension E
                     where E.url = ''{2}''
                     and E.value.coding contains Code ''{3}'' from {1}})
-                </atomicExpression>
-            </atomic-expression>
-        </entity-type>
-    </ui-field>
-    <ui-field>
+                </atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+    </uiField>
+    <uiField>
         <mdrUrn>urn:mdr16:dataelement:16:1</mdrUrn>
-        <codeSystemName>SampleMaterialType</codeSystemName>
-        <codeSystemUrl>https://fhir.bbmri.de/CodeSystem/SampleMaterialType</codeSystemUrl>
-        <extensionName></extensionName>
-        <entity-type>
-            <entityType>Patient</entityType>
-            <pathExpression>
+        <codesystemName>SampleMaterialType</codesystemName>
+        <codesystemUrl>https://fhir.bbmri.de/CodeSystem/SampleMaterialType</codesystemUrl>
+        <extensionUrl></extensionUrl>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
                 exists(
                 from [Specimen] S where {0})
-            </pathExpression>
-            <atomic-expression>
+            </pathCqlExpression>
+            <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicExpression>
+                <atomicCqlExpression>
                     S.value.coding contains Code ''{3}'' from {1}
-                </atomicExpression>
-            </atomic-expression>
-        </entity-type>
-        <entity-type>
+                </atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
             <entityType>Specimen</entityType>
-            <pathExpression>{0}</pathExpression>
-            <atomic-expression>
+            <pathCqlExpression>{0}</pathCqlExpression>
+            <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicExpression>
+                <atomicCqlExpression>
                     Specimen.value.coding contains Code ''{3}'' from {1}
-                </atomicExpression>
-            </atomic-expression>
-        </entity-type>
-    </ui-field>
+                </atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+    </uiField>
 </cqlConfig>

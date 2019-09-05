@@ -13,7 +13,7 @@ class CqlConfig {
 
     private String preamble;
 
-    @XmlElement(name = "ui-field")
+    @XmlElement(name = "uiField")
     private List<CqlMdrFieldEntry> mdrFieldEntryList = new ArrayList<>();
 
     String getPreamble() {
@@ -36,11 +36,11 @@ class CqlConfig {
     static class CqlMdrFieldEntry {
         private String mdrUrn;
 
-        private String codeSystemName;
-        private String codeSystemUrl;
-        private String extensionName;
+        private String codesystemName;
+        private String codesystemUrl;
+        private String extensionUrl;
 
-        @XmlElement(name = "entity-type")
+        @XmlElement(name = "entityType")
         private List<CqlEntityTypeEntry> entityTypeEntryList = new ArrayList<>();
 
         String getMdrUrn() {
@@ -52,27 +52,27 @@ class CqlConfig {
         }
 
         String getCodeSystemName() {
-            return codeSystemName;
+            return codesystemName;
         }
 
-        public void setCodeSystemName(String codeSystemName) {
-            this.codeSystemName = codeSystemName;
+        public void setCodeSystemName(String codesystemName) {
+            this.codesystemName = codesystemName;
         }
 
         String getCodeSystemUrl() {
-            return codeSystemUrl;
+            return codesystemUrl;
         }
 
-        public void setCodeSystemUrl(String codeSystemUrl) {
-            this.codeSystemUrl = codeSystemUrl;
+        public void setCodeSystemUrl(String codesystemUrl) {
+            this.codesystemUrl = codesystemUrl;
         }
 
-        String getExtensionName() {
-            return extensionName;
+        String getExtensionUrl() {
+            return extensionUrl;
         }
 
-        public void setExtensionName(String extensionName) {
-            this.extensionName = extensionName;
+        public void setExtensionUrl(String extensionUrl) {
+            this.extensionUrl = extensionUrl;
         }
 
         List<CqlEntityTypeEntry> getEntityTypeEntryList() {
@@ -86,27 +86,27 @@ class CqlConfig {
 
     @XmlAccessorType(XmlAccessType.FIELD)
     static class CqlEntityTypeEntry {
-        private String entityType;
+        private String entityTypeName;
 
-        private String pathExpression;
+        private String pathCqlExpression;
 
-        @XmlElement(name = "atomic-expression")
+        @XmlElement(name = "atomicExpression")
         private List<CqlAtomicExpressionEntry> atomicExpressionList = new ArrayList<>();
 
-        String getPathExpression() {
-            return pathExpression;
+        String getPathCqlExpression() {
+            return pathCqlExpression;
         }
 
-        String getEntityType() {
-            return entityType;
+        String getEntityTypeName() {
+            return entityTypeName;
         }
 
-        void setEntityType(String entityType) {
-            this.entityType = entityType;
+        void setEntityTypeName(String entityTypeName) {
+            this.entityTypeName = entityTypeName;
         }
 
-        void setPathExpression(String pathExpression) {
-            this.pathExpression = pathExpression;
+        void setPathCqlExpression(String pathCqlExpression) {
+            this.pathCqlExpression = pathCqlExpression;
         }
 
         List<CqlAtomicExpressionEntry> getAtomicExpressionList() {
@@ -122,7 +122,7 @@ class CqlConfig {
     static class CqlAtomicExpressionEntry {
         private String operator;
 
-        private String atomicExpression;
+        private String atomicCqlExpression;
 
         String getOperator() {
             return operator;
@@ -132,12 +132,12 @@ class CqlConfig {
             this.operator = operator;
         }
 
-        String getAtomicExpression() {
-            return atomicExpression;
+        String getAtomicCqlExpression() {
+            return atomicCqlExpression;
         }
 
-        void setAtomicExpression(String atomicExpression) {
-            this.atomicExpression = atomicExpression;
+        void setAtomicCqlExpression(String atomicCqlExpression) {
+            this.atomicCqlExpression = atomicCqlExpression;
         }
     }
 }

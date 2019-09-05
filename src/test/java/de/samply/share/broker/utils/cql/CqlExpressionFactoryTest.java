@@ -87,13 +87,13 @@ class CqlExpressionFactoryTest {
     }
 
     @Test
-    void test_getExtensionName_blank() {
-        assertThat("Error getting empty extension name.", StringUtils.trim(factory.getExtensionName(URN_GENDER)), is(""));
+    void test_getExtensionUrl_blank() {
+        assertThat("Error getting empty extension name.", StringUtils.trim(factory.getExtensionUrl(URN_GENDER)), is(""));
     }
 
     @Test
-    void test_getExtensionName_filled() {
-        assertThat("Error getting extension name.", StringUtils.trim(factory.getExtensionName(URN_TEMPERATURE)), is("https://fhir.bbmri.de/StructureDefinition/StorageTemperature"));
+    void test_getExtensionUrl_filled() {
+        assertThat("Error getting extension name.", StringUtils.trim(factory.getExtensionUrl(URN_TEMPERATURE)), is("https://fhir.bbmri.de/StructureDefinition/StorageTemperature"));
     }
 
     @Test

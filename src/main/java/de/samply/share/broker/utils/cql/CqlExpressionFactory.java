@@ -69,22 +69,22 @@ class CqlExpressionFactory {
                 mapCodeSystemUrls.put(mdrFieldEntry.getMdrUrn(), mdrFieldEntry.getCodeSystemUrl());
             }
 
-            if (!StringUtils.isBlank(mdrFieldEntry.getExtensionName())) {
-                mapExtensions.put(mdrFieldEntry.getMdrUrn(), mdrFieldEntry.getExtensionName());
+            if (!StringUtils.isBlank(mdrFieldEntry.getExtensionUrl())) {
+                mapExtensions.put(mdrFieldEntry.getMdrUrn(), mdrFieldEntry.getExtensionUrl());
             }
         }
 
         for (CqlConfig.CqlMdrFieldEntry mdrFieldEntry : mapping.getMdrFieldEntryList()) {
             for (CqlConfig.CqlEntityTypeEntry entityTypeEntry : mdrFieldEntry.getEntityTypeEntryList()) {
                 for (CqlConfig.CqlAtomicExpressionEntry atomicExpressionEntry : entityTypeEntry.getAtomicExpressionList()) {
-                    mapAtomicExpressions.put(mdrFieldEntry.getMdrUrn(), entityTypeEntry.getEntityType(), atomicExpressionEntry.getOperator(), atomicExpressionEntry);
+                    mapAtomicExpressions.put(mdrFieldEntry.getMdrUrn(), entityTypeEntry.getEntityTypeName(), atomicExpressionEntry.getOperator(), atomicExpressionEntry);
                 }
             }
         }
 
         for (CqlConfig.CqlMdrFieldEntry mdrFieldEntry : mapping.getMdrFieldEntryList()) {
             for (CqlConfig.CqlEntityTypeEntry entityTypeEntry : mdrFieldEntry.getEntityTypeEntryList()) {
-                mapPathExpressions.put(mdrFieldEntry.getMdrUrn(), entityTypeEntry.getEntityType(), entityTypeEntry);
+                mapPathExpressions.put(mdrFieldEntry.getMdrUrn(), entityTypeEntry.getEntityTypeName(), entityTypeEntry);
             }
         }
     }
@@ -103,10 +103,10 @@ class CqlExpressionFactory {
         Object[] operatorsAndValues = new Object[3 + values.length];
         operatorsAndValues[0] = operator;
         operatorsAndValues[1] = getCodesystemName(mdrUrn);
-        operatorsAndValues[2] = getExtensionName(mdrUrn);
+        operatorsAndValues[2] = getExtensionUrl(mdrUrn);
         System.arraycopy(values, 0, operatorsAndValues, 3, values.length);
 
-        return MessageFormat.format(cqlAtomicExpressionEntry.getAtomicExpression(), operatorsAndValues);
+        return MessageFormat.format(cqlAtomicExpressionEntry.getAtomicCqlExpression(), operatorsAndValues);
     }
 
     String getPathExpression(String mdrUrn, String entityType, String atomicExpressions) {
@@ -116,14 +116,14 @@ class CqlExpressionFactory {
             return "";
         }
 
-        return MessageFormat.format(cqlEntityTypeEntry1.getPathExpression(), atomicExpressions);
+        return MessageFormat.format(cqlEntityTypeEntry1.getPathCqlExpression(), atomicExpressions);
     }
 
     String getPreamble(String entityType, String libraries) {
         return MessageFormat.format(preambleTemplate, entityType, libraries);
     }
 
-    String getExtensionName(String mdrUrn) {
+    String getExtensionUrl(String mdrUrn) {
         return mapExtensions.getOrDefault(mdrUrn, "");
     }
 
