@@ -25,7 +25,7 @@ public class SimpleQueryDto2CqlTransformer {
 
     public String toQuery(SimpleQueryDto queryDto, String entityType) {
         StringBuilder cqlQueryPredicateBuilder = new StringBuilder();
-        Set cqlLibraries = new HashSet();
+        Set<String> cqlLibraries = new HashSet<>();
 
         addTermsToAndExpression(cqlQueryPredicateBuilder, cqlLibraries, entityType, queryDto.getDonorDto().getFieldsDto());
         cqlQueryPredicateBuilder.append(" and ");
@@ -38,7 +38,7 @@ public class SimpleQueryDto2CqlTransformer {
         return cqlExpressionFactory.getPreamble(entityType, StringUtils.join(cqlLibraries, "\n")) + cqlQueryPredicateBuilder.toString();
     }
 
-    private void addTermsToAndExpression(StringBuilder cqlQueryPredicateBuilder, Set cqlLibraries, String entityType, List<AbstractQueryFieldDto<?, ?>> fieldsDto) {
+    private void addTermsToAndExpression(StringBuilder cqlQueryPredicateBuilder, Set<String> cqlLibraries, String entityType, List<AbstractQueryFieldDto<?, ?>> fieldsDto) {
         boolean isFirstField = true;
 
         for (AbstractQueryFieldDto<?, ?> fieldDto : fieldsDto) {
@@ -89,7 +89,8 @@ public class SimpleQueryDto2CqlTransformer {
     }
 
     private boolean addSingleAtomicExpression(StringBuilder atomicExpressionBuilder, String mdrUrn, String entityType, boolean isFirstAtomicExpression, AbstractQueryValueDto<?> valueDto) {
-        String atomicExpression = calculateAtomicExpression(mdrUrn, entityType, valueDto);
+        AtomicExpressionParameter atomicExpressionParameter = cqlExpressionFactory.createAtomicExpressionParameter(mdrUrn, entityType, valueDto);
+        String atomicExpression = cqlExpressionFactory.getAtomicExpression(atomicExpressionParameter);
 
         if (StringUtils.isEmpty(atomicExpression)) {
             return isFirstAtomicExpression;
@@ -107,36 +108,4 @@ public class SimpleQueryDto2CqlTransformer {
         return isFirstAtomicExpression;
     }
 
-    private String calculateAtomicExpression(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
-        String operator = getOperatorName(valueDto.getCondition());
-
-        if (valueDto.getCondition() != SimpleValueCondition.BETWEEN) {
-            return cqlExpressionFactory.getAtomicExpression(mdrUrn, entityType, operator, valueDto.getValueAsXmlString());
-        } else {
-            return cqlExpressionFactory.getAtomicExpression(mdrUrn, entityType, operator, valueDto.getValueAsXmlString(), valueDto.getMaxValueAsXmlString());
-        }
-    }
-
-    private String getOperatorName(SimpleValueCondition condition) {
-        switch (condition) {
-            case BETWEEN:
-                return "...";
-            case EQUALS:
-                return "=";
-            case LIKE:
-                return "~";
-            case GREATER:
-                return ">";
-            case LESS:
-                return "<";
-            case NOT_EQUALS:
-                return "<>";
-            case LESS_OR_EQUALS:
-                return "<=";
-            case GREATER_OR_EQUALS:
-                return ">=";
-            default:
-                return "default";
-        }
-    }
 }

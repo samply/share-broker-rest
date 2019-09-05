@@ -1,6 +1,9 @@
 package de.samply.share.broker.utils.cql;
 
+import de.samply.share.query.enums.SimpleValueCondition;
+import de.samply.share.query.value.ValueStringDto;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -68,22 +71,42 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getAtomicExpression_operatorNotSpecifiedUseDefault() {
-        assertThat("Error reading atomic expression for unspecified operator using default expression.", StringUtils.trim(factory.getAtomicExpression(URN_GENDER, ENTITY_TYPE_SPECIMEN, "=", "13", "17")), is("P.gender = '13'"));
+        ValueStringDto valueDto = createValueDto(SimpleValueCondition.EQUALS);
+
+        AtomicExpressionParameter atomicExpressionParameter = new AtomicExpressionParameter(URN_GENDER, ENTITY_TYPE_SPECIMEN, valueDto, "", "");
+        assertThat("Error reading atomic expression for unspecified operator using default expression.",
+                StringUtils.trim(factory.getAtomicExpression(atomicExpressionParameter)),
+                is("P.gender = '13'"));
     }
 
     @Test
     void test_getAtomicExpression_operatorSpecified() {
-        assertThat("Error reading atomic expression for specified operator.", StringUtils.trim(factory.getAtomicExpression(URN_GENDER, ENTITY_TYPE_SPECIMEN, "...", "13", "17")), is("(P.gender < '17' and P.gender > '13')"));
+        ValueStringDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
+
+        AtomicExpressionParameter atomicExpressionParameter = factory.createAtomicExpressionParameter(URN_GENDER, ENTITY_TYPE_SPECIMEN, valueDto);
+        assertThat("Error reading atomic expression for specified operator.",
+                StringUtils.trim(factory.getAtomicExpression(atomicExpressionParameter)),
+                is("(P.gender < '17' and P.gender > '13')"));
     }
 
     @Test
     void test_getAtomicExpression_notExistingMdrUrn() {
-        assertThat("Error getting atomic expression for non-existing MDR-urn.", StringUtils.trim(factory.getAtomicExpression(URN_NOT_EXISTING, ENTITY_TYPE_SPECIMEN, "...", "13", "17")), is(""));
+        ValueStringDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
+
+        AtomicExpressionParameter atomicExpressionParameter = new AtomicExpressionParameter(URN_NOT_EXISTING, ENTITY_TYPE_SPECIMEN, valueDto, "", "");
+        assertThat("Error getting atomic expression for non-existing MDR-urn.",
+                StringUtils.trim(factory.getAtomicExpression(atomicExpressionParameter)),
+                is(""));
     }
 
     @Test
     void test_getAtomicExpression_notExistingEntityType() {
-        assertThat("Error getting atomic expression for non-existing entity type.", StringUtils.trim(factory.getAtomicExpression(URN_GENDER, ENTITY_TYPE_NOT_EXISTING, "...", "13", "17")), is(""));
+        ValueStringDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
+
+        AtomicExpressionParameter atomicExpressionParameter = new AtomicExpressionParameter(URN_GENDER, ENTITY_TYPE_NOT_EXISTING, valueDto, "", "");
+        assertThat("Error getting atomic expression for non-existing entity type.",
+                StringUtils.trim(factory.getAtomicExpression(atomicExpressionParameter)),
+                is(""));
     }
 
     @Test
@@ -116,4 +139,13 @@ class CqlExpressionFactoryTest {
         assertThat("Error getting url of code system.", StringUtils.trim(factory.getCodesystemUrl(URN_TEMPERATURE)), is("https://fhir.bbmri.de/CodeSystem/StorageTemperature"));
     }
 
+    @NotNull
+    private ValueStringDto createValueDto(SimpleValueCondition condition) {
+        ValueStringDto valueDto = new ValueStringDto();
+        valueDto.setCondition(condition);
+        valueDto.setValue("13");
+        valueDto.setMaxValue("17");
+
+        return valueDto;
+    }
 }

@@ -1,6 +1,7 @@
 package de.samply.share.broker.utils.cql;
 
 import de.samply.config.util.FileFinderUtil;
+import de.samply.share.query.value.AbstractQueryValueDto;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -89,8 +90,11 @@ class CqlExpressionFactory {
         }
     }
 
-    //TODO: Introduce parameter object
-    String getAtomicExpression(String mdrUrn, String entityType, String operator, String... values) {
+    String getAtomicExpression(AtomicExpressionParameter atomicExpressionParameter) {
+        String mdrUrn = atomicExpressionParameter.getMdrUrn();
+        String entityType = atomicExpressionParameter.getEntityType();
+        String operator = atomicExpressionParameter.getOperator();
+
         CqlConfig.CqlAtomicExpressionEntry cqlAtomicExpressionEntry = mapAtomicExpressions.get(mdrUrn, entityType, operator);
         if (cqlAtomicExpressionEntry == null) {
             cqlAtomicExpressionEntry = mapAtomicExpressions.get(mdrUrn, entityType, "DEFAULT");
@@ -100,13 +104,8 @@ class CqlExpressionFactory {
             }
         }
 
-        Object[] operatorsAndValues = new Object[3 + values.length];
-        operatorsAndValues[0] = operator;
-        operatorsAndValues[1] = getCodesystemName(mdrUrn);
-        operatorsAndValues[2] = getExtensionUrl(mdrUrn);
-        System.arraycopy(values, 0, operatorsAndValues, 3, values.length);
-
-        return MessageFormat.format(cqlAtomicExpressionEntry.getAtomicCqlExpression(), operatorsAndValues);
+        //noinspection ConfusingArgumentToVarargsMethod
+        return MessageFormat.format(cqlAtomicExpressionEntry.getAtomicCqlExpression(), atomicExpressionParameter.asVarArgParameter());
     }
 
     String getPathExpression(String mdrUrn, String entityType, String atomicExpressions) {
@@ -133,5 +132,10 @@ class CqlExpressionFactory {
 
     String getCodesystemUrl(String mdrUrn) {
         return mapCodeSystemUrls.getOrDefault(mdrUrn, "");
+    }
+
+    AtomicExpressionParameter createAtomicExpressionParameter(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
+
+        return new AtomicExpressionParameter(mdrUrn, entityType, valueDto, getExtensionUrl(mdrUrn), getCodesystemName(mdrUrn));
     }
 }

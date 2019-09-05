@@ -106,7 +106,7 @@
         <mdrUrn>urn:mdr16:dataelement:16:1</mdrUrn>
         <codesystemName>SampleMaterialType</codesystemName>
         <codesystemUrl>https://fhir.bbmri.de/CodeSystem/SampleMaterialType</codesystemUrl>
-        <extensionUrl></extensionUrl>
+        <extensionUrl/>
         <entityType>
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
@@ -121,7 +121,7 @@
             </atomicExpression>
         </entityType>
         <entityType>
-            <entityType>Specimen</entityType>
+            <entityTypeName>Specimen</entityTypeName>
             <pathCqlExpression>{0}</pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
