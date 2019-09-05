@@ -1,0 +1,14 @@
+library Retrieve
+using FHIR version '4.0.0'
+include FHIRHelpers version '4.0.0'
+
+codesystem SampleMaterialType: 'https://fhir.bbmri.de/CodeSystem/SampleMaterialType'
+
+context Patient
+
+define InInitialPopulation:
+                    exists(
+                    from [Specimen] S where (
+                                        S.value.coding contains Code '11.0' from SampleMaterialType) )
+
+    and true and true and true

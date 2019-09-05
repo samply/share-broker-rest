@@ -2,6 +2,7 @@ package de.samply.share.broker.utils.cql;
 
 import de.samply.config.util.FileFinderUtil;
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,11 +12,17 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 class CqlExpressionFactory {
 
     private final MultiKeyMap<String, CqlConfig.CqlAtomicExpressionEntry> mapAtomicExpressions = new MultiKeyMap<>();
     private final MultiKeyMap<String, CqlConfig.CqlEntityTypeEntry> mapPathExpressions = new MultiKeyMap<>();
+    private final Map<String, String> mapCodeSystemNames = new HashMap<>();
+    private final Map<String, String> mapCodeSystemUrls = new HashMap<>();
+    private final Map<String, String> mapExtensions = new HashMap<>();
+
     private String preambleTemplate = "";
 
     private static final Logger logger = LogManager.getLogger(CqlExpressionFactory.class);
@@ -54,6 +61,20 @@ class CqlExpressionFactory {
         this.preambleTemplate = mapping.getPreamble();
 
         for (CqlConfig.CqlMdrFieldEntry mdrFieldEntry : mapping.getMdrFieldEntryList()) {
+            if (!StringUtils.isBlank(mdrFieldEntry.getCodeSystemName())) {
+                mapCodeSystemNames.put(mdrFieldEntry.getMdrUrn(), mdrFieldEntry.getCodeSystemName());
+            }
+
+            if (!StringUtils.isBlank(mdrFieldEntry.getCodeSystemUrl())) {
+                mapCodeSystemUrls.put(mdrFieldEntry.getMdrUrn(), mdrFieldEntry.getCodeSystemUrl());
+            }
+
+            if (!StringUtils.isBlank(mdrFieldEntry.getExtensionName())) {
+                mapExtensions.put(mdrFieldEntry.getMdrUrn(), mdrFieldEntry.getExtensionName());
+            }
+        }
+
+        for (CqlConfig.CqlMdrFieldEntry mdrFieldEntry : mapping.getMdrFieldEntryList()) {
             for (CqlConfig.CqlEntityTypeEntry entityTypeEntry : mdrFieldEntry.getEntityTypeEntryList()) {
                 for (CqlConfig.CqlAtomicExpressionEntry atomicExpressionEntry : entityTypeEntry.getAtomicExpressionList()) {
                     mapAtomicExpressions.put(mdrFieldEntry.getMdrUrn(), entityTypeEntry.getEntityType(), atomicExpressionEntry.getOperator(), atomicExpressionEntry);
@@ -68,6 +89,7 @@ class CqlExpressionFactory {
         }
     }
 
+    //TODO: Introduce parameter object
     String getAtomicExpression(String mdrUrn, String entityType, String operator, String... values) {
         CqlConfig.CqlAtomicExpressionEntry cqlAtomicExpressionEntry = mapAtomicExpressions.get(mdrUrn, entityType, operator);
         if (cqlAtomicExpressionEntry == null) {
@@ -78,9 +100,11 @@ class CqlExpressionFactory {
             }
         }
 
-        Object[] operatorsAndValues = new Object[1 + values.length];
+        Object[] operatorsAndValues = new Object[3 + values.length];
         operatorsAndValues[0] = operator;
-        System.arraycopy(values, 0, operatorsAndValues, 1, values.length);
+        operatorsAndValues[1] = getCodesystemName(mdrUrn);
+        operatorsAndValues[2] = getExtensionName(mdrUrn);
+        System.arraycopy(values, 0, operatorsAndValues, 3, values.length);
 
         return MessageFormat.format(cqlAtomicExpressionEntry.getAtomicExpression(), operatorsAndValues);
     }
@@ -95,7 +119,19 @@ class CqlExpressionFactory {
         return MessageFormat.format(cqlEntityTypeEntry1.getPathExpression(), atomicExpressions);
     }
 
-    String getPreambleTemplate() {
-        return preambleTemplate;
+    String getPreamble(String entityType, String libraries) {
+        return MessageFormat.format(preambleTemplate, entityType, libraries);
+    }
+
+    String getExtensionName(String mdrUrn) {
+        return mapExtensions.getOrDefault(mdrUrn, "");
+    }
+
+    String getCodesystemName(String mdrUrn) {
+        return mapCodeSystemNames.getOrDefault(mdrUrn, "");
+    }
+
+    String getCodesystemUrl(String mdrUrn) {
+        return mapCodeSystemUrls.getOrDefault(mdrUrn, "");
     }
 }

@@ -36,6 +36,10 @@ class CqlConfig {
     static class CqlMdrFieldEntry {
         private String mdrUrn;
 
+        private String codeSystemName;
+        private String codeSystemUrl;
+        private String extensionName;
+
         @XmlElement(name = "entity-type")
         private List<CqlEntityTypeEntry> entityTypeEntryList = new ArrayList<>();
 
@@ -45,6 +49,30 @@ class CqlConfig {
 
         void setMdrUrn(String mdrUrn) {
             this.mdrUrn = mdrUrn;
+        }
+
+        String getCodeSystemName() {
+            return codeSystemName;
+        }
+
+        public void setCodeSystemName(String codeSystemName) {
+            this.codeSystemName = codeSystemName;
+        }
+
+        String getCodeSystemUrl() {
+            return codeSystemUrl;
+        }
+
+        public void setCodeSystemUrl(String codeSystemUrl) {
+            this.codeSystemUrl = codeSystemUrl;
+        }
+
+        String getExtensionName() {
+            return extensionName;
+        }
+
+        public void setExtensionName(String extensionName) {
+            this.extensionName = extensionName;
         }
 
         List<CqlEntityTypeEntry> getEntityTypeEntryList() {

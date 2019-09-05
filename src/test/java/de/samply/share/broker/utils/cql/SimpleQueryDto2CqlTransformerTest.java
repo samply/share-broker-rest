@@ -21,7 +21,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 class SimpleQueryDto2CqlTransformerTest {
 
     private static final String ENTITY_TYPE_PATIENT = "Patient";
-    private static final String MDR_URN = "urn:mdr16:dataelement:23:1";
+    private static final String MDR_URN_GENDER = "urn:mdr16:dataelement:23:1";
+    private static final String MDR_URN_TEMPERATURE = "urn:mdr16:dataelement:17:1";
+    private static final String MDR_URN_MATERIALTYPE = "urn:mdr16:dataelement:16:1";
+
+    private static final String EXPECTED_LIBRARY_MATERIALTYPE = "codesystem SampleMaterialType: 'https://fhir.bbmri.de/CodeSystem/SampleMaterialType'";
+    private static final String EXPECTED_LIBRARY_TEMPERATURE = "codesystem StorageTemperature: 'https://fhir.bbmri.de/CodeSystem/StorageTemperature'";
 
     private SimpleQueryDto2CqlTransformer transformer;
 
@@ -90,6 +95,40 @@ class SimpleQueryDto2CqlTransformerTest {
         assertThat("Error creating query for two fields and two values each.", trim(transformer.toQuery(queryDto, ENTITY_TYPE_PATIENT)), is(expected));
     }
 
+    @Test
+    void test_toQuery_withoutExtensionWithCodesystem() throws IOException {
+        SimpleQueryDto queryDto = createDtoWithoutExtensionWithCodesystem();
+        String expected = readFile("SimpleQueryDto2CqlTransformerTest_withoutExtensionWithCodesystem.txt");
+
+        assertThat("Error creating query for one field without a FHIR extension but with a codesystem.", trim(transformer.toQuery(queryDto, ENTITY_TYPE_PATIENT)), is(expected));
+    }
+
+    @Test
+    void test_toQuery_withExtensionAndCodesystem() throws IOException {
+        SimpleQueryDto queryDto = createDtoWithExtensionAndCodesystem();
+        String expected = readFile("SimpleQueryDto2CqlTransformerTest_withExtensionAndCodesystem.txt");
+
+        assertThat("Error creating query for one field with a FHIR extension and codesystem.", trim(transformer.toQuery(queryDto, ENTITY_TYPE_PATIENT)), is(expected));
+    }
+
+    @Test
+    void test_toQuery_WithTwoDifferentCodesystems() {
+        SimpleQueryDto queryDto = createDtoWithTwoDifferentCodesystems();
+
+        String cqlQuery = trim(transformer.toQuery(queryDto, ENTITY_TYPE_PATIENT));
+        assertThat("Wrong number of codesystem statement for SampleMaterialType.", StringUtils.countMatches(cqlQuery, EXPECTED_LIBRARY_MATERIALTYPE), is(1));
+        assertThat("Wrong number of codesystem statement for StorageTemperature.", StringUtils.countMatches(cqlQuery, EXPECTED_LIBRARY_TEMPERATURE), is(1));
+    }
+
+    @Test
+    void test_toQuery_WithSameCodesystemTwice() {
+        SimpleQueryDto queryDto = createDtoWithSameCodesystemTwice();
+
+        String cqlQuery = trim(transformer.toQuery(queryDto, ENTITY_TYPE_PATIENT));
+        assertThat("Wrong number of codesystem statement for SampleMaterialType.", StringUtils.countMatches(cqlQuery, EXPECTED_LIBRARY_MATERIALTYPE), is(0));
+        assertThat("Wrong number of codesystem statement for StorageTemperature.", StringUtils.countMatches(cqlQuery, EXPECTED_LIBRARY_TEMPERATURE), is(1));
+    }
+
     @NotNull
     private SimpleQueryDto createDtoWithOneFieldOneValue() {
         ValueDecimalDto valueDto = createValueDto(11.0, 47.0);
@@ -152,6 +191,50 @@ class SimpleQueryDto2CqlTransformerTest {
     }
 
     @NotNull
+    private SimpleQueryDto createDtoWithoutExtensionWithCodesystem() {
+        ValueDecimalDto valueDto = createValueDto(11.0, 47.0);
+        FieldDecimalDto fieldDto = createFieldDto(valueDto);
+        fieldDto.getMdrFieldDto().setUrn(MDR_URN_MATERIALTYPE);
+
+        return createSimpleQueryDto(fieldDto);
+    }
+
+    @NotNull
+    private SimpleQueryDto createDtoWithExtensionAndCodesystem() {
+        ValueDecimalDto valueDto = createValueDto(11.0, 47.0);
+        FieldDecimalDto fieldDto = createFieldDto(valueDto);
+        fieldDto.getMdrFieldDto().setUrn(MDR_URN_TEMPERATURE);
+
+        return createSimpleQueryDto(fieldDto);
+    }
+
+    @NotNull
+    private SimpleQueryDto createDtoWithTwoDifferentCodesystems() {
+        ValueDecimalDto valueDto1 = createValueDto(11.0, 47.0);
+        FieldDecimalDto fieldDto1 = createFieldDto(valueDto1);
+        fieldDto1.getMdrFieldDto().setUrn(MDR_URN_TEMPERATURE);
+
+        ValueDecimalDto valueDto2 = createValueDto(13.5, 29.5);
+        FieldDecimalDto fieldDto2 = createFieldDto(valueDto2);
+        fieldDto2.getMdrFieldDto().setUrn(MDR_URN_MATERIALTYPE);
+
+        return createSimpleQueryDto(fieldDto1, fieldDto2);
+    }
+
+    @NotNull
+    private SimpleQueryDto createDtoWithSameCodesystemTwice() {
+        ValueDecimalDto valueDto1 = createValueDto(11.0, 47.0);
+        FieldDecimalDto fieldDto1 = createFieldDto(valueDto1);
+        fieldDto1.getMdrFieldDto().setUrn(MDR_URN_TEMPERATURE);
+
+        ValueDecimalDto valueDto2 = createValueDto(13.5, 29.5);
+        FieldDecimalDto fieldDto2 = createFieldDto(valueDto2);
+        fieldDto2.getMdrFieldDto().setUrn(MDR_URN_TEMPERATURE);
+
+        return createSimpleQueryDto(fieldDto1, fieldDto2);
+    }
+
+    @NotNull
     private SimpleQueryDto createSimpleQueryDto(FieldDecimalDto... fieldDtoList) {
         SimpleQueryDto queryDto = new SimpleQueryDto();
         for (FieldDecimalDto fieldDto : fieldDtoList) {
@@ -186,7 +269,7 @@ class SimpleQueryDto2CqlTransformerTest {
     @NotNull
     private MdrFieldDto creadeMdrFieldDto() {
         MdrFieldDto mdrFieldDto = new MdrFieldDto();
-        mdrFieldDto.setUrn(MDR_URN);
+        mdrFieldDto.setUrn(MDR_URN_GENDER);
         return mdrFieldDto;
     }
 
@@ -214,6 +297,13 @@ class SimpleQueryDto2CqlTransformerTest {
     }
 
     private String trim(String input) {
-        return StringUtils.trim(input.replaceAll("\\s+", " "));
+        String resultWithNormalizedBlankSpace = input
+                .replaceAll("\\s+", " ")
+                .replace("( ", "(")
+                .replace(") ", ")")
+                .replace(" (", "(")
+                .replace(" )", ")");
+
+        return StringUtils.trim(resultWithNormalizedBlankSpace);
     }
 }

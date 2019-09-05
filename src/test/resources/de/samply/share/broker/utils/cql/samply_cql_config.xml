@@ -1,16 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-	This config file defines snipets for CQL queries.
+	This config file defines snippets for CQL queries.
 
-	The <preamble> must contain information about FHIR libraries and a variable {0} where the context (Specimen, Patient) will be inserted.
+	The <preamble> must contain information about FHIR libraries and a variable {0} where the context (Specimen, Patient) will be inserted as well as a variable {1] where codesystems are inserted.
+    Variable binding:
+        {0}     context (Specimen, Patient)
+        {1}     codesystem statements
 
 	The <pathExpression> represents the path starting at the resource corresponding to the context ending with the field in the FHIR resource corresponding to the UI field.
-	At the variable {0} the atomic expressions will be inserted.
+    Variable binding:
+	    {0}     atomic expressions will be inserted here.
 
 	Every atomic expression <atomic-expression> represents one condition for a field given by an operator and one or two values.
-	It will be choosen dependent on the <operator>. If no operator-specific snipet is provided the connector will use the snipet
+	It will be choosen dependent on the <operator>. If no operator-specific snippet is provided the connector will use the snippet
 	defined for <operator>DEFAULT</operator>.
-	The operator will be inserted at {0}. The first value at {1} and the second value (max. value) at {2}.
+	Variable binding:
+	    {0}     operator
+	    {1}     name of a code-system (if present)
+	    {2}     url of an extension (if present)
+	    {3}     the first value
+	    {4}     the second value (max. value)
 
 	IMPORTANT:
 		A single apostrophe ' must be escaped by a double apostrophe ''
@@ -22,23 +31,27 @@
         using FHIR version ''4.0.0''
         include FHIRHelpers version ''4.0.0''
 
+        {1}
+
         context {0}
 
         define InInitialPopulation:
     </preamble>
     <ui-field>
-        <!-- Patient / Gender -->
         <mdrUrn>urn:mdr16:dataelement:23:1</mdrUrn>
+        <codeSystemName>    </codeSystemName>
+        <codeSystemUrl>     </codeSystemUrl>
+        <extensionName>     </extensionName>
         <entity-type>
             <entityType>Patient</entityType>
             <pathExpression>{0}</pathExpression>
             <atomic-expression>
                 <operator>DEFAULT</operator>
-                <atomicExpression>Patient.gender {0} ''{1}''</atomicExpression>
+                <atomicExpression>Patient.gender {0} ''{3}''</atomicExpression>
             </atomic-expression>
             <atomic-expression>
                 <operator>...</operator>
-                <atomicExpression>(Patient.gender &lt; ''{2}'' and Patient.gender &gt; ''{1}'')</atomicExpression>
+                <atomicExpression>(Patient.gender &lt; ''{4}'' and Patient.gender &gt; ''{3}'')</atomicExpression>
             </atomic-expression>
         </entity-type>
         <entity-type>
@@ -46,11 +59,75 @@
             <pathExpression>exists(from [Patient] P where {0})</pathExpression>
             <atomic-expression>
                 <operator>DEFAULT</operator>
-                <atomicExpression>P.gender {0} ''{1}''</atomicExpression>
+                <atomicExpression>P.gender {0} ''{3}''</atomicExpression>
             </atomic-expression>
             <atomic-expression>
                 <operator>...</operator>
-                <atomicExpression>(P.gender &lt; ''{2}'' and P.gender &gt; ''{1}'')</atomicExpression>
+                <atomicExpression>(P.gender &lt; ''{4}'' and P.gender &gt; ''{3}'')</atomicExpression>
+            </atomic-expression>
+        </entity-type>
+    </ui-field>
+    <ui-field>
+        <mdrUrn>urn:mdr16:dataelement:17:1</mdrUrn>
+        <codeSystemName>StorageTemperature</codeSystemName>
+        <codeSystemUrl>https://fhir.bbmri.de/CodeSystem/StorageTemperature</codeSystemUrl>
+        <extensionName>https://fhir.bbmri.de/StructureDefinition/StorageTemperature</extensionName>
+        <entity-type>
+            <entityType>Patient</entityType>
+            <pathExpression>
+                exists(
+                from [Specimen] S where {0})
+            </pathExpression>
+            <atomic-expression>
+                <operator>DEFAULT</operator>
+                <atomicExpression>
+                    exists(
+                    from S.extension E
+                    where E.url = ''{2}''
+                    and E.value.coding contains Code ''{3}'' from {1})
+                </atomicExpression>
+            </atomic-expression>
+        </entity-type>
+        <entity-type>
+            <entityType>Specimen</entityType>
+            <pathExpression>{0}</pathExpression>
+            <atomic-expression>
+                <operator>DEFAULT</operator>
+                <atomicExpression>
+                    Exists(
+                    from Specimen.extension E
+                    where E.url = ''{2}''
+                    and E.value.coding contains Code ''{3}'' from {1}})
+                </atomicExpression>
+            </atomic-expression>
+        </entity-type>
+    </ui-field>
+    <ui-field>
+        <mdrUrn>urn:mdr16:dataelement:16:1</mdrUrn>
+        <codeSystemName>SampleMaterialType</codeSystemName>
+        <codeSystemUrl>https://fhir.bbmri.de/CodeSystem/SampleMaterialType</codeSystemUrl>
+        <extensionName></extensionName>
+        <entity-type>
+            <entityType>Patient</entityType>
+            <pathExpression>
+                exists(
+                from [Specimen] S where {0})
+            </pathExpression>
+            <atomic-expression>
+                <operator>DEFAULT</operator>
+                <atomicExpression>
+                    S.value.coding contains Code ''{3}'' from {1}
+                </atomicExpression>
+            </atomic-expression>
+        </entity-type>
+        <entity-type>
+            <entityType>Specimen</entityType>
+            <pathExpression>{0}</pathExpression>
+            <atomic-expression>
+                <operator>DEFAULT</operator>
+                <atomicExpression>
+                    Specimen.value.coding contains Code ''{3}'' from {1}
+                </atomicExpression>
             </atomic-expression>
         </entity-type>
     </ui-field>
