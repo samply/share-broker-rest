@@ -89,7 +89,7 @@ public class SimpleQueryDto2CqlTransformer {
     }
 
     private boolean addSingleAtomicExpression(StringBuilder atomicExpressionBuilder, String mdrUrn, String entityType, boolean isFirstAtomicExpression, AbstractQueryValueDto<?> valueDto) {
-        AtomicExpressionParameter atomicExpressionParameter = cqlExpressionFactory.createAtomicExpressionParameter(mdrUrn, entityType, valueDto);
+        CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter = cqlExpressionFactory.createAtomicExpressionParameter(mdrUrn, entityType, valueDto);
         String atomicExpression = cqlExpressionFactory.getAtomicExpression(atomicExpressionParameter);
 
         if (StringUtils.isEmpty(atomicExpression)) {

@@ -101,5 +101,54 @@
                 </atomicCqlExpression>
             </atomicExpression>
         </entityType>
-    </uiField>
+        <permittedValue>
+            <!-- Plasma-Lithium-Heparin -->
+            <mdrKey>plasma-lithium-heparin</mdrKey>
+            <cqlValue>temperatureOther</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <!-- Room temperature -->
+            <mdrKey>RT</mdrKey>
+            <cqlValue>temperatureRoom</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <!-- 2°C bis 10°C -->
+            <mdrKey>two_to_ten_degrees</mdrKey>
+            <cqlValue>temperature2to10</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <!-- 4°C -->
+            <mdrKey>four_degrees</mdrKey>
+            <cqlValue>temperatureOther</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <!-- Minus 18°C to minus 35°C -->
+            <mdrKey>minus_eighteen_to_minus_thirty-five_degrees</mdrKey>
+            <cqlValue>temperature-18to-35</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <!-- Minus 60°C to minus 85°C -->
+            <mdrKey>minus_sixty_to_minus_eighty_five_degrees</mdrKey>
+            <cqlValue>temperature-60to-85</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <!-- Liquid nitrogen -->
+            <mdrKey>gaseous_nitrogen</mdrKey>
+            <cqlValue>temperatureGN</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <!-- Liquid nitrogen -->
+            <mdrKey>liquid_nitrogene</mdrKey>
+            <cqlValue>temperatureLN</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <!-- Other storage temperature -->
+            <mdrKey>storage_temperature_other</mdrKey>
+            <cqlValue>temperatureOther</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <!-- Uncharted storage temperature -->
+            <mdrKey>storage_temperature_uncharted</mdrKey>
+            <cqlValue>temperatureOther</cqlValue>
+        </permittedValue>    </uiField>
 </cqlConfig>

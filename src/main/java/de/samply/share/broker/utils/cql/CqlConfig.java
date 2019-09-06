@@ -40,6 +40,9 @@ class CqlConfig {
         private String codesystemUrl;
         private String extensionUrl;
 
+        @XmlElement(name = "permittedValue")
+        private List<PermittedValueEntry> permittedValueEntryList = new ArrayList<>();
+
         @XmlElement(name = "entityType")
         private List<CqlEntityTypeEntry> entityTypeEntryList = new ArrayList<>();
 
@@ -75,12 +78,42 @@ class CqlConfig {
             this.extensionUrl = extensionUrl;
         }
 
+        List<PermittedValueEntry> getPermittedValueEntryList() {
+            return permittedValueEntryList;
+        }
+
+        public void setPermittedValueEntryList(List<PermittedValueEntry> permittedValueEntryList) {
+            this.permittedValueEntryList = permittedValueEntryList;
+        }
+
         List<CqlEntityTypeEntry> getEntityTypeEntryList() {
             return entityTypeEntryList;
         }
 
         void setEntityTypeEntryList(List<CqlEntityTypeEntry> entityTypeEntryList) {
             this.entityTypeEntryList = entityTypeEntryList;
+        }
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    static class PermittedValueEntry {
+        private String mdrKey;
+        private String cqlValue;
+
+        String getMdrKey() {
+            return mdrKey;
+        }
+
+        public void setMdrKey(String mdrKey) {
+            this.mdrKey = mdrKey;
+        }
+
+        String getCqlValue() {
+            return cqlValue;
+        }
+
+        public void setCqlValue(String cqlValue) {
+            this.cqlValue = cqlValue;
         }
     }
 

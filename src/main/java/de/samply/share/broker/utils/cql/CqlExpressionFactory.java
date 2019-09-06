@@ -1,6 +1,7 @@
 package de.samply.share.broker.utils.cql;
 
 import de.samply.config.util.FileFinderUtil;
+import de.samply.share.query.enums.SimpleValueCondition;
 import de.samply.share.query.value.AbstractQueryValueDto;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.StringUtils;
@@ -13,13 +14,16 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class CqlExpressionFactory {
 
     private final MultiKeyMap<String, CqlConfig.CqlAtomicExpressionEntry> mapAtomicExpressions = new MultiKeyMap<>();
     private final MultiKeyMap<String, CqlConfig.CqlEntityTypeEntry> mapPathExpressions = new MultiKeyMap<>();
+    private final MultiKeyMap<String, String> mapPermittedValues = new MultiKeyMap<>();
     private final Map<String, String> mapCodesystemNames = new HashMap<>();
     private final Map<String, String> mapCodesystemUrls = new HashMap<>();
     private final Map<String, String> mapExtensions = new HashMap<>();
@@ -88,9 +92,15 @@ class CqlExpressionFactory {
                 mapPathExpressions.put(mdrFieldEntry.getMdrUrn(), entityTypeEntry.getEntityTypeName(), entityTypeEntry);
             }
         }
+
+        for (CqlConfig.CqlMdrFieldEntry mdrFieldEntry : mapping.getMdrFieldEntryList()) {
+            for (CqlConfig.PermittedValueEntry permittedValueEntry : mdrFieldEntry.getPermittedValueEntryList()) {
+                mapPermittedValues.put(mdrFieldEntry.getMdrUrn(), permittedValueEntry.getMdrKey(), permittedValueEntry.getCqlValue());
+            }
+        }
     }
 
-    String getAtomicExpression(AtomicExpressionParameter atomicExpressionParameter) {
+    String getAtomicExpression(CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter) {
         String mdrUrn = atomicExpressionParameter.getMdrUrn();
         String entityType = atomicExpressionParameter.getEntityType();
         String operator = atomicExpressionParameter.getOperator();
@@ -109,13 +119,13 @@ class CqlExpressionFactory {
     }
 
     String getPathExpression(String mdrUrn, String entityType, String atomicExpressions) {
-        CqlConfig.CqlEntityTypeEntry cqlEntityTypeEntry = mapPathExpressions.get(mdrUrn, entityType);
-        if (cqlEntityTypeEntry == null) {
+        CqlConfig.CqlEntityTypeEntry cqlEntityTypeEntry1 = mapPathExpressions.get(mdrUrn, entityType);
+        if (cqlEntityTypeEntry1 == null) {
             logger.warn("No valid cql configuration found for entity type '" + entityType + "' and mdrUrn '" + mdrUrn + "'");
             return "";
         }
 
-        return MessageFormat.format(cqlEntityTypeEntry.getPathCqlExpression(), atomicExpressions);
+        return MessageFormat.format(cqlEntityTypeEntry1.getPathCqlExpression(), atomicExpressions);
     }
 
     String getPreamble(String entityType, String libraries) {
@@ -135,7 +145,78 @@ class CqlExpressionFactory {
     }
 
     AtomicExpressionParameter createAtomicExpressionParameter(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
+        return new AtomicExpressionParameter(mdrUrn, entityType, valueDto);
+    }
 
-        return new AtomicExpressionParameter(mdrUrn, entityType, valueDto, getExtensionUrl(mdrUrn), getCodesystemName(mdrUrn));
+    String getCqlValue(String mdrUrn, String mdrValue) {
+        return StringUtils.defaultString(mapPermittedValues.get(mdrUrn, mdrValue), mdrValue);
+    }
+
+    class AtomicExpressionParameter {
+
+        private final String mdrUrn;
+        private final String entityType;
+        private final SimpleValueCondition condition;
+        private final String value;
+        private final String maxValue;
+
+        private final String extensionUrl;
+        private final String codesystemName;
+
+        AtomicExpressionParameter(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
+            this.mdrUrn = mdrUrn;
+            this.entityType = entityType;
+            this.condition = valueDto.getCondition();
+            this.value = getCqlValue(mdrUrn, valueDto.getValueAsXmlString());
+            this.maxValue = getCqlValue(mdrUrn, valueDto.getMaxValueAsXmlString());
+            this.extensionUrl = getExtensionUrl(mdrUrn);
+            this.codesystemName = getCodesystemName(mdrUrn);
+        }
+
+        String getMdrUrn() {
+            return mdrUrn;
+        }
+
+        String getEntityType() {
+            return entityType;
+        }
+
+        String getOperator() {
+            switch (condition) {
+                case BETWEEN:
+                    return "...";
+                case EQUALS:
+                    return "=";
+                case LIKE:
+                    return "~";
+                case GREATER:
+                    return ">";
+                case LESS:
+                    return "<";
+                case NOT_EQUALS:
+                    return "<>";
+                case LESS_OR_EQUALS:
+                    return "<=";
+                case GREATER_OR_EQUALS:
+                    return ">=";
+                default:
+                    return "default";
+            }
+        }
+
+        String[] asVarArgParameter() {
+            List<String> resultList = new ArrayList<>();
+
+            resultList.add(getOperator());
+            resultList.add(codesystemName);
+            resultList.add(extensionUrl);
+            resultList.add(value);
+
+            if (condition == SimpleValueCondition.BETWEEN) {
+                resultList.add(maxValue);
+            }
+
+            return resultList.toArray(new String[]{});
+        }
     }
 }
