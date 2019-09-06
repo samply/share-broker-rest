@@ -35,7 +35,14 @@ public class SimpleQueryDto2CqlTransformer {
         cqlQueryPredicateBuilder.append(" and ");
         addTermsToAndExpression(cqlQueryPredicateBuilder, cqlLibraries, entityType, queryDto.getEventDto().getFieldsDto());
 
-        return cqlExpressionFactory.getPreamble(entityType, StringUtils.join(cqlLibraries, "\n")) + cqlQueryPredicateBuilder.toString();
+        String cqlQuery = cqlExpressionFactory.getPreamble(entityType, StringUtils.join(cqlLibraries, "\n")) + cqlQueryPredicateBuilder.toString();
+        return simplify(cqlQuery);
+    }
+
+    private String simplify(String cqlQuery) {
+        return cqlQuery.replace("(true)", "true")
+                .replace(" and true", "")
+                .replace(" true and", "");
     }
 
     private void addTermsToAndExpression(StringBuilder cqlQueryPredicateBuilder, Set<String> cqlLibraries, String entityType, List<AbstractQueryFieldDto<?, ?>> fieldsDto) {

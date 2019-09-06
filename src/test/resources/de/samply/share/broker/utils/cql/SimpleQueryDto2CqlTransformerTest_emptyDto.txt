@@ -5,4 +5,4 @@ include FHIRHelpers version '4.0.0'
 context Patient
 
 define InInitialPopulation:
-    true and true and true and true
+    true

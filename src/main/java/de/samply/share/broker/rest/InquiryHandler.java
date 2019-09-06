@@ -875,17 +875,10 @@ public class InquiryHandler {
             JAXBContext jaxbContext = JAXBContext.newInstance(SimpleQueryDto.class);
             SimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, SimpleQueryDto.class);
 
-            String cqlQuery = new SimpleQueryDto2CqlTransformer().toQuery(simpleQueryDto, entityType);
-            return simplify(cqlQuery);
+            return new SimpleQueryDto2CqlTransformer().toQuery(simpleQueryDto, entityType);
         }
 
-        return "";
-    }
-
-    private String simplify(String cqlQuery) {
-        return cqlQuery.replace("(true)", "true")
-                .replace(" and true", "")
-                .replace(" true and", "");
+        return "false";
     }
 
     private void createAndSaveInquiryCriteriaTypeCql(String cql, Inquiry inquiry, Connection connection, String entityType) {

@@ -14,4 +14,3 @@ define InInitialPopulation:
                                         where E.url = 'https://fhir.bbmri.de/StructureDefinition/StorageTemperature'
                                         and E.value.coding contains Code '11.0' from StorageTemperature)) )
 
-    and true and true and true

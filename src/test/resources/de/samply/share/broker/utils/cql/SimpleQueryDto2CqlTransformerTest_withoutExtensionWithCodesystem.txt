@@ -11,4 +11,3 @@ define InInitialPopulation:
                     from [Specimen] S where (
                                         S.value.coding contains Code '11.0' from SampleMaterialType) )
 
-    and true and true and true
