@@ -20,8 +20,8 @@ class CqlExpressionFactory {
 
     private final MultiKeyMap<String, CqlConfig.CqlAtomicExpressionEntry> mapAtomicExpressions = new MultiKeyMap<>();
     private final MultiKeyMap<String, CqlConfig.CqlEntityTypeEntry> mapPathExpressions = new MultiKeyMap<>();
-    private final Map<String, String> mapCodeSystemNames = new HashMap<>();
-    private final Map<String, String> mapCodeSystemUrls = new HashMap<>();
+    private final Map<String, String> mapCodesystemNames = new HashMap<>();
+    private final Map<String, String> mapCodesystemUrls = new HashMap<>();
     private final Map<String, String> mapExtensions = new HashMap<>();
 
     private String preambleTemplate = "";
@@ -62,12 +62,12 @@ class CqlExpressionFactory {
         this.preambleTemplate = mapping.getPreamble();
 
         for (CqlConfig.CqlMdrFieldEntry mdrFieldEntry : mapping.getMdrFieldEntryList()) {
-            if (!StringUtils.isBlank(mdrFieldEntry.getCodeSystemName())) {
-                mapCodeSystemNames.put(mdrFieldEntry.getMdrUrn(), mdrFieldEntry.getCodeSystemName());
+            if (!StringUtils.isBlank(mdrFieldEntry.getCodesystemName())) {
+                mapCodesystemNames.put(mdrFieldEntry.getMdrUrn(), mdrFieldEntry.getCodesystemName());
             }
 
-            if (!StringUtils.isBlank(mdrFieldEntry.getCodeSystemUrl())) {
-                mapCodeSystemUrls.put(mdrFieldEntry.getMdrUrn(), mdrFieldEntry.getCodeSystemUrl());
+            if (!StringUtils.isBlank(mdrFieldEntry.getCodesystemUrl())) {
+                mapCodesystemUrls.put(mdrFieldEntry.getMdrUrn(), mdrFieldEntry.getCodesystemUrl());
             }
 
             if (!StringUtils.isBlank(mdrFieldEntry.getExtensionUrl())) {
@@ -109,13 +109,13 @@ class CqlExpressionFactory {
     }
 
     String getPathExpression(String mdrUrn, String entityType, String atomicExpressions) {
-        CqlConfig.CqlEntityTypeEntry cqlEntityTypeEntry1 = mapPathExpressions.get(mdrUrn, entityType);
-        if (cqlEntityTypeEntry1 == null) {
+        CqlConfig.CqlEntityTypeEntry cqlEntityTypeEntry = mapPathExpressions.get(mdrUrn, entityType);
+        if (cqlEntityTypeEntry == null) {
             logger.warn("No valid cql configuration found for entity type '" + entityType + "' and mdrUrn '" + mdrUrn + "'");
             return "";
         }
 
-        return MessageFormat.format(cqlEntityTypeEntry1.getPathCqlExpression(), atomicExpressions);
+        return MessageFormat.format(cqlEntityTypeEntry.getPathCqlExpression(), atomicExpressions);
     }
 
     String getPreamble(String entityType, String libraries) {
@@ -127,11 +127,11 @@ class CqlExpressionFactory {
     }
 
     String getCodesystemName(String mdrUrn) {
-        return mapCodeSystemNames.getOrDefault(mdrUrn, "");
+        return mapCodesystemNames.getOrDefault(mdrUrn, "");
     }
 
     String getCodesystemUrl(String mdrUrn) {
-        return mapCodeSystemUrls.getOrDefault(mdrUrn, "");
+        return mapCodesystemUrls.getOrDefault(mdrUrn, "");
     }
 
     AtomicExpressionParameter createAtomicExpressionParameter(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {

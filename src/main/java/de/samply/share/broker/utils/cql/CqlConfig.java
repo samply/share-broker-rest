@@ -51,19 +51,19 @@ class CqlConfig {
             this.mdrUrn = mdrUrn;
         }
 
-        String getCodeSystemName() {
+        String getCodesystemName() {
             return codesystemName;
         }
 
-        public void setCodeSystemName(String codesystemName) {
+        public void setCodesystemName(String codesystemName) {
             this.codesystemName = codesystemName;
         }
 
-        String getCodeSystemUrl() {
+        String getCodesystemUrl() {
             return codesystemUrl;
         }
 
-        public void setCodeSystemUrl(String codesystemUrl) {
+        public void setCodesystemUrl(String codesystemUrl) {
             this.codesystemUrl = codesystemUrl;
         }
 
