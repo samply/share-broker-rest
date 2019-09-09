@@ -14,9 +14,7 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 class CqlExpressionFactory {
@@ -205,18 +203,7 @@ class CqlExpressionFactory {
         }
 
         String[] asVarArgParameter() {
-            List<String> resultList = new ArrayList<>();
-
-            resultList.add(getOperator());
-            resultList.add(codesystemName);
-            resultList.add(extensionUrl);
-            resultList.add(value);
-
-            if (condition == SimpleValueCondition.BETWEEN) {
-                resultList.add(maxValue);
-            }
-
-            return resultList.toArray(new String[]{});
+            return new String[]{getOperator(), codesystemName, extensionUrl, value, maxValue};
         }
     }
 }

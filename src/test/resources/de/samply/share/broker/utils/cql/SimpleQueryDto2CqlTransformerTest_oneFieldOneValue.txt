@@ -5,4 +5,4 @@ include FHIRHelpers version '4.0.0'
 context Patient
 
 define InInitialPopulation:
-    (Patient.gender = '11.0')
+    Patient.gender = '11.0'

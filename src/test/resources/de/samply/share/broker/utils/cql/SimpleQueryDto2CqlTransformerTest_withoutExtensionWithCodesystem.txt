@@ -8,6 +8,6 @@ context Patient
 
 define InInitialPopulation:
                     exists(
-                    from [Specimen] S where (
-                                        S.value.coding contains Code '11.0' from SampleMaterialType) )
+                    from [Specimen] S where
+                                        S.value.coding contains Code '11.0' from SampleMaterialType)
 

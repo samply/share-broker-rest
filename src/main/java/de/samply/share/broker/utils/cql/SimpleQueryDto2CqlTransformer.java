@@ -1,15 +1,17 @@
 package de.samply.share.broker.utils.cql;
 
 import de.samply.share.query.entity.SimpleQueryDto;
-import de.samply.share.query.enums.SimpleValueCondition;
 import de.samply.share.query.field.AbstractQueryFieldDto;
 import de.samply.share.query.value.AbstractQueryValueDto;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SimpleQueryDto2CqlTransformer {
 
@@ -24,95 +26,97 @@ public class SimpleQueryDto2CqlTransformer {
     }
 
     public String toQuery(SimpleQueryDto queryDto, String entityType) {
-        StringBuilder cqlQueryPredicateBuilder = new StringBuilder();
-        Set<String> cqlLibraries = new HashSet<>();
+        String codesystemDefinitionsStatement = createCodesystemDefinitionsStatement(queryDto);
+        String cqlPredicateStatement = createCqlPredicateStatment(queryDto, entityType);
 
-        addTermsToAndExpression(cqlQueryPredicateBuilder, cqlLibraries, entityType, queryDto.getDonorDto().getFieldsDto());
-        cqlQueryPredicateBuilder.append(" and ");
-        addTermsToAndExpression(cqlQueryPredicateBuilder, cqlLibraries, entityType, queryDto.getSampleContextDto().getFieldsDto());
-        cqlQueryPredicateBuilder.append(" and ");
-        addTermsToAndExpression(cqlQueryPredicateBuilder, cqlLibraries, entityType, queryDto.getSampleDto().getFieldsDto());
-        cqlQueryPredicateBuilder.append(" and ");
-        addTermsToAndExpression(cqlQueryPredicateBuilder, cqlLibraries, entityType, queryDto.getEventDto().getFieldsDto());
-
-        String cqlQuery = cqlExpressionFactory.getPreamble(entityType, StringUtils.join(cqlLibraries, "\n")) + cqlQueryPredicateBuilder.toString();
-        return simplify(cqlQuery);
+        return cqlExpressionFactory.getPreamble(entityType, codesystemDefinitionsStatement) + cqlPredicateStatement;
     }
 
-    private String simplify(String cqlQuery) {
-        return cqlQuery.replace("(true)", "true")
-                .replace(" and true", "")
-                .replace(" true and", "");
+    private String createCodesystemDefinitionsStatement(SimpleQueryDto queryDto) {
+        List<AbstractQueryFieldDto<?,?>> combinedFieldDtoList = new ArrayList<>();
+
+        combinedFieldDtoList.addAll(queryDto.getDonorDto().getFieldsDto());
+        combinedFieldDtoList.addAll(queryDto.getSampleContextDto().getFieldsDto());
+        combinedFieldDtoList.addAll(queryDto.getSampleDto().getFieldsDto());
+        combinedFieldDtoList.addAll(queryDto.getEventDto().getFieldsDto());
+
+        return createCodesystemDefinition(combinedFieldDtoList);
     }
 
-    private void addTermsToAndExpression(StringBuilder cqlQueryPredicateBuilder, Set<String> cqlLibraries, String entityType, List<AbstractQueryFieldDto<?, ?>> fieldsDto) {
-        boolean isFirstField = true;
+    private String createCodesystemDefinition(List<AbstractQueryFieldDto<?, ?>> fieldsDto) {
+        Set<String> codesystemDefinitions = new HashSet<>();
 
         for (AbstractQueryFieldDto<?, ?> fieldDto : fieldsDto) {
             String mdrUrn = fieldDto.getUrn();
-
-            String codesystemName = cqlExpressionFactory.getCodesystemName(mdrUrn);
             String codesystemUrl = cqlExpressionFactory.getCodesystemUrl(mdrUrn);
-            if (!StringUtils.isBlank(codesystemName) && !StringUtils.isBlank(codesystemUrl)) {
-                cqlLibraries.add(MessageFormat.format("codesystem {0}: ''{1}''", codesystemName, codesystemUrl));
-            }
+            String codesystemName = cqlExpressionFactory.getCodesystemName(mdrUrn);
 
-            String atomicExpressions = createAtomicExpressionsChainedByOr(mdrUrn, entityType, fieldDto);
+            if (!StringUtils.isBlank(codesystemName) && !StringUtils.isBlank(codesystemUrl)) {
+                codesystemDefinitions.add(MessageFormat.format("codesystem {0}: ''{1}''", codesystemName, codesystemUrl));
+            }
+        }
+
+        List<String> codesystemDefinitionsSorted = codesystemDefinitions.stream().sorted().collect(Collectors.toList());
+        return StringUtils.join(codesystemDefinitionsSorted, "\n");
+    }
+
+    private String createCqlPredicateStatment(SimpleQueryDto queryDto, String entityType) {
+        List<String> predicateList = new ArrayList<>();
+
+        CollectionUtils.addIgnoreNull(predicateList, createCqlPredicate(entityType, queryDto.getDonorDto().getFieldsDto()));
+        CollectionUtils.addIgnoreNull(predicateList, createCqlPredicate(entityType, queryDto.getSampleContextDto().getFieldsDto()));
+        CollectionUtils.addIgnoreNull(predicateList, createCqlPredicate(entityType, queryDto.getSampleDto().getFieldsDto()));
+        CollectionUtils.addIgnoreNull(predicateList, createCqlPredicate(entityType, queryDto.getEventDto().getFieldsDto()));
+
+        if (predicateList.isEmpty()) {
+            return "true";
+        } else {
+            return StringUtils.join(predicateList, " and ");
+        }
+    }
+
+    private String createCqlPredicate(String entityType, List<AbstractQueryFieldDto<?, ?>> fieldsDto) {
+        List<String> pathExpressionList = new ArrayList<>();
+
+        for (AbstractQueryFieldDto<?, ?> fieldDto : fieldsDto) {
+            String mdrUrn = fieldDto.getUrn();
+            String atomicExpressions = createAtomicExpressionStatement(mdrUrn, entityType, fieldDto);
 
             if (!StringUtils.isEmpty(atomicExpressions)) {
                 String pathExpression = cqlExpressionFactory.getPathExpression(mdrUrn, entityType, atomicExpressions);
-                if (isFirstField) {
-                    isFirstField = false;
-                } else {
-                    cqlQueryPredicateBuilder.append(" and ");
-                }
 
-                cqlQueryPredicateBuilder.append(pathExpression);
+                pathExpressionList.add(pathExpression);
             }
         }
 
-        // if expression would be empty
-        if (isFirstField) {
-            cqlQueryPredicateBuilder.append("true");
-        }
-    }
-
-    private String createAtomicExpressionsChainedByOr(String mdrUrn, String entityType, AbstractQueryFieldDto<?, ?> fieldDto) {
-        StringBuilder atomicExpressionBuilder = new StringBuilder();
-
-        boolean isFirstAtomicExpression = true;
-        for (AbstractQueryValueDto<?> valueDto : fieldDto.getValuesDto()) {
-            isFirstAtomicExpression = addSingleAtomicExpression(atomicExpressionBuilder, mdrUrn, entityType, isFirstAtomicExpression, valueDto);
-        }
-
-        // if atomic expression would be empty
-        if (isFirstAtomicExpression) {
-            atomicExpressionBuilder.append("true");
-        }
-
-        atomicExpressionBuilder.append(")");
-
-        return atomicExpressionBuilder.toString();
-    }
-
-    private boolean addSingleAtomicExpression(StringBuilder atomicExpressionBuilder, String mdrUrn, String entityType, boolean isFirstAtomicExpression, AbstractQueryValueDto<?> valueDto) {
-        CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter = cqlExpressionFactory.createAtomicExpressionParameter(mdrUrn, entityType, valueDto);
-        String atomicExpression = cqlExpressionFactory.getAtomicExpression(atomicExpressionParameter);
-
-        if (StringUtils.isEmpty(atomicExpression)) {
-            return isFirstAtomicExpression;
-        }
-
-        if (isFirstAtomicExpression) {
-            isFirstAtomicExpression = false;
-            atomicExpressionBuilder.append("(");
+        if (pathExpressionList.isEmpty()) {
+            return null;
+        } else if (pathExpressionList.size() == 1) {
+            return pathExpressionList.get(0);
         } else {
-            atomicExpressionBuilder.append(" or ");
+            return StringUtils.join(pathExpressionList, " and ");
         }
-
-        atomicExpressionBuilder.append(atomicExpression);
-
-        return isFirstAtomicExpression;
     }
 
+    private String createAtomicExpressionStatement(String mdrUrn, String entityType, AbstractQueryFieldDto<?, ?> fieldDto) {
+        List<String> atomicExpressions = new ArrayList<>();
+        for (AbstractQueryValueDto<?> valueDto : fieldDto.getValuesDto()) {
+            CollectionUtils.addIgnoreNull(atomicExpressions, createSingleAtomicExpression(mdrUrn, entityType, valueDto));
+        }
+
+        if (atomicExpressions.isEmpty()) {
+            return null;
+        } else if (atomicExpressions.size() == 1) {
+            return atomicExpressions.get(0);
+        } else {
+            return "(" +
+                    StringUtils.join(atomicExpressions, " or ") +
+                    ")";
+        }
+    }
+
+    private String createSingleAtomicExpression(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
+        CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter = cqlExpressionFactory.createAtomicExpressionParameter(mdrUrn, entityType, valueDto);
+        return cqlExpressionFactory.getAtomicExpression(atomicExpressionParameter);
+    }
 }
