@@ -126,8 +126,8 @@ class CqlExpressionFactory {
         return MessageFormat.format(cqlEntityTypeEntry1.getPathCqlExpression(), atomicExpressions);
     }
 
-    String getPreamble(String entityType, String libraries) {
-        return MessageFormat.format(preambleTemplate, entityType, libraries);
+    String getPreamble(String entityType, String codesystems) {
+        return MessageFormat.format(preambleTemplate, entityType, codesystems);
     }
 
     String getExtensionUrl(String mdrUrn) {

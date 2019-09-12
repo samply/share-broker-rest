@@ -1,8 +1,0 @@
-library Retrieve
-using FHIR version '4.0.0'
-include FHIRHelpers version '4.0.0'
-
-context Patient
-
-define InInitialPopulation:
-    (Patient.gender = '11.0' or Patient.gender = '13.5')
