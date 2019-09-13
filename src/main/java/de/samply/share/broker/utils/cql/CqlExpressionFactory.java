@@ -1,6 +1,5 @@
 package de.samply.share.broker.utils.cql;
 
-import de.samply.config.util.FileFinderUtil;
 import de.samply.share.query.enums.SimpleValueCondition;
 import de.samply.share.query.value.AbstractQueryValueDto;
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -11,8 +10,8 @@ import org.apache.logging.log4j.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,29 +30,21 @@ class CqlExpressionFactory {
     private static final Logger logger = LogManager.getLogger(CqlExpressionFactory.class);
 
     CqlExpressionFactory() {
-        File cqlConfigFile;
-        try {
-            cqlConfigFile = FileFinderUtil.findFile("samply_cql_config.xml");
-        } catch (FileNotFoundException e) {
-            logger.warn("No valid config file 'samply_cql_config.xml' could be found", e);
-            return;
+        try (InputStream cqlConfigStream = CqlExpressionFactory.class.getResourceAsStream("samply_cql_config.xml")) {
+            initMaps(cqlConfigStream);
+        } catch (IOException e) {
+            logger.warn("No valid config resource 'samply_cql_config.xml' could be found", e);
         }
-
-        initMaps(cqlConfigFile);
     }
 
-    CqlExpressionFactory(File cqlConfigFile) {
-        initMaps(cqlConfigFile);
-    }
-
-    private void initMaps(File cqlConfigFile) {
+    private void initMaps(InputStream cqlConfigStream) {
         CqlConfig mapping;
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(CqlConfig.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            mapping = (CqlConfig) unmarshaller.unmarshal(cqlConfigFile);
+            mapping = (CqlConfig) unmarshaller.unmarshal(cqlConfigStream);
         } catch (JAXBException e) {
-            logger.warn("Config file 'samply_cql_config.xml' could not be unmarshalled: ", e);
+            logger.warn("Config resource 'samply_cql_config.xml' could not be unmarshalled: ", e);
             return;
         }
 

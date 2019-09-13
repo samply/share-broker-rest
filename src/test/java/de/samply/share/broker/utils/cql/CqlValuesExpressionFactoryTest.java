@@ -15,10 +15,6 @@ import static org.hamcrest.CoreMatchers.nullValue;
 
 class CqlValuesExpressionFactoryTest {
 
-    private static final String ATOMIC_EXPRESSION_1 = "atomic-expression-1";
-    private static final String ATOMIC_EXPRESSION_2 = "atomic-expression-2";
-    private static final String ATOMIC_EXPRESSION_3 = "atomic-expression-3";
-
     private CqlExpressionFactory expressionFactory;
     private CqlValuesExpressionFactory valuesExpressionFactory;
 
@@ -41,20 +37,20 @@ class CqlValuesExpressionFactoryTest {
 
     @Test
     void test_create_oneValue() {
-        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn(ATOMIC_EXPRESSION_1);
+        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-1");
         replay(expressionFactory);
 
         ValueDecimalDto valueDto = CqlTestHelper.createValueDto(1, 2);
         FieldDecimalDto fieldDto = CqlTestHelper.createFieldDto(valueDto);
 
         String atomicExpression = valuesExpressionFactory.create(MDR_URN_1, ENTITY_TYPE, fieldDto);
-        assertThat("Error creating atomic expression for one value.", atomicExpression, is(ATOMIC_EXPRESSION_1));
+        assertThat("Error creating atomic expression for one value.", atomicExpression, is("atomic-expression-1"));
     }
 
     @Test
     void test_create_twoValues() {
-        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn(ATOMIC_EXPRESSION_1);
-        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn(ATOMIC_EXPRESSION_2);
+        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-1");
+        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-2");
         replay(expressionFactory);
 
         ValueDecimalDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
@@ -67,9 +63,9 @@ class CqlValuesExpressionFactoryTest {
 
     @Test
     void test_create_threeValues() {
-        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn(ATOMIC_EXPRESSION_1);
-        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn(ATOMIC_EXPRESSION_2);
-        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn(ATOMIC_EXPRESSION_3);
+        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-1");
+        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-2");
+        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-3");
         replay(expressionFactory);
 
         ValueDecimalDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
@@ -83,9 +79,9 @@ class CqlValuesExpressionFactoryTest {
 
     @Test
     void test_create_threeValuesButOneMissingAtomicExpression() {
-        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn(ATOMIC_EXPRESSION_1);
+        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-1");
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn(null);
-        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn(ATOMIC_EXPRESSION_3);
+        expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-3");
         replay(expressionFactory);
 
         ValueDecimalDto valueDto1 = CqlTestHelper.createValueDto(1, 2);

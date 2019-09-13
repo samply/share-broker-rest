@@ -7,11 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.net.URL;
-
-import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 class CqlExpressionFactoryTest {
 
@@ -38,10 +35,7 @@ class CqlExpressionFactoryTest {
 
     @BeforeEach
     void initFactory() {
-        URL url = CqlExpressionFactory.class.getResource("samply_cql_config.xml");
-        File configFile = new File(url.getFile());
-
-        factory = new CqlExpressionFactory(configFile);
+        factory = new CqlExpressionFactory();
     }
 
     @Test

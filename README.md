@@ -210,7 +210,7 @@ These configuration files are used:
 
 ```
 src/main/java/webapp/WEB-INF/conf/
-(log4j2.xml, mailSending.xml, samply_cql_config.xml, samply.share.broker.conf, samply_common_config.xml, OAuth2Client.xml <- same as UI)
+(log4j2.xml, mailSending.xml, samply.share.broker.conf, samply_common_config.xml, OAuth2Client.xml <- same as UI)
 
 src/main/java/webapp/META-INF/
 (context.xml)
