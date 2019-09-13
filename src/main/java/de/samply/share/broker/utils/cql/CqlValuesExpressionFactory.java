@@ -8,15 +8,15 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-class CqlAtomicExpressionBuilder {
+class CqlValuesExpressionFactory {
 
     private final CqlExpressionFactory cqlExpressionFactory;
 
-    CqlAtomicExpressionBuilder(CqlExpressionFactory cqlExpressionFactory) {
+    CqlValuesExpressionFactory(CqlExpressionFactory cqlExpressionFactory) {
         this.cqlExpressionFactory = cqlExpressionFactory;
     }
 
-    String createAtomicExpressionStatement(String mdrUrn, String entityType, AbstractQueryFieldDto<?, ?> fieldDto) {
+    String create(String mdrUrn, String entityType, AbstractQueryFieldDto<?, ?> fieldDto) {
         List<String> atomicExpressions = new ArrayList<>();
         for (AbstractQueryValueDto<?> valueDto : fieldDto.getValuesDto()) {
             CollectionUtils.addIgnoreNull(atomicExpressions, createSingleAtomicExpression(mdrUrn, entityType, valueDto));

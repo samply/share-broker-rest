@@ -46,108 +46,125 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getPreamble() {
-        assertThat("Error reading preamble.", StringUtils.trim(factory.getPreamble(ENTITY_TYPE_NOT_EXISTING, "library-infos")), is(ECPECTED_PREAMBLE_TEMPLATE));
+        String preamble = factory.getPreamble(ENTITY_TYPE_NOT_EXISTING, "library-infos");
+        assertThat("Error reading preamble.", StringUtils.trim(preamble), is(ECPECTED_PREAMBLE_TEMPLATE));
     }
 
     @Test
     void test_getPathExpression_existing_shortPath() {
-        assertThat("Error reading path expression with path '{0}'.", StringUtils.trim(factory.getPathExpression(URN_GENDER, ENTITY_TYPE_PATIENT, "atomic-expression")), is("atomic-expression"));
+        String pathExpression = factory.getPathExpression(URN_GENDER, ENTITY_TYPE_PATIENT, "values-expression");
+        assertThat("Error reading path expression with path '{0}'.", StringUtils.trim(pathExpression), is("values-expression"));
     }
 
     @Test
     void test_getPathExpression_existing_longPath() {
-        assertThat("Error reading path expression with path including text.", StringUtils.trim(factory.getPathExpression(URN_GENDER, ENTITY_TYPE_SPECIMEN, "atomic-expression")), is("exists(from [Patient] P where atomic-expression)"));
+        String pathExpression = factory.getPathExpression(URN_GENDER, ENTITY_TYPE_SPECIMEN, "values-expression");
+        assertThat("Error reading path expression with path including text.", StringUtils.trim(pathExpression), is("exists(from [Patient] P where values-expression)"));
     }
 
     @Test
     void test_getPathExpression_notExistingEntityType() {
-        assertThat("Error getting path expression for non-existing entity type.", StringUtils.trim(factory.getPathExpression(URN_GENDER, ENTITY_TYPE_NOT_EXISTING, "atomic-expression")), is(""));
+        String pathExpression = factory.getPathExpression(URN_GENDER, ENTITY_TYPE_NOT_EXISTING, "values-expression");
+        assertThat("Error getting path expression for non-existing entity type.", StringUtils.trim(pathExpression), is(""));
     }
 
     @Test
     void test_getPathExpression_notExistingMdrUrn() {
-        assertThat("Error getting path expression for non-existing MDR-urn.", StringUtils.trim(factory.getPathExpression(URN_NOT_EXISTING, ENTITY_TYPE_PATIENT, "atomic-expression")), is(""));
+        String pathExpression = factory.getPathExpression(URN_NOT_EXISTING, ENTITY_TYPE_PATIENT, "values-expression");
+        assertThat("Error getting path expression for non-existing MDR-urn.", StringUtils.trim(pathExpression), is(""));
     }
 
     @Test
     void test_getAtomicExpression_operatorNotSpecifiedUseDefault() {
         ValueStringDto valueDto = createValueDto(SimpleValueCondition.EQUALS);
-
         CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter = factory.createAtomicExpressionParameter(URN_GENDER, ENTITY_TYPE_SPECIMEN, valueDto);
+
+        String atomicExpression = factory.getAtomicExpression(atomicExpressionParameter);
         assertThat("Error reading atomic expression for unspecified operator using default expression.",
-                StringUtils.trim(factory.getAtomicExpression(atomicExpressionParameter)),
+                StringUtils.trim(atomicExpression),
                 is("P.gender = '13'"));
     }
 
     @Test
     void test_getAtomicExpression_operatorSpecified() {
         ValueStringDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
-
         CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter = factory.createAtomicExpressionParameter(URN_GENDER, ENTITY_TYPE_SPECIMEN, valueDto);
+
+        String atomicExpression = factory.getAtomicExpression(atomicExpressionParameter);
         assertThat("Error reading atomic expression for specified operator.",
-                StringUtils.trim(factory.getAtomicExpression(atomicExpressionParameter)),
+                StringUtils.trim(atomicExpression),
                 is("(P.gender < '17' and P.gender > '13')"));
     }
 
     @Test
     void test_getAtomicExpression_notExistingMdrUrn() {
         ValueStringDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
-
         CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter = factory.createAtomicExpressionParameter(URN_NOT_EXISTING, ENTITY_TYPE_SPECIMEN, valueDto);
+
+        String atomicExpression = factory.getAtomicExpression(atomicExpressionParameter);
         assertThat("Error getting atomic expression for non-existing MDR-urn.",
-                StringUtils.trim(factory.getAtomicExpression(atomicExpressionParameter)),
+                StringUtils.trim(atomicExpression),
                 is(""));
     }
 
     @Test
     void test_getAtomicExpression_notExistingEntityType() {
         ValueStringDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
-
         CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter = factory.createAtomicExpressionParameter(URN_GENDER, ENTITY_TYPE_NOT_EXISTING, valueDto);
+
+        String atomicExpression = factory.getAtomicExpression(atomicExpressionParameter);
         assertThat("Error getting atomic expression for non-existing entity type.",
-                StringUtils.trim(factory.getAtomicExpression(atomicExpressionParameter)),
+                StringUtils.trim(atomicExpression),
                 is(""));
     }
 
     @Test
     void test_getExtensionUrl_blank() {
-        assertThat("Error getting empty extension name.", StringUtils.trim(factory.getExtensionUrl(URN_GENDER)), is(""));
+        String extensionUrl = factory.getExtensionUrl(URN_GENDER);
+        assertThat("Error getting empty extension name.", StringUtils.trim(extensionUrl), is(""));
     }
 
     @Test
     void test_getExtensionUrl_filled() {
-        assertThat("Error getting extension name.", StringUtils.trim(factory.getExtensionUrl(URN_TEMPERATURE)), is("https://fhir.bbmri.de/StructureDefinition/StorageTemperature"));
+        String extensionUrl = factory.getExtensionUrl(URN_TEMPERATURE);
+        assertThat("Error getting extension name.", StringUtils.trim(extensionUrl), is("https://fhir.bbmri.de/StructureDefinition/StorageTemperature"));
     }
 
     @Test
     void test_getCodesystemName_blank() {
-        assertThat("Error getting empty name of code system.", StringUtils.trim(factory.getCodesystemName(URN_GENDER)), is(""));
+        String codesystemName = factory.getCodesystemName(URN_GENDER);
+        assertThat("Error getting empty name of code system.", StringUtils.trim(codesystemName), is(""));
     }
 
     @Test
     void test_getCodesystemName_filled() {
-        assertThat("Error getting name of code system.", StringUtils.trim(factory.getCodesystemName(URN_TEMPERATURE)), is("StorageTemperature"));
+        String codesystemName = factory.getCodesystemName(URN_TEMPERATURE);
+        assertThat("Error getting name of code system.", StringUtils.trim(codesystemName), is("StorageTemperature"));
     }
 
     @Test
     void test_getCodesystemUrl_blank() {
-        assertThat("Error getting empty url of code system.", StringUtils.trim(factory.getCodesystemUrl(URN_GENDER)), is(""));
+        String codesystemUrl = factory.getCodesystemUrl(URN_GENDER);
+        assertThat("Error getting empty url of code system.", StringUtils.trim(codesystemUrl), is(""));
     }
 
     @Test
     void test_getCodesystemUrl_filled() {
-        assertThat("Error getting url of code system.", StringUtils.trim(factory.getCodesystemUrl(URN_TEMPERATURE)), is("https://fhir.bbmri.de/CodeSystem/StorageTemperature"));
+        String codesystemUrl = factory.getCodesystemUrl(URN_TEMPERATURE);
+        assertThat("Error getting url of code system.", StringUtils.trim(codesystemUrl), is("https://fhir.bbmri.de/CodeSystem/StorageTemperature"));
     }
 
     @Test
     void test_getCqlValue_configured() {
-        assertThat("Error getting cql value for permitted value in config file.", StringUtils.trim(factory.getCqlValue(URN_TEMPERATURE, "RT")), is("temperatureRoom"));
+        String cqlValue = factory.getCqlValue(URN_TEMPERATURE, "RT");
+        assertThat("Error getting cql value for permitted value in config file.", StringUtils.trim(cqlValue), is("temperatureRoom"));
     }
 
     @Test
     void test_getCqlValue_notConfigured() {
         final String not_configured = "NOT CONFIGURED";
-        assertThat("Error getting cql value for permitted value not configured in config file.", StringUtils.trim(factory.getCqlValue(URN_TEMPERATURE, not_configured)), is(not_configured));
+        String cqlValue = factory.getCqlValue(URN_TEMPERATURE, not_configured);
+        assertThat("Error getting cql value for permitted value not configured in config file.", StringUtils.trim(cqlValue), is(not_configured));
     }
 
     @NotNull

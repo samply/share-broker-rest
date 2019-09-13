@@ -18,32 +18,31 @@ import static org.hamcrest.CoreMatchers.is;
 
 import static de.samply.share.broker.utils.cql.CqlTestHelper.*;
 
-class CqlCodesystemDefinitionsBuilderTest {
+class CqlCodesystemDefinitionsFactoryTest {
 
     private static final String EXPECTED_CODESYTEM_DEFINITION_1 = "codesystem " + CODESYSTEM_NAME_1 + ": '" + CODESYSTEM_URL_1 + "'";
     private static final String EXPECTED_CODESYTEM_DEFINITION_2 = "codesystem " + CODESYSTEM_NAME_2 + ": '" + CODESYSTEM_URL_2 + "'";
 
     private CqlExpressionFactory expressionFactory;
-    private CqlCodesytesmDefinitionsBuilder codesytesmDefinitionsBuilder;
+    private CqlCodesytemDefinitionsFactory codesytemDefinitionsFactory;
 
     @BeforeEach
-    void initBuilder() {
+    void initFactory() {
         expressionFactory = EasyMock.createNiceMock(CqlExpressionFactory.class);
 
-        codesytesmDefinitionsBuilder = new CqlCodesytesmDefinitionsBuilder(expressionFactory);
+        codesytemDefinitionsFactory = new CqlCodesytemDefinitionsFactory(expressionFactory);
     }
 
     @Test
-    void test_createCodesystemDefinitionsStatement_emptyDto() {
+    void test_create_emptyDto() {
         replay(expressionFactory);
 
-        String input = codesytesmDefinitionsBuilder.createCodesystemDefinitionsStatement(new SimpleQueryDto());
-
-        assertThat("Error creating codesystem definition for empty DTO.", CqlTestHelper.trim(input), is(""));
+        String codesystemDefinitions = codesytemDefinitionsFactory.create(new SimpleQueryDto());
+        assertThat("Error creating codesystem definition for empty DTO.", CqlTestHelper.trim(codesystemDefinitions), is(""));
     }
 
     @Test
-    void test_createCodesystemDefinitionsStatement_WithoutCodesystem() {
+    void test_create_WithoutCodesystem() {
         SimpleQueryDto queryDto = createDtoWithOneField(MDR_URN_1);
 
         expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn("");
@@ -51,11 +50,12 @@ class CqlCodesystemDefinitionsBuilderTest {
 
         replay(expressionFactory);
 
-        assertThat("Error creating codesystem definition for one field without codesytem.", CqlTestHelper.trim(codesytesmDefinitionsBuilder.createCodesystemDefinitionsStatement(queryDto)), is(""));
+        String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
+        assertThat("Error creating codesystem definition for one field without codesytem.", CqlTestHelper.trim(codesystemDefinitions), is(""));
     }
 
     @Test
-    void test_createCodesystemDefinitionsStatement_WithoutCodesystemName() {
+    void test_create_WithoutCodesystemName() {
         SimpleQueryDto queryDto = createDtoWithOneField(MDR_URN_1);
 
         expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn("");
@@ -63,11 +63,12 @@ class CqlCodesystemDefinitionsBuilderTest {
 
         replay(expressionFactory);
 
-        assertThat("Error creating codesystem definition  for one field without codesytem name.", CqlTestHelper.trim(codesytesmDefinitionsBuilder.createCodesystemDefinitionsStatement(queryDto)), is(""));
+        String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
+        assertThat("Error creating codesystem definition  for one field without codesytem name.", CqlTestHelper.trim(codesystemDefinitions), is(""));
     }
 
     @Test
-    void test_createCodesystemDefinitionsStatement_WithoutCodesystemUrl() {
+    void test_create_WithoutCodesystemUrl() {
         SimpleQueryDto queryDto = createDtoWithOneField(MDR_URN_1);
 
         expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn(CODESYSTEM_NAME_1);
@@ -75,11 +76,12 @@ class CqlCodesystemDefinitionsBuilderTest {
 
         replay(expressionFactory);
 
-        assertThat("Error creating codesystem definition  for one field without codesytem url.", CqlTestHelper.trim(codesytesmDefinitionsBuilder.createCodesystemDefinitionsStatement(queryDto)), is(""));
+        String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
+        assertThat("Error creating codesystem definition  for one field without codesytem url.", CqlTestHelper.trim(codesystemDefinitions), is(""));
     }
 
     @Test
-    void test_createCodesystemDefinitionsStatement_WithCodesystem() {
+    void test_create_WithCodesystem() {
         SimpleQueryDto queryDto = createDtoWithOneField(MDR_URN_1);
 
         expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn(CODESYSTEM_NAME_1);
@@ -87,12 +89,12 @@ class CqlCodesystemDefinitionsBuilderTest {
 
         replay(expressionFactory);
 
-        String cqlQuery = CqlTestHelper.trim(codesytesmDefinitionsBuilder.createCodesystemDefinitionsStatement(queryDto));
-        assertThat("Error creating codesystem definition  for one field with codesytem.", CqlTestHelper.trim(cqlQuery), is(EXPECTED_CODESYTEM_DEFINITION_1));
+        String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
+        assertThat("Error creating codesystem definition  for one field with codesytem.", CqlTestHelper.trim(codesystemDefinitions), is(EXPECTED_CODESYTEM_DEFINITION_1));
     }
 
     @Test
-    void test_createCodesystemDefinitionsStatement_WithTwoDifferentCodesystems() {
+    void test_create_WithTwoDifferentCodesystems() {
         SimpleQueryDto queryDto = createDtoWithOneField(MDR_URN_1, MDR_URN_2);
 
         expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn(CODESYSTEM_NAME_1);
@@ -103,13 +105,13 @@ class CqlCodesystemDefinitionsBuilderTest {
 
         replay(expressionFactory);
 
-        String cqlQuery = CqlTestHelper.trim(codesytesmDefinitionsBuilder.createCodesystemDefinitionsStatement(queryDto));
-        assertThat("Wrong number of codesystem statement for SampleMaterialType.", StringUtils.countMatches(cqlQuery, EXPECTED_CODESYTEM_DEFINITION_1), is(1));
-        assertThat("Wrong number of codesystem statement for StorageTemperature.", StringUtils.countMatches(cqlQuery, EXPECTED_CODESYTEM_DEFINITION_2), is(1));
+        String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
+        assertThat("Wrong number of codesystem definitions for SampleMaterialType.", StringUtils.countMatches(CqlTestHelper.trim(codesystemDefinitions), EXPECTED_CODESYTEM_DEFINITION_1), is(1));
+        assertThat("Wrong number of codesystem definitions for StorageTemperature.", StringUtils.countMatches(CqlTestHelper.trim(codesystemDefinitions), EXPECTED_CODESYTEM_DEFINITION_2), is(1));
     }
 
     @Test
-    void test_createCodesystemDefinitionsStatement_WithTwoDifferentCodesystemsInTwoEntities() {
+    void test_create_WithTwoDifferentCodesystemsInTwoEntities() {
         SimpleQueryDto queryDto = createDtoWithTwoFields(MDR_URN_1, MDR_URN_2);
 
         expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn(CODESYSTEM_NAME_1);
@@ -120,13 +122,13 @@ class CqlCodesystemDefinitionsBuilderTest {
 
         replay(expressionFactory);
 
-        String cqlQuery = CqlTestHelper.trim(codesytesmDefinitionsBuilder.createCodesystemDefinitionsStatement(queryDto));
-        assertThat("Wrong number of codesystem statement for SampleMaterialType.", StringUtils.countMatches(cqlQuery, EXPECTED_CODESYTEM_DEFINITION_1), is(1));
-        assertThat("Wrong number of codesystem statement for StorageTemperature.", StringUtils.countMatches(cqlQuery, EXPECTED_CODESYTEM_DEFINITION_2), is(1));
+        String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
+        assertThat("Wrong number of codesystem definitions for SampleMaterialType.", StringUtils.countMatches(CqlTestHelper.trim(codesystemDefinitions), EXPECTED_CODESYTEM_DEFINITION_1), is(1));
+        assertThat("Wrong number of codesystem definitions for StorageTemperature.", StringUtils.countMatches(CqlTestHelper.trim(codesystemDefinitions), EXPECTED_CODESYTEM_DEFINITION_2), is(1));
     }
 
     @Test
-    void test_createCodesystemDefinitionsStatement_WithTheSameCodesystemsInTwoEntities() {
+    void test_create_WithTheSameCodesystemsInTwoEntities() {
         SimpleQueryDto queryDto = createDtoWithTwoFields(MDR_URN_1, MDR_URN_2);
 
         expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn(CODESYSTEM_NAME_1);
@@ -137,12 +139,12 @@ class CqlCodesystemDefinitionsBuilderTest {
 
         replay(expressionFactory);
 
-        String cqlQuery = CqlTestHelper.trim(codesytesmDefinitionsBuilder.createCodesystemDefinitionsStatement(queryDto));
-        assertThat("Error creating codesystem definition for two fields in two entities with the same codesytem.", cqlQuery, is(EXPECTED_CODESYTEM_DEFINITION_1));
+        String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
+        assertThat("Error creating codesystem definition for two fields in two entities with the same codesytem.", CqlTestHelper.trim(codesystemDefinitions), is(EXPECTED_CODESYTEM_DEFINITION_1));
     }
 
     @Test
-    void test_createCodesystemDefinitionsStatement_WithSameCodesystemTwice() {
+    void test_create_WithSameCodesystemTwice() {
         SimpleQueryDto queryDto = createDtoWithOneField(MDR_URN_1, MDR_URN_2);
 
         expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn(CODESYSTEM_NAME_1);
@@ -153,8 +155,8 @@ class CqlCodesystemDefinitionsBuilderTest {
 
         replay(expressionFactory);
 
-        String cqlQuery = CqlTestHelper.trim(codesytesmDefinitionsBuilder.createCodesystemDefinitionsStatement(queryDto));
-        assertThat("Error creating codesystem definition for two fields with the same codesytem.", cqlQuery, is(EXPECTED_CODESYTEM_DEFINITION_1));
+        String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
+        assertThat("Error creating codesystem definition for two fields with the same codesytem.", CqlTestHelper.trim(codesystemDefinitions), is(EXPECTED_CODESYTEM_DEFINITION_1));
     }
 
     @NotNull

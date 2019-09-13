@@ -5,29 +5,21 @@ import de.samply.share.query.field.AbstractQueryFieldDto;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-class CqlCodesytesmDefinitionsBuilder {
+class CqlCodesytemDefinitionsFactory {
 
     private final CqlExpressionFactory cqlExpressionFactory;
 
-    CqlCodesytesmDefinitionsBuilder(CqlExpressionFactory cqlExpressionFactory) {
+    CqlCodesytemDefinitionsFactory(CqlExpressionFactory cqlExpressionFactory) {
         this.cqlExpressionFactory = cqlExpressionFactory;
     }
 
-    String createCodesystemDefinitionsStatement(SimpleQueryDto queryDto) {
-        List<AbstractQueryFieldDto<?,?>> combinedFieldDtoList = new ArrayList<>();
-
-        combinedFieldDtoList.addAll(queryDto.getDonorDto().getFieldsDto());
-        combinedFieldDtoList.addAll(queryDto.getSampleContextDto().getFieldsDto());
-        combinedFieldDtoList.addAll(queryDto.getSampleDto().getFieldsDto());
-        combinedFieldDtoList.addAll(queryDto.getEventDto().getFieldsDto());
-
-        return createCodesystemDefinition(combinedFieldDtoList);
+    String create(SimpleQueryDto queryDto) {
+        return createCodesystemDefinition(FieldDtoCollector.collect(queryDto));
     }
 
     private String createCodesystemDefinition(List<AbstractQueryFieldDto<?, ?>> fieldsDto) {

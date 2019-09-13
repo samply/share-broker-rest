@@ -49,7 +49,7 @@ class CqlTestHelper {
 
     @NotNull
     static FieldDecimalDto createFieldDto(String mdrUrn, ValueDecimalDto... valueDtoList) {
-        MdrFieldDto mdrFieldDto = creadeMdrFieldDto(mdrUrn);
+        MdrFieldDto mdrFieldDto = createMdrFieldDto(mdrUrn);
 
         FieldDecimalDto fieldDto = new FieldDecimalDto();
         fieldDto.setMdrFieldDto(mdrFieldDto);
@@ -61,7 +61,7 @@ class CqlTestHelper {
     }
 
     @NotNull
-    private static MdrFieldDto creadeMdrFieldDto(String mdrUrn) {
+    private static MdrFieldDto createMdrFieldDto(String mdrUrn) {
         MdrFieldDto mdrFieldDto = new MdrFieldDto();
         mdrFieldDto.setUrn(mdrUrn);
         return mdrFieldDto;

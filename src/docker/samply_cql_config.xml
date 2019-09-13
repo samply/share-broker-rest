@@ -5,7 +5,7 @@
 	The <preamble> must contain information about FHIR libraries and a variable {0} where the context (Specimen, Patient) will be inserted as well as a variable {1] where codesystems are inserted.
     Variable binding:
         {0}     context (Specimen, Patient)
-        {1}     codesystem statements
+        {1}     codesystem definitions
 
 	The <pathCqlExpression> represents the path starting at the resource corresponding to the context ending with the field in the FHIR resource corresponding to the UI field.
     Variable binding:

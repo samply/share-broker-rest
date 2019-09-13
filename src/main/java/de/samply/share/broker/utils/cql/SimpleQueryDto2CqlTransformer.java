@@ -11,13 +11,13 @@ public class SimpleQueryDto2CqlTransformer {
     }
 
     public String toQuery(SimpleQueryDto queryDto, String entityType) {
-        CqlCodesytesmDefinitionsBuilder codesytesmDefinittionsBuilder = new CqlCodesytesmDefinitionsBuilder(cqlExpressionFactory);
-        CqlAtomicExpressionBuilder atomicExpressionBuilder = new CqlAtomicExpressionBuilder(cqlExpressionFactory);
-        CqlPredicateBuilder predicateBuilder = new CqlPredicateBuilder(cqlExpressionFactory, atomicExpressionBuilder);
+        CqlCodesytemDefinitionsFactory codesytemDefinitionsFactory = new CqlCodesytemDefinitionsFactory(cqlExpressionFactory);
+        CqlFieldExpressionFactory fieldExpressionFactory = new CqlFieldExpressionFactory(cqlExpressionFactory);
+        CqlPredicateFactory predicateFactory = new CqlPredicateFactory(fieldExpressionFactory);
 
-        String codesystemDefinitionsStatement = codesytesmDefinittionsBuilder.createCodesystemDefinitionsStatement(queryDto);
-        String cqlPredicateStatement = predicateBuilder.createCqlPredicateStatment(queryDto, entityType);
+        String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
+        String cqlPredicate = predicateFactory.create(queryDto, entityType);
 
-        return cqlExpressionFactory.getPreamble(entityType, codesystemDefinitionsStatement) + cqlPredicateStatement;
+        return cqlExpressionFactory.getPreamble(entityType, codesystemDefinitions) + cqlPredicate;
     }
 }

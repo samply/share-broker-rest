@@ -116,14 +116,14 @@ class CqlExpressionFactory {
         return MessageFormat.format(cqlAtomicExpressionEntry.getAtomicCqlExpression(), atomicExpressionParameter.asVarArgParameter());
     }
 
-    String getPathExpression(String mdrUrn, String entityType, String atomicExpressions) {
+    String getPathExpression(String mdrUrn, String entityType, String valuesExpression) {
         CqlConfig.CqlEntityTypeEntry cqlEntityTypeEntry1 = mapPathExpressions.get(mdrUrn, entityType);
         if (cqlEntityTypeEntry1 == null) {
             logger.warn("No valid cql configuration found for entity type '" + entityType + "' and mdrUrn '" + mdrUrn + "'");
             return "";
         }
 
-        return MessageFormat.format(cqlEntityTypeEntry1.getPathCqlExpression(), atomicExpressions);
+        return MessageFormat.format(cqlEntityTypeEntry1.getPathCqlExpression(), valuesExpression);
     }
 
     String getPreamble(String entityType, String codesystems) {
