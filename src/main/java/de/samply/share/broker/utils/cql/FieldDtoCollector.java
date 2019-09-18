@@ -12,9 +12,7 @@ class FieldDtoCollector {
         List<AbstractQueryFieldDto<?, ?>> fieldDtos = new ArrayList<>();
 
         fieldDtos.addAll(queryDto.getDonorDto().getFieldsDto());
-        fieldDtos.addAll(queryDto.getSampleContextDto().getFieldsDto());
         fieldDtos.addAll(queryDto.getSampleDto().getFieldsDto());
-        fieldDtos.addAll(queryDto.getEventDto().getFieldsDto());
 
         return fieldDtos;
     }

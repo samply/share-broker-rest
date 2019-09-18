@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [3.2.0 - 2019.08.26]
 ### Changed
 - Added default value 'QUERY' for query language
+### Removed
+- removed SampleContext and moved fields from Event to Donor
 
 ## [3.1.0 - 2019-07-02]
 ### Changed
