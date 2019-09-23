@@ -18,7 +18,9 @@ public class SimpleQueryDto2ShareXmlTransformer {
         And andPojo = objectFactory.createAnd();
 
         addTermsToAndExpression(andPojo, queryDto.getDonorDto().getFieldsDto());
+        addTermsToAndExpression(andPojo, queryDto.getSampleContextDto().getFieldsDto());
         addTermsToAndExpression(andPojo, queryDto.getSampleDto().getFieldsDto());
+        addTermsToAndExpression(andPojo, queryDto.getEventDto().getFieldsDto());
 
         wherePojo.getAndOrEqOrLike().add(andPojo);
         queryPojo.setWhere(wherePojo);
