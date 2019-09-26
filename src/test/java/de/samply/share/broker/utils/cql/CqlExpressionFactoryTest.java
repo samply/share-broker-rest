@@ -24,6 +24,9 @@ class CqlExpressionFactoryTest {
     private static final String URN_NOT_EXISTING = "urn:mdr16:dataelement:47:11";
     private static final String URN_TWO_CODESYSTEMS = "urn:mdr16:dataelement:08:15";
 
+    private static final String MDR_URN_PATIENT = "urn:mdr16:dataelement:08:16";
+    private static final String MDR_URN_PATIENT_OBSERVATION = "urn:mdr16:dataelement:08:17";
+
     private static final String ENTITY_TYPE_PATIENT = "Patient";
     private static final String ENTITY_TYPE_SPECIMEN = "Specimen";
     private static final String ENTITY_TYPE_NOT_EXISTING = "Scientist";
@@ -136,31 +139,31 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getCodesystems_empty() {
-        List<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_GENDER);
-        assertThat("Error getting empty list of codesystems.", codesystems, is(Collections.emptyList()));
+        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_GENDER);
+        assertThat("Error getting empty list of codesystems.", codesystems, is(Collections.emptySet()));
     }
 
     @Test
     void test_getCodesystems_filled_name() {
-        List<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TEMPERATURE);
+        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TEMPERATURE);
         assertThat("Error getting filled list of codesystems.", codesystems.size(), is(1));
 
-        String codesystemName = codesystems.get(0).getName();
+        String codesystemName = codesystems.iterator().next().getName();
         assertThat("Error getting name of code system.", StringUtils.trim(codesystemName), is("StorageTemperature"));
     }
 
     @Test
     void test_getCodesystems_filled_url() {
-        List<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TEMPERATURE);
+        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TEMPERATURE);
         assertThat("Error getting filled list of codesystems.", codesystems.size(), is(1));
 
-        String codesystemUrl = codesystems.get(0).getUrl();
+        String codesystemUrl = codesystems.iterator().next().getUrl();
         assertThat("Error getting url of code system.", StringUtils.trim(codesystemUrl), is("https://fhir.bbmri.de/CodeSystem/StorageTemperature"));
     }
 
     @Test
     void test_getCodesystems_filled_twoCodesystems_names() {
-        List<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TWO_CODESYSTEMS);
+        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TWO_CODESYSTEMS);
         assertThat("Error getting filled list with 2 codesystems.", codesystems.size(), is(2));
 
         Set<String> expectedNames = new HashSet<>();
@@ -173,7 +176,7 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getCodesystems_filled_twoCodesystems_urls() {
-        List<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TWO_CODESYSTEMS);
+        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TWO_CODESYSTEMS);
         assertThat("Error getting filled list with 2 codesystems.", codesystems.size(), is(2));
 
         Set<String> expectedUrls = new HashSet<>();
@@ -182,6 +185,33 @@ class CqlExpressionFactoryTest {
 
         Set<String> actualUrls = codesystems.stream().map(CqlConfig.Codesystem::getUrl).collect(Collectors.toSet());
         assertThat("Error getting names of list with 2 codesystems.", actualUrls, is(expectedUrls));
+    }
+
+    @Test
+    void test_getSingletons_empty_forEntityType() {
+        Set<CqlConfig.Singleton> singletons = factory.getSingletons(MDR_URN_PATIENT, ENTITY_TYPE_PATIENT);
+        assertThat("Error getting empty list for entity type without singletons.", singletons, is(Collections.emptySet()));
+
+    }
+
+    @Test
+    void test_getSingletons_filled_forEntityType() {
+        Set<CqlConfig.Singleton> singletons = factory.getSingletons(MDR_URN_PATIENT, ENTITY_TYPE_SPECIMEN);
+        assertThat("Error getting filled list with singleton.", singletons.size(), is(1));
+
+    }
+
+    @Test
+    void test_getSingletons_filled_twoSingletons() {
+        Set<CqlConfig.Singleton> singletons = factory.getSingletons(MDR_URN_PATIENT_OBSERVATION, ENTITY_TYPE_SPECIMEN);
+        assertThat("Error getting filled list with 2 singletons.", singletons.size(), is(2));
+
+        Set<String> expectedUrls = new HashSet<>();
+        expectedUrls.add("Patient");
+        expectedUrls.add("Observation");
+
+        Set<String> actualNames = singletons.stream().map(CqlConfig.Singleton::getName).collect(Collectors.toSet());
+        assertThat("Error getting names of list with 2 singletons.", actualNames, is(expectedUrls));
     }
 
     @Test

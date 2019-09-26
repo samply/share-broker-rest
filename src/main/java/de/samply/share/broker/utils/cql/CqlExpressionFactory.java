@@ -2,6 +2,7 @@ package de.samply.share.broker.utils.cql;
 
 import de.samply.share.query.enums.SimpleValueCondition;
 import de.samply.share.query.value.AbstractQueryValueDto;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -12,17 +13,15 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.*;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class CqlExpressionFactory {
 
     private final MultiKeyMap<String, CqlConfig.CqlAtomicExpressionEntry> mapAtomicExpressions = new MultiKeyMap<>();
     private final MultiKeyMap<String, CqlConfig.CqlEntityTypeEntry> mapPathExpressions = new MultiKeyMap<>();
     private final MultiKeyMap<String, String> mapPermittedValues = new MultiKeyMap<>();
-    private final Map<String, List<CqlConfig.Codesystem>> mapCodesystems = new HashMap<>();
+    private final MultiKeyMap<String, Set<CqlConfig.Singleton>> mapSingletons = new MultiKeyMap<>();
+    private final Map<String, Set<CqlConfig.Codesystem>> mapCodesystems = new HashMap<>();
     private final Map<String, String> mapExtensions = new HashMap<>();
 
     private String preambleTemplate = "";
@@ -60,7 +59,7 @@ class CqlExpressionFactory {
 
         for (CqlConfig.CqlMdrFieldEntry mdrFieldEntry : mapping.getMdrFieldEntryList()) {
             for (CqlConfig.Codesystem codesystem : mdrFieldEntry.getCodesystemList()) {
-                List<CqlConfig.Codesystem> codesystems = mapCodesystems.getOrDefault(mdrFieldEntry.getMdrUrn(), new ArrayList<>());
+                Set<CqlConfig.Codesystem> codesystems = mapCodesystems.getOrDefault(mdrFieldEntry.getMdrUrn(), new HashSet<>());
 
                 codesystems.add(codesystem);
                 mapCodesystems.put(mdrFieldEntry.getMdrUrn(), codesystems);
@@ -75,6 +74,20 @@ class CqlExpressionFactory {
             for (CqlConfig.CqlEntityTypeEntry entityTypeEntry : mdrFieldEntry.getEntityTypeEntryList()) {
                 for (CqlConfig.CqlAtomicExpressionEntry atomicExpressionEntry : entityTypeEntry.getAtomicExpressionList()) {
                     mapAtomicExpressions.put(mdrFieldEntry.getMdrUrn(), entityTypeEntry.getEntityTypeName(), atomicExpressionEntry.getOperator(), atomicExpressionEntry);
+                }
+            }
+        }
+
+        for (CqlConfig.CqlMdrFieldEntry mdrFieldEntry : mapping.getMdrFieldEntryList()) {
+            for (CqlConfig.CqlEntityTypeEntry entityTypeEntry : mdrFieldEntry.getEntityTypeEntryList()) {
+                for (CqlConfig.Singleton singleton : entityTypeEntry.getSingletonList()) {
+                    Set<CqlConfig.Singleton> singletons = mapSingletons.get(mdrFieldEntry.getMdrUrn(), entityTypeEntry.getEntityTypeName());
+                    if (CollectionUtils.isEmpty(singletons)) {
+                        singletons = new HashSet<>();
+                    }
+                    singletons.add(singleton);
+
+                    mapSingletons.put(mdrFieldEntry.getMdrUrn(), entityTypeEntry.getEntityTypeName(), singletons);
                 }
             }
         }
@@ -120,16 +133,16 @@ class CqlExpressionFactory {
         return MessageFormat.format(cqlEntityTypeEntry1.getPathCqlExpression(), valuesExpression);
     }
 
-    String getPreamble(String entityType, String codesystems) {
-        return MessageFormat.format(preambleTemplate, entityType, codesystems);
+    String getPreamble(String entityType, String codesystemsAndSingletons) {
+        return MessageFormat.format(preambleTemplate, entityType, codesystemsAndSingletons);
     }
 
     String getExtensionUrl(String mdrUrn) {
         return mapExtensions.getOrDefault(mdrUrn, "");
     }
 
-    List<CqlConfig.Codesystem> getCodesystems(String mdrUrn) {
-        return mapCodesystems.getOrDefault(mdrUrn, new ArrayList<>());
+    Set<CqlConfig.Codesystem> getCodesystems(String mdrUrn) {
+        return mapCodesystems.getOrDefault(mdrUrn, new HashSet<>());
     }
 
     AtomicExpressionParameter createAtomicExpressionParameter(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
@@ -138,6 +151,12 @@ class CqlExpressionFactory {
 
     String getCqlValue(String mdrUrn, String mdrValue) {
         return StringUtils.defaultString(mapPermittedValues.get(mdrUrn, mdrValue), mdrValue);
+    }
+
+    Set<CqlConfig.Singleton> getSingletons(String mdrUrn, String entityType) {
+        Set<CqlConfig.Singleton> singletons = mapSingletons.get(mdrUrn, entityType);
+
+        return !CollectionUtils.isEmpty(singletons) ? singletons : new HashSet<>();
     }
 
     class AtomicExpressionParameter {

@@ -104,7 +104,7 @@
                     exists(
                     from Specimen.extension E
                     where E.url = ''{1}''
-                    and E.value.coding contains Code ''{2}'' from StorageTemperature})
+                    and E.value.coding contains Code ''{2}'' from StorageTemperature)
                 </atomicCqlExpression>
             </atomicExpression>
         </entityType>
@@ -221,10 +221,10 @@
         </entityType>
         <entityType>
             <entityTypeName>Specimen</entityTypeName>
+            <singleton>
+                <name>Patient</name>
+            </singleton>
             <pathCqlExpression>
-                define Patient:
-                singleton from ([Patient])
-
                 exists(
                 from [Patient -&gt; Observation: Code ''39156-5'' from loinc] O
                 where {0})

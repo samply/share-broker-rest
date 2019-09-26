@@ -111,6 +111,19 @@ class CqlConfig {
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
+    static class Singleton {
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
     static class PermittedValueEntry {
         private String mdrKey;
         private String cqlValue;
@@ -141,6 +154,9 @@ class CqlConfig {
         @XmlElement(name = "atomicExpression")
         private List<CqlAtomicExpressionEntry> atomicExpressionList = new ArrayList<>();
 
+        @XmlElement(name = "singleton")
+        private List<Singleton> singletonList = new ArrayList<>();
+
         String getPathCqlExpression() {
             return pathCqlExpression;
         }
@@ -163,6 +179,14 @@ class CqlConfig {
 
         void setAtomicExpressionList(List<CqlAtomicExpressionEntry> atomicExpressionList) {
             this.atomicExpressionList = atomicExpressionList;
+        }
+
+        public List<Singleton> getSingletonList() {
+            return singletonList;
+        }
+
+        public void setSingletonList(List<Singleton> singletonList) {
+            this.singletonList = singletonList;
         }
     }
 
