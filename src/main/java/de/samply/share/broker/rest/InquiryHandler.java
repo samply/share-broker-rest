@@ -41,6 +41,7 @@ import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.*;
 import de.samply.share.broker.utils.SimpleQueryDto2ShareXmlTransformer;
+import de.samply.share.broker.utils.cql.SimpleQueryDto2CqlTransformer;
 import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.ProjectInfo;
@@ -94,30 +95,6 @@ public class InquiryHandler {
 
     private static final String QUERYLANGUAGE_QUERY = "QUERY";
     private static final String QUERYLANGUAGE_CQL = "CQL";
-
-    private static final String DUMMY_QUERY_MALE =
-            "library Retrieve\n" +
-                    "using FHIR version '4.0.0'\n" +
-                    "include FHIRHelpers version '4.0.0'\n" +
-                    "\n" +
-                    "codesystem gender: 'http://hl7.org/fhir/administrative-gender'\n" +
-                    "\n" +
-                    "context Patient\n" +
-                    "\n" +
-                    "define InInitialPopulation:\n" +
-                    "  Patient.gender ~ Code 'male' from gender";
-
-    private static final String DUMMY_QUERY_FEMALE =
-            "library Retrieve\n" +
-                    "using FHIR version '4.0.0'\n" +
-                    "include FHIRHelpers version '4.0.0'\n" +
-                    "\n" +
-                    "codesystem gender: 'http://hl7.org/fhir/administrative-gender'\n" +
-                    "\n" +
-                    "context Patient\n" +
-                    "\n" +
-                    "define InInitialPopulation:\n" +
-                    "  Patient.gender ~ Code 'female' from gender";
 
     public InquiryHandler() {
     }
@@ -868,31 +845,40 @@ public class InquiryHandler {
         createAndSaveInquiryCriteriaTypeQuery(simpleQueryDtoXml, inquiry, connection);
     }
 
-    private void createAndSaveInquiryCriteriaTypeCql(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) {
+    private void createAndSaveInquiryCriteriaTypeCql(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
         createAndSaveInquiryCriteriaTypeCqlPatient(simpleQueryDtoXml, inquiry, connection);
         createAndSaveInquiryCriteriaTypeCqlSpecimen(simpleQueryDtoXml, inquiry, connection);
     }
 
-    private void createAndSaveInquiryCriteriaTypeCqlPatient(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) {
+    private void createAndSaveInquiryCriteriaTypeCqlPatient(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
         String cql = createCqlPatient(simpleQueryDtoXml);
 
         createAndSaveInquiryCriteriaTypeCql(cql, inquiry, connection, ENTITY_TYPE_FOR_CQL_PATIENT);
     }
 
-    private void createAndSaveInquiryCriteriaTypeCqlSpecimen(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) {
+    private void createAndSaveInquiryCriteriaTypeCqlSpecimen(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
         String cql = createCqlSpecimen(simpleQueryDtoXml);
 
         createAndSaveInquiryCriteriaTypeCql(cql, inquiry, connection, ENTITY_TYPE_FOR_CQL_SPECIMEN);
     }
 
-    private String createCqlPatient(String simpleQueryDtoXml) {
-        // TODO: return real CQL query for patient according to simpleQueryDto
-        return DUMMY_QUERY_MALE;
+    private String createCqlPatient(String simpleQueryDtoXml) throws JAXBException {
+        return createCql(simpleQueryDtoXml, ENTITY_TYPE_FOR_CQL_PATIENT);
     }
 
-    private String createCqlSpecimen(String simpleQueryDtoXml) {
-        // TODO: return real CQL query for patient according to simpleQueryDto
-        return DUMMY_QUERY_FEMALE;
+    private String createCqlSpecimen(String simpleQueryDtoXml) throws JAXBException {
+        return createCql(simpleQueryDtoXml, ENTITY_TYPE_FOR_CQL_SPECIMEN);
+    }
+
+    private String createCql(String simpleQueryDtoXml, String entityType) throws JAXBException {
+        if (!StringUtils.isEmpty(simpleQueryDtoXml)) {
+            JAXBContext jaxbContext = JAXBContext.newInstance(SimpleQueryDto.class);
+            SimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, SimpleQueryDto.class);
+
+            return new SimpleQueryDto2CqlTransformer().toQuery(simpleQueryDto, entityType);
+        }
+
+        return "false";
     }
 
     private void createAndSaveInquiryCriteriaTypeCql(String cql, Inquiry inquiry, Connection connection, String entityType) {
