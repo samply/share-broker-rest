@@ -48,6 +48,7 @@ import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.model.common.Contact;
 import de.samply.share.model.common.*;
+import de.samply.share.model.common.inquiery.InquiriesIdList;
 import de.samply.share.model.cql.CqlQuery;
 import de.samply.share.model.cql.CqlQueryList;
 import de.samply.share.query.entity.SimpleQueryDto;
