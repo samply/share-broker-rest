@@ -27,11 +27,15 @@ class CqlCodesytemDefinitionsFactory {
 
         for (AbstractQueryFieldDto<?, ?> fieldDto : fieldsDto) {
             String mdrUrn = fieldDto.getUrn();
-            String codesystemUrl = cqlExpressionFactory.getCodesystemUrl(mdrUrn);
-            String codesystemName = cqlExpressionFactory.getCodesystemName(mdrUrn);
 
-            if (!StringUtils.isBlank(codesystemName) && !StringUtils.isBlank(codesystemUrl)) {
-                codesystemDefinitions.add(MessageFormat.format("codesystem {0}: ''{1}''", codesystemName, codesystemUrl));
+            for (CqlConfig.Codesystem codesystem : cqlExpressionFactory.getCodesystems(mdrUrn)) {
+
+                String codesystemName = codesystem.getName();
+                String codesystemUrl = codesystem.getUrl();
+                if (!StringUtils.isBlank(codesystemName) && !StringUtils.isBlank(codesystemUrl)) {
+                    codesystemDefinitions.add(MessageFormat.format("codesystem {0}: ''{1}''",
+                            codesystemName, codesystemUrl));
+                }
             }
         }
 

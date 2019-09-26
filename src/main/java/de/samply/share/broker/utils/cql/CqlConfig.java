@@ -36,9 +36,10 @@ class CqlConfig {
     static class CqlMdrFieldEntry {
         private String mdrUrn;
 
-        private String codesystemName;
-        private String codesystemUrl;
         private String extensionUrl;
+
+        @XmlElement(name = "codesystem")
+        private List<Codesystem> codesystemList = new ArrayList<>();
 
         @XmlElement(name = "permittedValue")
         private List<PermittedValueEntry> permittedValueEntryList = new ArrayList<>();
@@ -54,28 +55,20 @@ class CqlConfig {
             this.mdrUrn = mdrUrn;
         }
 
-        String getCodesystemName() {
-            return codesystemName;
-        }
-
-        public void setCodesystemName(String codesystemName) {
-            this.codesystemName = codesystemName;
-        }
-
-        String getCodesystemUrl() {
-            return codesystemUrl;
-        }
-
-        public void setCodesystemUrl(String codesystemUrl) {
-            this.codesystemUrl = codesystemUrl;
-        }
-
         String getExtensionUrl() {
             return extensionUrl;
         }
 
         public void setExtensionUrl(String extensionUrl) {
             this.extensionUrl = extensionUrl;
+        }
+
+        List<Codesystem> getCodesystemList() {
+            return codesystemList;
+        }
+
+        public void setCodesystemList(List<Codesystem> codesystemList) {
+            this.codesystemList = codesystemList;
         }
 
         List<PermittedValueEntry> getPermittedValueEntryList() {
@@ -92,6 +85,28 @@ class CqlConfig {
 
         void setEntityTypeEntryList(List<CqlEntityTypeEntry> entityTypeEntryList) {
             this.entityTypeEntryList = entityTypeEntryList;
+        }
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    static class Codesystem {
+        private String name;
+        private String url;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
         }
     }
 

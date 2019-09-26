@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.*;
@@ -43,10 +44,9 @@ class CqlCodesystemDefinitionsFactoryTest {
 
     @Test
     void test_create_WithoutCodesystem() {
-        SimpleQueryDto queryDto = createDtoWithOneField(MDR_URN_1);
+        SimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1);
 
-        expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn("");
-        expect(expressionFactory.getCodesystemUrl(MDR_URN_1)).andReturn("");
+        expect(expressionFactory.getCodesystems(MDR_URN_1)).andReturn(new ArrayList<>());
 
         replay(expressionFactory);
 
@@ -55,37 +55,12 @@ class CqlCodesystemDefinitionsFactoryTest {
     }
 
     @Test
-    void test_create_WithoutCodesystemName() {
-        SimpleQueryDto queryDto = createDtoWithOneField(MDR_URN_1);
-
-        expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn("");
-        expect(expressionFactory.getCodesystemUrl(MDR_URN_1)).andReturn(CODESYSTEM_URL_1);
-
-        replay(expressionFactory);
-
-        String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
-        assertThat("Error creating codesystem definition  for one field without codesytem name.", CqlTestHelper.trim(codesystemDefinitions), is(""));
-    }
-
-    @Test
-    void test_create_WithoutCodesystemUrl() {
-        SimpleQueryDto queryDto = createDtoWithOneField(MDR_URN_1);
-
-        expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn(CODESYSTEM_NAME_1);
-        expect(expressionFactory.getCodesystemUrl(MDR_URN_1)).andReturn("");
-
-        replay(expressionFactory);
-
-        String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
-        assertThat("Error creating codesystem definition  for one field without codesytem url.", CqlTestHelper.trim(codesystemDefinitions), is(""));
-    }
-
-    @Test
     void test_create_WithCodesystem() {
-        SimpleQueryDto queryDto = createDtoWithOneField(MDR_URN_1);
+        SimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1);
 
-        expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn(CODESYSTEM_NAME_1);
-        expect(expressionFactory.getCodesystemUrl(MDR_URN_1)).andReturn(CODESYSTEM_URL_1);
+        List<CqlConfig.Codesystem> expectedCodesystems1 =
+                createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1));
+        expect(expressionFactory.getCodesystems(MDR_URN_1)).andReturn(expectedCodesystems1);
 
         replay(expressionFactory);
 
@@ -95,13 +70,32 @@ class CqlCodesystemDefinitionsFactoryTest {
 
     @Test
     void test_create_WithTwoDifferentCodesystems() {
-        SimpleQueryDto queryDto = createDtoWithOneField(MDR_URN_1, MDR_URN_2);
+        SimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1, MDR_URN_2);
 
-        expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn(CODESYSTEM_NAME_1);
-        expect(expressionFactory.getCodesystemUrl(MDR_URN_1)).andReturn(CODESYSTEM_URL_1);
+        List<CqlConfig.Codesystem> expectedCodesystems1 =
+                createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1));
+        expect(expressionFactory.getCodesystems(MDR_URN_1)).andReturn(expectedCodesystems1);
 
-        expect(expressionFactory.getCodesystemName(MDR_URN_2)).andReturn(CODESYSTEM_NAME_2);
-        expect(expressionFactory.getCodesystemUrl(MDR_URN_2)).andReturn(CODESYSTEM_URL_2);
+        List<CqlConfig.Codesystem> expectedCodesystems2 =
+                createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_2, CODESYSTEM_URL_2));
+        expect(expressionFactory.getCodesystems(MDR_URN_2)).andReturn(expectedCodesystems2);
+
+        replay(expressionFactory);
+
+        String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
+        assertThat("Wrong number of codesystem definitions for SampleMaterialType.", StringUtils.countMatches(CqlTestHelper.trim(codesystemDefinitions), EXPECTED_CODESYTEM_DEFINITION_1), is(1));
+        assertThat("Wrong number of codesystem definitions for StorageTemperature.", StringUtils.countMatches(CqlTestHelper.trim(codesystemDefinitions), EXPECTED_CODESYTEM_DEFINITION_2), is(1));
+    }
+
+    @Test
+    void test_create_WithTwoDifferentCodesystemsInOneField() {
+        SimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1);
+
+        List<CqlConfig.Codesystem> expectedCodesystems1 =
+                createExpectedCodesystemList(
+                        createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1),
+                        createExpectedCodesystem(CODESYSTEM_NAME_2, CODESYSTEM_URL_2));
+        expect(expressionFactory.getCodesystems(MDR_URN_1)).andReturn(expectedCodesystems1);
 
         replay(expressionFactory);
 
@@ -114,11 +108,13 @@ class CqlCodesystemDefinitionsFactoryTest {
     void test_create_WithTwoDifferentCodesystemsInTwoEntities() {
         SimpleQueryDto queryDto = createDtoWithTwoFields(MDR_URN_1, MDR_URN_2);
 
-        expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn(CODESYSTEM_NAME_1);
-        expect(expressionFactory.getCodesystemUrl(MDR_URN_1)).andReturn(CODESYSTEM_URL_1);
+        List<CqlConfig.Codesystem> expectedCodesystems1 =
+                createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1));
+        expect(expressionFactory.getCodesystems(MDR_URN_1)).andReturn(expectedCodesystems1);
 
-        expect(expressionFactory.getCodesystemName(MDR_URN_2)).andReturn(CODESYSTEM_NAME_2);
-        expect(expressionFactory.getCodesystemUrl(MDR_URN_2)).andReturn(CODESYSTEM_URL_2);
+        List<CqlConfig.Codesystem> expectedCodesystems2 =
+                createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_2, CODESYSTEM_URL_2));
+        expect(expressionFactory.getCodesystems(MDR_URN_2)).andReturn(expectedCodesystems2);
 
         replay(expressionFactory);
 
@@ -131,11 +127,13 @@ class CqlCodesystemDefinitionsFactoryTest {
     void test_create_WithTheSameCodesystemsInTwoEntities() {
         SimpleQueryDto queryDto = createDtoWithTwoFields(MDR_URN_1, MDR_URN_2);
 
-        expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn(CODESYSTEM_NAME_1);
-        expect(expressionFactory.getCodesystemUrl(MDR_URN_1)).andReturn(CODESYSTEM_URL_1);
+        List<CqlConfig.Codesystem> expectedCodesystems1 =
+                createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1));
+        expect(expressionFactory.getCodesystems(MDR_URN_1)).andReturn(expectedCodesystems1);
 
-        expect(expressionFactory.getCodesystemName(MDR_URN_2)).andReturn(CODESYSTEM_NAME_1);
-        expect(expressionFactory.getCodesystemUrl(MDR_URN_2)).andReturn(CODESYSTEM_URL_1);
+        List<CqlConfig.Codesystem> expectedCodesystems2 =
+                createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1));
+        expect(expressionFactory.getCodesystems(MDR_URN_2)).andReturn(expectedCodesystems2);
 
         replay(expressionFactory);
 
@@ -144,14 +142,16 @@ class CqlCodesystemDefinitionsFactoryTest {
     }
 
     @Test
-    void test_create_WithSameCodesystemTwice() {
-        SimpleQueryDto queryDto = createDtoWithOneField(MDR_URN_1, MDR_URN_2);
+    void test_create_WithTheSameCodesystemTwice() {
+        SimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1, MDR_URN_2);
 
-        expect(expressionFactory.getCodesystemName(MDR_URN_1)).andReturn(CODESYSTEM_NAME_1);
-        expect(expressionFactory.getCodesystemUrl(MDR_URN_1)).andReturn(CODESYSTEM_URL_1);
+        List<CqlConfig.Codesystem> expectedCodesystems1 =
+                createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1));
+        expect(expressionFactory.getCodesystems(MDR_URN_1)).andReturn(expectedCodesystems1);
 
-        expect(expressionFactory.getCodesystemName(MDR_URN_2)).andReturn(CODESYSTEM_NAME_1);
-        expect(expressionFactory.getCodesystemUrl(MDR_URN_2)).andReturn(CODESYSTEM_URL_1);
+        List<CqlConfig.Codesystem> expectedCodesystems2 =
+                createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1));
+        expect(expressionFactory.getCodesystems(MDR_URN_2)).andReturn(expectedCodesystems2);
 
         replay(expressionFactory);
 
@@ -160,7 +160,7 @@ class CqlCodesystemDefinitionsFactoryTest {
     }
 
     @NotNull
-    private SimpleQueryDto createDtoWithOneField(String... urnList) {
+    private SimpleQueryDto createDtoWithFields(String... urnList) {
         List<FieldDecimalDto> fieldDtos = new ArrayList<>();
 
         for (String mdrUrn : urnList) {
@@ -181,5 +181,17 @@ class CqlCodesystemDefinitionsFactoryTest {
         FieldDecimalDto fieldDto2 = CqlTestHelper.createFieldDto(mdrUrn2, valueDto2);
 
         return CqlTestHelper.createSimpleQueryDtoTwoFieldsInTwoEntities(fieldDto1, fieldDto2);
+    }
+
+    @NotNull
+    private List<CqlConfig.Codesystem> createExpectedCodesystemList(CqlConfig.Codesystem... codsystems) {
+        return new ArrayList<>(Arrays.asList(codsystems));
+    }
+
+    private CqlConfig.Codesystem createExpectedCodesystem(String codesystemName, String codesystemUrl) {
+        CqlConfig.Codesystem codesystem = new CqlConfig.Codesystem();
+        codesystem.setName(codesystemName);
+        codesystem.setUrl(codesystemUrl);
+        return codesystem;
     }
 }

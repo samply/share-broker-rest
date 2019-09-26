@@ -10,10 +10,11 @@ import org.apache.logging.log4j.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class CqlExpressionFactory {
@@ -21,8 +22,7 @@ class CqlExpressionFactory {
     private final MultiKeyMap<String, CqlConfig.CqlAtomicExpressionEntry> mapAtomicExpressions = new MultiKeyMap<>();
     private final MultiKeyMap<String, CqlConfig.CqlEntityTypeEntry> mapPathExpressions = new MultiKeyMap<>();
     private final MultiKeyMap<String, String> mapPermittedValues = new MultiKeyMap<>();
-    private final Map<String, String> mapCodesystemNames = new HashMap<>();
-    private final Map<String, String> mapCodesystemUrls = new HashMap<>();
+    private final Map<String, List<CqlConfig.Codesystem>> mapCodesystems = new HashMap<>();
     private final Map<String, String> mapExtensions = new HashMap<>();
 
     private String preambleTemplate = "";
@@ -35,6 +35,10 @@ class CqlExpressionFactory {
         } catch (IOException e) {
             logger.warn("No valid config resource 'samply_cql_config.xml' could be found", e);
         }
+    }
+
+    CqlExpressionFactory(InputStream cqlConfigStream) {
+        initMaps(cqlConfigStream);
     }
 
     private void initMaps(InputStream cqlConfigStream) {
@@ -55,12 +59,11 @@ class CqlExpressionFactory {
         this.preambleTemplate = mapping.getPreamble();
 
         for (CqlConfig.CqlMdrFieldEntry mdrFieldEntry : mapping.getMdrFieldEntryList()) {
-            if (!StringUtils.isBlank(mdrFieldEntry.getCodesystemName())) {
-                mapCodesystemNames.put(mdrFieldEntry.getMdrUrn(), mdrFieldEntry.getCodesystemName());
-            }
+            for (CqlConfig.Codesystem codesystem : mdrFieldEntry.getCodesystemList()) {
+                List<CqlConfig.Codesystem> codesystems = mapCodesystems.getOrDefault(mdrFieldEntry.getMdrUrn(), new ArrayList<>());
 
-            if (!StringUtils.isBlank(mdrFieldEntry.getCodesystemUrl())) {
-                mapCodesystemUrls.put(mdrFieldEntry.getMdrUrn(), mdrFieldEntry.getCodesystemUrl());
+                codesystems.add(codesystem);
+                mapCodesystems.put(mdrFieldEntry.getMdrUrn(), codesystems);
             }
 
             if (!StringUtils.isBlank(mdrFieldEntry.getExtensionUrl())) {
@@ -125,12 +128,8 @@ class CqlExpressionFactory {
         return mapExtensions.getOrDefault(mdrUrn, "");
     }
 
-    String getCodesystemName(String mdrUrn) {
-        return mapCodesystemNames.getOrDefault(mdrUrn, "");
-    }
-
-    String getCodesystemUrl(String mdrUrn) {
-        return mapCodesystemUrls.getOrDefault(mdrUrn, "");
+    List<CqlConfig.Codesystem> getCodesystems(String mdrUrn) {
+        return mapCodesystems.getOrDefault(mdrUrn, new ArrayList<>());
     }
 
     AtomicExpressionParameter createAtomicExpressionParameter(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
@@ -150,7 +149,6 @@ class CqlExpressionFactory {
         private final String maxValue;
 
         private final String extensionUrl;
-        private final String codesystemName;
 
         AtomicExpressionParameter(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
             this.mdrUrn = mdrUrn;
@@ -159,7 +157,6 @@ class CqlExpressionFactory {
             this.value = getCqlValue(mdrUrn, valueDto.getValueAsXmlString());
             this.maxValue = getCqlValue(mdrUrn, valueDto.getMaxValueAsXmlString());
             this.extensionUrl = getExtensionUrl(mdrUrn);
-            this.codesystemName = getCodesystemName(mdrUrn);
         }
 
         String getMdrUrn() {
@@ -194,7 +191,7 @@ class CqlExpressionFactory {
         }
 
         String[] asVarArgParameter() {
-            return new String[]{getOperator(), codesystemName, extensionUrl, value, maxValue};
+            return new String[]{getOperator(), extensionUrl, value, maxValue};
         }
     }
 }

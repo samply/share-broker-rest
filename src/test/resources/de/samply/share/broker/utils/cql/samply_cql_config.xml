@@ -243,4 +243,18 @@
             </atomicExpression>
         </entityType>
     </uiField>
+
+    <!-- Artifical MDR field / two codesystems -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:08:15</mdrUrn>
+        <codesystem>
+            <name>loinc</name>
+            <url>http://loinc.org</url>
+        </codesystem>
+        <codesystem>
+            <name>loinc2</name>
+            <url>http://loinc2.org</url>
+        </codesystem>
+    </uiField>
+
 </cqlConfig>

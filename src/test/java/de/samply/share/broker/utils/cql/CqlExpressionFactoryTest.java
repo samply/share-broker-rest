@@ -7,6 +7,13 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -15,6 +22,7 @@ class CqlExpressionFactoryTest {
     private static final String URN_GENDER = "urn:mdr16:dataelement:23:1";
     private static final String URN_TEMPERATURE = "urn:mdr16:dataelement:17:1";
     private static final String URN_NOT_EXISTING = "urn:mdr16:dataelement:47:11";
+    private static final String URN_TWO_CODESYSTEMS = "urn:mdr16:dataelement:08:15";
 
     private static final String ENTITY_TYPE_PATIENT = "Patient";
     private static final String ENTITY_TYPE_SPECIMEN = "Specimen";
@@ -35,7 +43,9 @@ class CqlExpressionFactoryTest {
 
     @BeforeEach
     void initFactory() {
-        factory = new CqlExpressionFactory();
+        InputStream resourceAsStream = CqlExpressionFactoryTest.class.getResourceAsStream("samply_cql_config.xml");
+
+        factory = new CqlExpressionFactory(resourceAsStream);
     }
 
     @Test
@@ -125,27 +135,53 @@ class CqlExpressionFactoryTest {
     }
 
     @Test
-    void test_getCodesystemName_blank() {
-        String codesystemName = factory.getCodesystemName(URN_GENDER);
-        assertThat("Error getting empty name of code system.", StringUtils.trim(codesystemName), is(""));
+    void test_getCodesystems_empty() {
+        List<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_GENDER);
+        assertThat("Error getting empty list of codesystems.", codesystems, is(Collections.emptyList()));
     }
 
     @Test
-    void test_getCodesystemName_filled() {
-        String codesystemName = factory.getCodesystemName(URN_TEMPERATURE);
+    void test_getCodesystems_filled_name() {
+        List<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TEMPERATURE);
+        assertThat("Error getting filled list of codesystems.", codesystems.size(), is(1));
+
+        String codesystemName = codesystems.get(0).getName();
         assertThat("Error getting name of code system.", StringUtils.trim(codesystemName), is("StorageTemperature"));
     }
 
     @Test
-    void test_getCodesystemUrl_blank() {
-        String codesystemUrl = factory.getCodesystemUrl(URN_GENDER);
-        assertThat("Error getting empty url of code system.", StringUtils.trim(codesystemUrl), is(""));
+    void test_getCodesystems_filled_url() {
+        List<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TEMPERATURE);
+        assertThat("Error getting filled list of codesystems.", codesystems.size(), is(1));
+
+        String codesystemUrl = codesystems.get(0).getUrl();
+        assertThat("Error getting url of code system.", StringUtils.trim(codesystemUrl), is("https://fhir.bbmri.de/CodeSystem/StorageTemperature"));
     }
 
     @Test
-    void test_getCodesystemUrl_filled() {
-        String codesystemUrl = factory.getCodesystemUrl(URN_TEMPERATURE);
-        assertThat("Error getting url of code system.", StringUtils.trim(codesystemUrl), is("https://fhir.bbmri.de/CodeSystem/StorageTemperature"));
+    void test_getCodesystems_filled_twoCodesystems_names() {
+        List<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TWO_CODESYSTEMS);
+        assertThat("Error getting filled list with 2 codesystems.", codesystems.size(), is(2));
+
+        Set<String> expectedNames = new HashSet<>();
+        expectedNames.add("loinc");
+        expectedNames.add("loinc2");
+
+        Set<String> actualNames = codesystems.stream().map(CqlConfig.Codesystem::getName).collect(Collectors.toSet());
+        assertThat("Error getting names of list with 2 codesystems.", actualNames, is(expectedNames));
+    }
+
+    @Test
+    void test_getCodesystems_filled_twoCodesystems_urls() {
+        List<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TWO_CODESYSTEMS);
+        assertThat("Error getting filled list with 2 codesystems.", codesystems.size(), is(2));
+
+        Set<String> expectedUrls = new HashSet<>();
+        expectedUrls.add("http://loinc.org");
+        expectedUrls.add("http://loinc2.org");
+
+        Set<String> actualUrls = codesystems.stream().map(CqlConfig.Codesystem::getUrl).collect(Collectors.toSet());
+        assertThat("Error getting names of list with 2 codesystems.", actualUrls, is(expectedUrls));
     }
 
     @Test
