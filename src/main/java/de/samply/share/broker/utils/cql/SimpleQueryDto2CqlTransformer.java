@@ -20,6 +20,6 @@ public class SimpleQueryDto2CqlTransformer {
         String singletonStatements = singletonsFactory.create(queryDto, entityType);
         String cqlPredicate = predicateFactory.create(queryDto, entityType);
 
-        return cqlExpressionFactory.getPreamble(entityType, codesystemDefinitions + "\n\n" + singletonStatements) + cqlPredicate;
+        return cqlExpressionFactory.getPreamble(entityType, codesystemDefinitions, singletonStatements) + cqlPredicate;
     }
 }

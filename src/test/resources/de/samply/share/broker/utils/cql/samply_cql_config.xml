@@ -3,9 +3,11 @@
 	This config file defines snippets for CQL queries.
 
 	The <preamble> must contain information about FHIR libraries and a variable {0} where the context (Specimen, Patient) will be inserted as well as a variable {1] where codesystems are inserted.
+    For fields (depending on entity type) which need a singleton statement the variable {2} definie the place where all singleton statements are inserted.
     Variable binding:
         {0}     context (Specimen, Patient)
         {1}     codesystem definitions
+        {2}     singleton statements
 
 	The <pathCqlExpression> represents the path starting at the resource corresponding to the context ending with the field in the FHIR resource corresponding to the UI field.
     Variable binding:
@@ -25,16 +27,17 @@
 		Additionally characters such as > < ... must be encoded as &lt; &gt; ... according to XML (see https://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references)
 -->
 <cqlConfig>
-    <preamble>
-        library Retrieve
-        using FHIR version ''4.0.0''
-        include FHIRHelpers version ''4.0.0''
+    <preamble>library Retrieve
+using FHIR version ''4.0.0''
+include FHIRHelpers version ''4.0.0''
 
-        {1}
+{1}
 
-        context {0}
+context {0}
 
-        define InInitialPopulation:
+{2}
+
+define InInitialPopulation:
     </preamble>
 
     <!-- Sample type liquid -->
@@ -48,14 +51,12 @@
         <entityType>
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
-                exists(
-                from [Specimen] S where {0})
+    exists(
+    from [Specimen] S where {0})
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>
-                    S.value.coding contains Code ''{2}'' from SampleMaterialType
-                </atomicCqlExpression>
+                <atomicCqlExpression>S.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <entityType>
@@ -63,9 +64,7 @@
             <pathCqlExpression>{0}</pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>
-                    Specimen.value.coding contains Code ''{2}'' from SampleMaterialType
-                </atomicCqlExpression>
+                <atomicCqlExpression>Specimen.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
             </atomicExpression>
         </entityType>
     </uiField>
@@ -82,16 +81,16 @@
         <entityType>
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
-                exists(
-                from [Specimen] S where {0})
+    exists(
+    from [Specimen] S where {0})
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>
-                    exists(
-                    from S.extension E
-                    where E.url = ''{1}''
-                    and E.value.coding contains Code ''{2}'' from StorageTemperature)
+    exists(
+    from S.extension E
+    where E.url = ''{1}''
+    and E.value.coding contains Code ''{2}'' from StorageTemperature)
                 </atomicCqlExpression>
             </atomicExpression>
         </entityType>
@@ -101,10 +100,10 @@
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>
-                    exists(
-                    from Specimen.extension E
-                    where E.url = ''{1}''
-                    and E.value.coding contains Code ''{2}'' from StorageTemperature)
+    exists(
+    from Specimen.extension E
+    where E.url = ''{1}''
+    and E.value.coding contains Code ''{2}'' from StorageTemperature)
                 </atomicCqlExpression>
             </atomicExpression>
         </entityType>
@@ -179,7 +178,9 @@
         </entityType>
         <entityType>
             <entityTypeName>Specimen</entityTypeName>
-            <pathCqlExpression>exists(from [Patient] P where {0})</pathCqlExpression>
+            <pathCqlExpression>
+    exists(from [Patient] P where {0})
+            </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>P.gender {0} ''{2}''</atomicCqlExpression>
@@ -202,21 +203,17 @@
         <entityType>
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
-                exists(
-                from [Observation: Code ''39156-5'' from loinc] O
-                where {0})
+    exists(
+    from [Observation: Code ''39156-5'' from loinc] O
+    where {0})
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>
-                    (O.value as Quantity) {0} {1} ''kg/m2''
-                </atomicCqlExpression>
+                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''kg/m2''</atomicCqlExpression>
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
-                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg/m2'') and (O.value as Quantity) &gt; {2}
-                    ''kg/m2'')
-                </atomicCqlExpression>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg/m2'') and (O.value as Quantity) &gt; {2} ''kg/m2'')</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <entityType>
@@ -225,21 +222,17 @@
                 <name>Patient</name>
             </singleton>
             <pathCqlExpression>
-                exists(
-                from [Patient -&gt; Observation: Code ''39156-5'' from loinc] O
-                where {0})
+    exists(
+    from [Patient -&gt; Observation: Code ''39156-5'' from loinc] O
+    where {0})
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>
-                    (O.value as Quantity) {0} {1} ''kg/m2''
-                </atomicCqlExpression>
+                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''kg/m2''</atomicCqlExpression>
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
-                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg/m2'') and (O.value as Quantity) &gt; {2}
-                    ''kg/m2'')
-                </atomicCqlExpression>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg/m2'') and (O.value as Quantity) &gt; {2} ''kg/m2'')</atomicCqlExpression>
             </atomicExpression>
         </entityType>
     </uiField>
@@ -286,6 +279,24 @@
             </singleton>
             <singleton>
                 <name>Observation</name>
+            </singleton>
+        </entityType>
+    </uiField>
+
+    <!-- Artifical MDR field / with two singletons 'Patient' & 'Patient' -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:08:18</mdrUrn>
+        <codesystem/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <singleton>
+                <name>Patient</name>
+            </singleton>
+            <singleton>
+                <name>Patient</name>
             </singleton>
         </entityType>
     </uiField>

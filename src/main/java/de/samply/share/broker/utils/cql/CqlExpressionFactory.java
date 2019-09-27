@@ -133,8 +133,8 @@ class CqlExpressionFactory {
         return MessageFormat.format(cqlEntityTypeEntry1.getPathCqlExpression(), valuesExpression);
     }
 
-    String getPreamble(String entityType, String codesystemsAndSingletons) {
-        return MessageFormat.format(preambleTemplate, entityType, codesystemsAndSingletons);
+    String getPreamble(String entityType, String codesystems, String singletons) {
+        return MessageFormat.format(preambleTemplate, entityType, codesystems, singletons);
     }
 
     String getExtensionUrl(String mdrUrn) {

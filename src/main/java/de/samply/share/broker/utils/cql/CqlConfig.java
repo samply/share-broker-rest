@@ -1,5 +1,8 @@
 package de.samply.share.broker.utils.cql;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -120,6 +123,26 @@ class CqlConfig {
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Singleton)) {
+                return false;
+            }
+
+            Singleton compare = (Singleton) obj;
+
+            EqualsBuilder builder = new EqualsBuilder();
+            builder.append(this.name, compare.name);
+            return builder.build();
+        }
+
+        @Override
+        public int hashCode() {
+            HashCodeBuilder builder = new HashCodeBuilder();
+            builder.append(name);
+            return builder.build();
         }
     }
 

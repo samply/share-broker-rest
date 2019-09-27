@@ -26,6 +26,7 @@ class CqlExpressionFactoryTest {
 
     private static final String MDR_URN_PATIENT = "urn:mdr16:dataelement:08:16";
     private static final String MDR_URN_PATIENT_OBSERVATION = "urn:mdr16:dataelement:08:17";
+    private static final String MDR_URN_PATIENT_PATIENT = "urn:mdr16:dataelement:08:18";
 
     private static final String ENTITY_TYPE_PATIENT = "Patient";
     private static final String ENTITY_TYPE_SPECIMEN = "Specimen";
@@ -33,14 +34,16 @@ class CqlExpressionFactoryTest {
 
     private static final String ECPECTED_PREAMBLE_TEMPLATE =
             "library Retrieve\n" +
-                    "        using FHIR version '4.0.0'\n" +
-                    "        include FHIRHelpers version '4.0.0'\n" +
+                    "using FHIR version '4.0.0'\n" +
+                    "include FHIRHelpers version '4.0.0'\n" +
                     "\n" +
-                    "        library-infos\n" +
+                    "codesystem-definitions\n" +
                     "\n" +
-                    "        context Scientist\n" +
+                    "context Scientist\n" +
                     "\n" +
-                    "        define InInitialPopulation:";
+                    "singleton-statements\n" +
+                    "\n" +
+                    "define InInitialPopulation:";
 
     private CqlExpressionFactory factory;
 
@@ -53,7 +56,7 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getPreamble() {
-        String preamble = factory.getPreamble(ENTITY_TYPE_NOT_EXISTING, "library-infos");
+        String preamble = factory.getPreamble(ENTITY_TYPE_NOT_EXISTING, "codesystem-definitions", "singleton-statements");
         assertThat("Error reading preamble.", StringUtils.trim(preamble), is(ECPECTED_PREAMBLE_TEMPLATE));
     }
 
@@ -198,7 +201,6 @@ class CqlExpressionFactoryTest {
     void test_getSingletons_filled_forEntityType() {
         Set<CqlConfig.Singleton> singletons = factory.getSingletons(MDR_URN_PATIENT, ENTITY_TYPE_SPECIMEN);
         assertThat("Error getting filled list with singleton.", singletons.size(), is(1));
-
     }
 
     @Test
@@ -206,12 +208,24 @@ class CqlExpressionFactoryTest {
         Set<CqlConfig.Singleton> singletons = factory.getSingletons(MDR_URN_PATIENT_OBSERVATION, ENTITY_TYPE_SPECIMEN);
         assertThat("Error getting filled list with 2 singletons.", singletons.size(), is(2));
 
-        Set<String> expectedUrls = new HashSet<>();
-        expectedUrls.add("Patient");
-        expectedUrls.add("Observation");
+        Set<String> expectedSingletons = new HashSet<>();
+        expectedSingletons.add("Patient");
+        expectedSingletons.add("Observation");
 
         Set<String> actualNames = singletons.stream().map(CqlConfig.Singleton::getName).collect(Collectors.toSet());
-        assertThat("Error getting names of list with 2 singletons.", actualNames, is(expectedUrls));
+        assertThat("Error getting names of list with 2 singletons.", actualNames, is(expectedSingletons));
+    }
+
+    @Test
+    void test_getSingletons_filled_twoIdenticalSingletons() {
+        Set<CqlConfig.Singleton> singletons = factory.getSingletons(MDR_URN_PATIENT_PATIENT, ENTITY_TYPE_SPECIMEN);
+        assertThat("Error getting filled list with 2 identical singletons.", singletons.size(), is(1));
+
+        Set<String> expectedSingletons = new HashSet<>();
+        expectedSingletons.add("Patient");
+
+        Set<String> actualNames = singletons.stream().map(CqlConfig.Singleton::getName).collect(Collectors.toSet());
+        assertThat("Error getting names of list with 2 singletons.", actualNames, is(expectedSingletons));
     }
 
     @Test

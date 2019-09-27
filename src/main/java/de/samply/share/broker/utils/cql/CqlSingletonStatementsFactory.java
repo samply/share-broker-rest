@@ -28,7 +28,7 @@ class CqlSingletonStatementsFactory {
             String mdrUrn = fieldDto.getUrn();
 
             for (CqlConfig.Singleton singleton : cqlExpressionFactory.getSingletons(mdrUrn, entityType)) {
-                singletonStatements.add(MessageFormat.format("define {0}:\nsingleton from ([{0}])", singleton.getName()));
+                singletonStatements.add(MessageFormat.format("define {0}:\nsingleton from ([{0}])\n", singleton.getName()));
             }
         }
 
