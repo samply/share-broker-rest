@@ -487,8 +487,8 @@ public class InquiryHandler {
                     continue;
                 }
 
-                InquiriesIdList.Inquiry inquiryXml = new InquiriesIdList.Inquiry();
-                inquiriesIdList.getInquiries().add(inquiryXml);
+                InquiriesIdList.InquiryId inquiryXml = new InquiriesIdList.InquiryId();
+                inquiriesIdList.getInquiryIds().add(inquiryXml);
 
                 inquiryXml.setId(Integer.toString(inquiry.getId()));
                 if (inquiry.getRevision() != null) {
@@ -499,7 +499,7 @@ public class InquiryHandler {
             }
         } catch (NullPointerException npe) {
             logger.warn("Nullpointer exception caught while trying to list inquiries. This might be caused by a missing connection between bank and site. Check the DB. Returning empty list for now.");
-            inquiriesIdList.setInquiries(new ArrayList<>());
+            inquiriesIdList.setInquiryIds(new ArrayList<>());
 
             return writeXml(inquiriesIdList);
         }

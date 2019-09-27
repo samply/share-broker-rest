@@ -45,7 +45,7 @@
         <common-http.version>5.0.0</common-http.version>
         <jsf-renderer.version>2.0.0</jsf-renderer.version>
         <share-common.version>3.3.0</share-common.version>
-        <share-dto.version>4.6.1</share-dto.version>
+        <share-dto.version>4.6.2</share-dto.version>
         <!-- general dependencies -->
         <!-- We must keep the older mojarra version as the opening of elements
              in the search_query.xhtml is not working, otherwise. -->
