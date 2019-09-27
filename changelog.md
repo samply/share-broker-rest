@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [3.2.0 - 2019.08.26]
+## [3.2.1 - 2019-09-26]
+### Bugfix
+- Update share-dto (avoid using namespace)
+
+## [3.2.0 - 2019-08-26]
 ### Changed
 - Added default value 'QUERY' for query language
 ### Removed
