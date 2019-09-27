@@ -31,7 +31,6 @@ package de.samply.share.broker.rest;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.itextpdf.awt.geom.misc.Messages;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
 import de.samply.share.broker.model.db.enums.*;
@@ -41,11 +40,20 @@ import de.samply.share.broker.model.db.tables.daos.ReplyDao;
 import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.utils.SimpleQueryDto2ShareXmlTransformer;
+import de.samply.share.broker.utils.cql.SimpleQueryDto2CqlTransformer;
 import de.samply.share.broker.utils.db.*;
+import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.model.common.Contact;
 import de.samply.share.model.common.*;
+import de.samply.share.model.common.inquiry.InquiriesIdList;
+import de.samply.share.model.cql.CqlQuery;
+import de.samply.share.model.cql.CqlQueryList;
+import de.samply.share.query.entity.SimpleQueryDto;
+import de.samply.share.utils.QueryConverter;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
@@ -72,6 +80,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -82,6 +91,11 @@ public class InquiryHandler {
     private static final Logger logger = LogManager.getLogger(InquiryHandler.class);
 
     private static final String ENTITY_TYPE_FOR_QUERY = "Donor + Sample";
+    private static final String ENTITY_TYPE_FOR_CQL_PATIENT = "Patient";
+    private static final String ENTITY_TYPE_FOR_CQL_SPECIMEN = "Specimen";
+
+    private static final String QUERYLANGUAGE_QUERY = "QUERY";
+    private static final String QUERYLANGUAGE_CQL = "CQL";
 
     public InquiryHandler() {
     }
@@ -89,7 +103,7 @@ public class InquiryHandler {
     /**
      * Store an inquiry and release it (or wait for ccp office authorization first)
      *
-     * @param query              the query criteria of the inquiry
+     * @param simpleQueryDtoXml  the query criteria of the inquiry as SimpleQueryDto represented as XML
      * @param userid             the id of the user that releases the inquiry
      * @param inquiryName        the label of the inquiry
      * @param inquiryDescription the description of the inquiry
@@ -99,8 +113,8 @@ public class InquiryHandler {
      * @param bypassExamination  if true, no check by the ccp office is required
      * @return the id of the inquiry
      */
-    public int storeAndRelease(Query query, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes, boolean bypassExamination) {
-        int inquiryId = store(query, userid, inquiryName, inquiryDescription, exposeId, voteId, resultTypes);
+    public int storeAndRelease(String simpleQueryDtoXml, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes, boolean bypassExamination) {
+        int inquiryId = store(simpleQueryDtoXml, userid, inquiryName, inquiryDescription, exposeId, voteId, resultTypes);
         Inquiry inquiry = InquiryUtil.fetchInquiryById(inquiryId);
         release(inquiry, bypassExamination);
         return inquiryId;
@@ -109,7 +123,7 @@ public class InquiryHandler {
     /**
      * Store a new inquiry draft
      *
-     * @param query              the query criteria of the inquiry
+     * @param simpleQueryDtoXml  the query criteria of the inquiry as SimpleQueryDto represented as XML
      * @param userid             the id of the user that releases the inquiry
      * @param inquiryName        the label of the inquiry
      * @param inquiryDescription the description of the inquiry
@@ -118,7 +132,7 @@ public class InquiryHandler {
      * @param resultTypes        list of the entities that are searched for
      * @return the id of the inquiry draft
      */
-    public int store(Query query, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes) {
+    private int store(String simpleQueryDtoXml, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes) {
         int returnValue = 0;
         UserDao userDao;
         User user;
@@ -142,15 +156,6 @@ public class InquiryHandler {
             inquiry.setLabel(inquiryName);
             inquiry.setDescription(inquiryDescription);
 
-            // If the query is null, create an empty query and fill it with the default AND
-            if (query == null) {
-                query = new Query();
-                Where where = new Where();
-                And and = new And();
-                where.getAndOrEqOrLike().add(and);
-                query.setWhere(where);
-            }
-
             inquiry.setStatus(InquiryStatus.IS_DRAFT);
 
             String joinedResultTypes = "";
@@ -165,7 +170,7 @@ public class InquiryHandler {
             inquiry.setCreated(inquiryRecord.getValue(Tables.INQUIRY.CREATED));
             inquiry.setId(inquiryRecord.getValue(Tables.INQUIRY.ID));
 
-            createAndSaveInquiryDetails(query, inquiry, connection);
+            createAndSaveInquiryCriteria(simpleQueryDtoXml, inquiry, connection);
 
             if (exposeId > 0) {
                 Document expose = DocumentUtil.getDocumentById(exposeId);
@@ -235,10 +240,8 @@ public class InquiryHandler {
 
                 inquiryDao = new InquiryDao(configuration);
                 inquiryDao.update(inquiry);
-                int appNr = record.getValue(Tables.PROJECT.APPLICATION_NUMBER);
 
                 int inquiryId = inquiry.getId();
-                Integer exposeId = DocumentUtil.getExposeIdByInquiryId(inquiryId);
 
                 DocumentUtil.setProjectIdForDocumentByInquiryId(inquiryId, projectId);
 
@@ -280,7 +283,7 @@ public class InquiryHandler {
 
             Action action = new Action();
             action.setProjectId(project.getId());
-            action.setMessage(Messages.getString(ActionType.AT_INQUIRY_EDITED.toString()));
+            action.setMessage(ActionType.AT_INQUIRY_EDITED.toString());
             action.setType(ActionType.AT_PROJECT_CALLBACK_RECEIVED);
             action.setTime(SamplyShareUtils.getCurrentTime());
             action.setUserId(userid);
@@ -367,7 +370,7 @@ public class InquiryHandler {
 
             returnValue = saveTentativeInquiry(inquiry, connection).getValue(Tables.INQUIRY.ID);
 
-            createAndSaveInquiryDetails(query, inquiry, connection);
+            createAndSaveInquiryCriteriaTypeQuery(query, inquiry, connection);
         } catch (JAXBException e1) {
             e1.printStackTrace();
             return 0;
@@ -390,7 +393,7 @@ public class InquiryHandler {
      * @param documentType     the type of the document (expose, vote, report...)
      * @return the id of the newly added document
      */
-    public int addDocument(Integer projectId, Integer inquiryId, int userId, File documentData, String documentFilename, String documentFiletype, DocumentType documentType) {
+    int addDocument(Integer projectId, Integer inquiryId, int userId, File documentData, String documentFilename, String documentFiletype, DocumentType documentType) {
         int returnValue = 0;
 
         try (Connection connection = ResourceManager.getConnection()) {
@@ -454,14 +457,14 @@ public class InquiryHandler {
      * @return the serialized list of inquiry ids
      */
     protected String list(int bankId) {
-        StringBuilder returnValue = new StringBuilder();
-        List<Inquiry> inquiries;
+        List<Inquiry> inquiryList;
+        InquiriesIdList inquiriesIdList = new InquiriesIdList();
 
         try {
             BankSite bankSite = BankSiteUtil.fetchBankSiteByBankId(bankId);
             if (bankSite == null) {
                 logger.warn("No Bank site for bank id '" + bankId + "' is found. Not providing any inquiries.");
-                return "<Inquiries />";
+                return writeXml(inquiriesIdList);
             }
 
             Site site = SiteUtil.fetchSiteById(bankSite.getSiteId());
@@ -469,39 +472,53 @@ public class InquiryHandler {
 
             if (siteIdForBank == null || siteIdForBank < 1) {
                 logger.warn("Bank " + bankId + " is not associated with a site. Not providing any inquiries.");
-                return "<Inquiries />";
+                return writeXml(inquiriesIdList);
             }
 
             if (!bankSite.getApproved()) {
                 logger.warn("Bank " + bankId + " is associated with a site, but that association has not been approved. Not providing any inquiries.");
-                return "<Inquiries />";
+                return writeXml(inquiriesIdList);
             }
 
-            inquiries = InquiryUtil.fetchInquiriesForSite(siteIdForBank);
+            inquiryList = InquiryUtil.fetchInquiriesForSite(siteIdForBank);
 
-            returnValue.append("<Inquiries>");
-            for (Inquiry inquiry : inquiries) {
+            for (Inquiry inquiry : inquiryList) {
                 if ((inquiry.getRevision() < 1)) {
                     continue;
                 }
 
-                returnValue.append("<Inquiry>");
-                returnValue.append("<Id>").append(inquiry.getId()).append("</Id>");
-                if (inquiry.getRevision() != null) {
-                    returnValue.append("<Revision>").append(inquiry.getRevision()).append("</Revision>");
-                } else {
-                    returnValue.append("<Revision>1</Revision>");
-                }
-                returnValue.append("</Inquiry>");
-            }
-            returnValue.append("</Inquiries>");
+                InquiriesIdList.InquiryId inquiryXml = new InquiriesIdList.InquiryId();
+                inquiriesIdList.getInquiryIds().add(inquiryXml);
 
+                inquiryXml.setId(Integer.toString(inquiry.getId()));
+                if (inquiry.getRevision() != null) {
+                    inquiryXml.setRevision(Integer.toString(inquiry.getRevision()));
+                } else {
+                    inquiryXml.setRevision("1");
+                }
+            }
         } catch (NullPointerException npe) {
             logger.warn("Nullpointer exception caught while trying to list inquiries. This might be caused by a missing connection between bank and site. Check the DB. Returning empty list for now.");
-            return "<Inquiries />";
+            inquiriesIdList.setInquiryIds(new ArrayList<>());
+
+            return writeXml(inquiriesIdList);
         }
 
-        return returnValue.toString();
+        return writeXml(inquiriesIdList);
+    }
+
+    private String writeXml(InquiriesIdList inquiries) {
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(InquiriesIdList.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
+            StringWriter writer = new StringWriter();
+            marshaller.marshal(inquiries, writer);
+
+            return writer.toString();
+        } catch (JAXBException e) {
+            logger.warn("JAXBException occured: " + e.getMessage());
+            return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Inquiries xmlns=\"http://schema.samply.de/common/Query\"></Inquiries>";
+        }
     }
 
     // TODO: bankId parameter is currently basically useless - may change with access restrictions
@@ -512,9 +529,10 @@ public class InquiryHandler {
      * @param inquiryId       the id of the inquiry to get
      * @param uriInfo         the uri info object linked with the request
      * @param userAgentHeader the user agent header of the requesting client
+     * @param queryLanguage   either "CQL" or "QUERY"
      * @return the serialized inquiry
      */
-    String getInquiry(int inquiryId, UriInfo uriInfo, String userAgentHeader) {
+    String getInquiry(int inquiryId, UriInfo uriInfo, String userAgentHeader, String queryLanguage) {
         StringBuilder returnValue = new StringBuilder();
         Inquiry inquiry;
         InquiryDao inquiryDao;
@@ -553,16 +571,13 @@ public class InquiryHandler {
             inq.setLabel(inquiry.getLabel());
             inq.setDescription(inquiry.getDescription());
 
-            // Unmarshal the criteria String into a Query Object
-            String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
-            StringReader stringReader = new StringReader(criteria);
-
-            JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            Query query = (Query) unmarshaller.unmarshal(stringReader);
-
-            inq.setQuery(query);
+            if (isQueryLanguageViewQuery(queryLanguage)) {
+                addCriteriaForViewQuery(inquiryId, inq);
+            } else if (isQueryLanguageCql(queryLanguage)) {
+                addCriteriaForCql(inquiryId, inq);
+            } else {
+                logger.warn("Header parameter '" + Constants.HEADER_KEY_QUERY_LANGUAGE + "' has invalid value '" + queryLanguage + "'");
+            }
 
             Contact authorInfo = getContact(author);
             inq.setAuthor(authorInfo);
@@ -578,6 +593,8 @@ public class InquiryHandler {
             }
 
             StringWriter stringWriter = new StringWriter();
+            JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
 
             ObjectFactory objectFactory = new ObjectFactory();
@@ -594,6 +611,40 @@ public class InquiryHandler {
         }
 
         return returnValue.toString();
+    }
+
+    private boolean isQueryLanguageViewQuery(String queryLanguage) {
+        return StringUtils.equalsIgnoreCase(queryLanguage, QUERYLANGUAGE_QUERY);
+    }
+
+    private boolean isQueryLanguageCql(String queryLanguage) {
+        return StringUtils.equalsIgnoreCase(queryLanguage, QUERYLANGUAGE_CQL);
+    }
+
+    private void addCriteriaForViewQuery(int inquiryId, de.samply.share.model.common.Inquiry inq) throws JAXBException {
+        String criteria = InquiryCriteriaUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
+        StringReader stringReader = new StringReader(criteria);
+
+        JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        Query query = (Query) unmarshaller.unmarshal(stringReader);
+
+        inq.setQuery(query);
+    }
+
+    private void addCriteriaForCql(int inquiryId, de.samply.share.model.common.Inquiry inq) {
+        List<InquiryCriteria> criteriaList = InquiryCriteriaUtil.fetchCriteriaListForInquiryIdTypeCql(inquiryId);
+
+        CqlQueryList cqlQueryList = new CqlQueryList();
+        for (InquiryCriteria singleCriteria : criteriaList) {
+            CqlQuery cqlQuery = new CqlQuery();
+            cqlQuery.setEntityType(singleCriteria.getEntityType());
+            cqlQuery.setCql(singleCriteria.getCriteria());
+
+            cqlQueryList.getQueries().add(cqlQuery);
+        }
+
+        inq.setCqlQueryList(cqlQueryList);
     }
 
     /**
@@ -642,7 +693,7 @@ public class InquiryHandler {
                 return "notFound";
             }
 
-            String criteria = InquiryDetailsUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
+            String criteria = InquiryCriteriaUtil.fetchCriteriaForInquiryIdTypeQuery(inquiryId);
             returnValue.append(criteria);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -790,35 +841,104 @@ public class InquiryHandler {
         return ret;
     }
 
-    private void createAndSaveInquiryDetails(Query query, Inquiry inquiry, Connection connection) throws JAXBException {
+    private void createAndSaveInquiryCriteria(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
+        createAndSaveInquiryCriteriaTypeCql(simpleQueryDtoXml, inquiry, connection);
+        createAndSaveInquiryCriteriaTypeQuery(simpleQueryDtoXml, inquiry, connection);
+    }
+
+    private void createAndSaveInquiryCriteriaTypeCql(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
+        createAndSaveInquiryCriteriaTypeCqlPatient(simpleQueryDtoXml, inquiry, connection);
+        createAndSaveInquiryCriteriaTypeCqlSpecimen(simpleQueryDtoXml, inquiry, connection);
+    }
+
+    private void createAndSaveInquiryCriteriaTypeCqlPatient(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
+        String cql = createCqlPatient(simpleQueryDtoXml);
+
+        createAndSaveInquiryCriteriaTypeCql(cql, inquiry, connection, ENTITY_TYPE_FOR_CQL_PATIENT);
+    }
+
+    private void createAndSaveInquiryCriteriaTypeCqlSpecimen(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
+        String cql = createCqlSpecimen(simpleQueryDtoXml);
+
+        createAndSaveInquiryCriteriaTypeCql(cql, inquiry, connection, ENTITY_TYPE_FOR_CQL_SPECIMEN);
+    }
+
+    private String createCqlPatient(String simpleQueryDtoXml) throws JAXBException {
+        return createCql(simpleQueryDtoXml, ENTITY_TYPE_FOR_CQL_PATIENT);
+    }
+
+    private String createCqlSpecimen(String simpleQueryDtoXml) throws JAXBException {
+        return createCql(simpleQueryDtoXml, ENTITY_TYPE_FOR_CQL_SPECIMEN);
+    }
+
+    private String createCql(String simpleQueryDtoXml, String entityType) throws JAXBException {
+        if (!StringUtils.isEmpty(simpleQueryDtoXml)) {
+            JAXBContext jaxbContext = JAXBContext.newInstance(SimpleQueryDto.class);
+            SimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, SimpleQueryDto.class);
+
+            return new SimpleQueryDto2CqlTransformer().toQuery(simpleQueryDto, entityType);
+        }
+
+        return "false";
+    }
+
+    private void createAndSaveInquiryCriteriaTypeCql(String cql, Inquiry inquiry, Connection connection, String entityType) {
+        InquiryCriteria inquiryCriteria = new InquiryCriteria();
+        inquiryCriteria.setCriteria(cql);
+        inquiryCriteria.setInquiryId(inquiry.getId());
+        inquiryCriteria.setType(InquiryCriteriaType.IC_CQL);
+        inquiryCriteria.setEntityType(entityType);
+
+        saveInquiryCriteria(inquiryCriteria, connection);
+    }
+
+    private void createAndSaveInquiryCriteriaTypeQuery(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
+        Query query;
+
+        if (!StringUtils.isEmpty(simpleQueryDtoXml)) {
+            JAXBContext jaxbContext = JAXBContext.newInstance(SimpleQueryDto.class);
+            SimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, SimpleQueryDto.class);
+            query = new SimpleQueryDto2ShareXmlTransformer().toQuery(simpleQueryDto);
+        } else {
+            query = new Query();
+            Where where = new Where();
+            And and = new And();
+            where.getAndOrEqOrLike().add(and);
+            query.setWhere(where);
+        }
+
+        createAndSaveInquiryCriteriaTypeQuery(query, inquiry, connection);
+    }
+
+    private void createAndSaveInquiryCriteriaTypeQuery(Query query, Inquiry inquiry, Connection connection) throws JAXBException {
         JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
         StringWriter stringWriter = new StringWriter();
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
         marshaller.marshal(query, stringWriter);
 
-        InquiryDetails inquiryDetails = new InquiryDetails();
-        inquiryDetails.setCriteria(stringWriter.toString());
-        inquiryDetails.setInquiryId(inquiry.getId());
-        inquiryDetails.setType(InquiryDetailsType.QUERY);
-        inquiryDetails.setEntityType(ENTITY_TYPE_FOR_QUERY);
+        InquiryCriteria inquiryCriteria = new InquiryCriteria();
+        inquiryCriteria.setCriteria(stringWriter.toString());
+        inquiryCriteria.setInquiryId(inquiry.getId());
+        inquiryCriteria.setType(InquiryCriteriaType.IC_QUERY);
+        inquiryCriteria.setEntityType(ENTITY_TYPE_FOR_QUERY);
 
-        saveInquiryDetails(inquiryDetails, connection);
+        saveInquiryCriteria(inquiryCriteria, connection);
     }
 
-    private void saveInquiryDetails(InquiryDetails inquiryDetails, Connection connection) {
+    private void saveInquiryCriteria(InquiryCriteria inquiryCriteria, Connection connection) {
         DSLContext dslContext = ResourceManager.getDSLContext(connection);
 
         dslContext
-                .insertInto(Tables.INQUIRY_DETAILS,
-                        Tables.INQUIRY_DETAILS.INQUIRY_ID,
-                        Tables.INQUIRY_DETAILS.TYPE,
-                        Tables.INQUIRY_DETAILS.CRITERIA,
-                        Tables.INQUIRY_DETAILS.ENTITY_TYPE)
-                .values(inquiryDetails.getInquiryId(),
-                        inquiryDetails.getType(),
-                        inquiryDetails.getCriteria(),
-                        inquiryDetails.getEntityType())
+                .insertInto(Tables.INQUIRY_CRITERIA,
+                        Tables.INQUIRY_CRITERIA.INQUIRY_ID,
+                        Tables.INQUIRY_CRITERIA.TYPE,
+                        Tables.INQUIRY_CRITERIA.CRITERIA,
+                        Tables.INQUIRY_CRITERIA.ENTITY_TYPE)
+                .values(inquiryCriteria.getInquiryId(),
+                        inquiryCriteria.getType(),
+                        inquiryCriteria.getCriteria(),
+                        inquiryCriteria.getEntityType())
                 .execute();
     }
 

@@ -29,35 +29,27 @@
  */
 package de.samply.share.broker.utils;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.*;
-
-import javax.faces.application.ProjectStage;
-import javax.faces.context.FacesContext;
-import javax.servlet.ServletContext;
-import javax.servlet.http.Part;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Invocation;
-
 import com.google.gson.Gson;
+import de.samply.auth.client.jwt.JWTAccessToken;
+import de.samply.auth.rest.LocationDTO;
+import de.samply.auth.rest.UserDTO;
+import de.samply.share.broker.control.LocaleController;
+import de.samply.share.broker.jdbc.ResourceManager;
+import de.samply.share.broker.model.db.Tables;
+import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.utils.connector.IcingaConnector;
 import de.samply.share.broker.utils.connector.IcingaConnectorException;
 import de.samply.share.broker.utils.connector.SiteReportItem;
+import de.samply.share.broker.utils.db.BankUtil;
+import de.samply.share.common.model.dto.SiteInfo;
+import de.samply.share.common.model.dto.UserAgent;
 import de.samply.share.common.model.dto.monitoring.StatusReportItem;
 import de.samply.share.common.utils.AbstractConfig;
 import de.samply.share.common.utils.Constants;
+import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
+import de.samply.share.common.utils.oauth2.OAuthConfig;
+import de.samply.share.common.utils.oauth2.OAuthUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -66,23 +58,21 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 
-import de.samply.auth.client.jwt.JWTAccessToken;
-import de.samply.auth.rest.AccessTokenDTO;
-import de.samply.auth.rest.LocationDTO;
-import de.samply.auth.rest.LocationListDTO;
-import de.samply.auth.rest.UserDTO;
-import de.samply.share.broker.control.LocaleController;
-import de.samply.share.broker.control.LoginController;
-import de.samply.share.broker.control.SearchDetailsBean;
-import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.model.db.Tables;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.utils.db.BankUtil;
-import de.samply.share.common.model.dto.SiteInfo;
-import de.samply.share.common.model.dto.UserAgent;
-import de.samply.share.common.utils.ProjectInfo;
-import de.samply.share.common.utils.oauth2.OAuthConfig;
-import de.samply.share.common.utils.oauth2.OAuthUtils;
+import javax.faces.application.ProjectStage;
+import javax.faces.context.FacesContext;
+import javax.servlet.ServletContext;
+import javax.servlet.http.Part;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Invocation;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static de.samply.share.common.model.dto.monitoring.StatusReportItem.*;
 import static org.omnifaces.util.Faces.getServletContext;
@@ -94,27 +84,27 @@ public class Utils {
 
     private static final Logger logger = LogManager.getLogger(Utils.class);
 
-    public static final String PROXY_REALM = "proxy.realm";
+    private static final String PROXY_REALM = "proxy.realm";
 
-    public static final String PROXY_HTTPS_PASSWORD = "proxy.https.password";
+    private static final String PROXY_HTTPS_PASSWORD = "proxy.https.password";
 
-    public static final String PROXY_HTTPS_USERNAME = "proxy.https.username";
+    private static final String PROXY_HTTPS_USERNAME = "proxy.https.username";
 
-    public static final String PROXY_HTTP_PASSWORD = "proxy.http.password";
+    private static final String PROXY_HTTP_PASSWORD = "proxy.http.password";
 
-    public static final String PROXY_HTTP_USERNAME = "proxy.http.username";
+    private static final String PROXY_HTTP_USERNAME = "proxy.http.username";
 
-    public static final String PROXY_HTTPS_PORT = "proxy.https.port";
+    private static final String PROXY_HTTPS_PORT = "proxy.https.port";
 
-    public static final String PROXY_HTTPS_HOST = "proxy.https.host";
+    private static final String PROXY_HTTPS_HOST = "proxy.https.host";
 
-    public static final String PROXY_HTTP_PORT = "proxy.http.port";
+    private static final String PROXY_HTTP_PORT = "proxy.http.port";
 
-    public static final String PROXY_HTTP_HOST = "proxy.http.host";
+    private static final String PROXY_HTTP_HOST = "proxy.http.host";
 
     public static final String USER_AGENT = "http.useragent";
 
-    public static final String XML_NAMESPACE_BASEURL = "http://schema.samply.de/";
+    private static final String XML_NAMESPACE_BASEURL = "http://schema.samply.de/";
 
     /**
      * Get the real path for a relative path
@@ -125,31 +115,6 @@ public class Utils {
     public static String getRealPath(String relativeWebPath) {
         ServletContext sc = ProjectInfo.INSTANCE.getServletContext();
         return sc.getRealPath(relativeWebPath);
-    }
-
-    /**
-     * Save to file.
-     *
-     * @param uploadedInputStream the uploaded input stream
-     * @param uploadedFileLocation the uploaded file location
-     */
-    public static void saveToFile(InputStream uploadedInputStream, String uploadedFileLocation) {
-
-        try {
-            OutputStream out;
-            int read;
-            byte[] bytes = new byte[1024];
-
-            out = new FileOutputStream(new File(uploadedFileLocation));
-            while ((read = uploadedInputStream.read(bytes)) != -1) {
-                out.write(bytes, 0, read);
-            }
-            out.flush();
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 
     /**
@@ -192,7 +157,7 @@ public class Utils {
      * Gets the bank id from an authorization header, if it fits the email address
      *
      * @param authKeyHeader the authorization header
-     * @param bankEmail the bank email
+     * @param bankEmail     the bank email
      * @return the bank id if it matches the mail address, -1 if not
      */
     public static int getBankId(String authKeyHeader, String bankEmail) {
@@ -227,16 +192,6 @@ public class Utils {
     }
 
     /**
-     * Gets the login controller
-     *
-     * @return the LoginController
-     */
-    public static LoginController getLoginController() {
-        return (LoginController) FacesContext.getCurrentInstance().getApplication().getELResolver()
-                .getValue(FacesContext.getCurrentInstance().getELContext(), null, "loginController");
-    }
-
-    /**
      * Gets the locale controller.
      *
      * @return the locale controller
@@ -244,16 +199,6 @@ public class Utils {
     public static LocaleController getLocaleController() {
         return (LocaleController) FacesContext.getCurrentInstance().getApplication().getELResolver()
                 .getValue(FacesContext.getCurrentInstance().getELContext(), null, "localeController");
-    }
-
-    /**
-     * Gets the search details bean.
-     *
-     * @return the search details bean.
-     */
-    public static SearchDetailsBean getSearchDetailsBean() {
-        return (SearchDetailsBean) FacesContext.getCurrentInstance().getApplication().getELResolver()
-                .getValue(FacesContext.getCurrentInstance().getELContext(), null, "searchDetailsBean");
     }
 
     /**
@@ -276,49 +221,10 @@ public class Utils {
     }
 
     /**
-     * Gets the pub key from a file in the config directory
-     *
-     * @return the pub key string
-     */
-    public static String getPubKeyString() throws IOException {
-        String path = SamplyShareUtils.addTrailingFileSeparator(ProjectInfo.INSTANCE.getConfig().getConfigPath()) + "key.pub";
-        byte[] encoded = Files.readAllBytes(Paths.get(path));
-        return new String(encoded, StandardCharsets.US_ASCII);
-    }
-
-    /**
-     * Save a file part to a temporary file
-     *
-     * @param prefix the prefix of the temp file
-     * @param part the file part to save
-     * @return the resulting temp file
-     */
-    public static File savePartToTmpFile(String prefix, Part part) throws IOException {
-        File file = Files.createTempFile(prefix, getFileName(part)).toFile();
-        try (InputStream input = part.getInputStream()) {
-            Files.copy(input, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        }
-        return file;
-    }
-
-    /**
-     * Save an input stream to a temporary file
-     *
-     * @param prefix the prefix of the temp file
-     * @param inputStream the input stream to save
-     * @return the resulting temp file
-     */
-    public static File saveInputstreamToTmpFile(String prefix, InputStream inputStream, FormDataContentDisposition contentDispositionHeader) throws IOException {
-        File file = Files.createTempFile(prefix, contentDispositionHeader.getFileName()).toFile();
-        Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        return file;
-    }
-
-    /**
      * Save a byte array to a temporary file
      *
      * @param prefix the prefix of the temp file
-     * @param buf the byte array to save
+     * @param buf    the byte array to save
      * @return the resulting temp file
      */
     public static File saveByteArrayToTmpFile(String prefix, byte[] buf, FormDataContentDisposition contentDispositionHeader) throws IOException {
@@ -339,24 +245,6 @@ public class Utils {
             siteNames.add(site.getName());
         }
         return siteNames;
-    }
-
-    /**
-     * Get the list of locations (sites) from an access token
-     *
-     * @param accesstoken the access token from the authentication service
-     * @return the location list
-     */
-    public static LocationListDTO getLocationList(AccessTokenDTO accesstoken) {
-        String projectName = ProjectInfo.INSTANCE.getProjectName();
-        String[] fallbacks = {System.getProperty("catalina.base") + File.separator + "conf", getServletContext().getRealPath("/WEB-INF")};
-        String authUrl = OAuthConfig.getOAuth2Client(projectName, fallbacks).getHost() + "/oauth2/locations";
-
-        Client client = ClientBuilder.newClient();
-        Invocation.Builder invocationBuilder = client.target(authUrl).request("application/json").
-                accept("application/json").header("Authorization", accesstoken.getHeader());
-
-        return invocationBuilder.get(LocationListDTO.class);
     }
 
     /**
@@ -411,7 +299,7 @@ public class Utils {
      * Convert User Agent String to JSON
      *
      * @param userAgentHeader the user agent header as received via http request.
-     * @param bankId the id of the bank that sent this user agent
+     * @param bankId          the id of the bank that sent this user agent
      * @return JSON String of the user agent information
      */
     public static String userAgentAndBankToJson(String userAgentHeader, int bankId) {
@@ -447,7 +335,7 @@ public class Utils {
      * Use IcingaConnector to send version information
      *
      * @param userAgentHeader the user agent header as received via http request
-     * @param bankId the id of the bank that reported it
+     * @param bankId          the id of the bank that reported it
      */
     public static void sendVersionReportsToIcinga(String userAgentHeader, int bankId) {
         // {"id":12,"name":"Teststandort","versions""samply.share.client": "1.1.4-SNAPSHOT"}}
@@ -543,21 +431,21 @@ public class Utils {
             }
         }
     }
-    
-	/**
-	 * Get the current Project stage as set in web.xml.
-	 *
-	 * @return ProjectStage
-	 */
-	public static ProjectStage getProjectStage() {
-	    return FacesContext.getCurrentInstance().getApplication().getProjectStage();
-	}
+
+    /**
+     * Get the current Project stage as set in web.xml.
+     *
+     * @return ProjectStage
+     */
+    static ProjectStage getProjectStage() {
+        return FacesContext.getCurrentInstance().getApplication().getProjectStage();
+    }
 
     /**
      * Check if the list of sites contains only the given site
      *
      * @param sites the list of sites to check
-     * @param site the site to check
+     * @param site  the site to check
      * @return true if the site is the only entry in the list
      */
     public static boolean onlySelf(List<String> sites, Integer site) {
@@ -585,7 +473,7 @@ public class Utils {
      * depending on the project context.
      * Internally, the common schemas are used for serializing XML.
      *
-     * @param in serialized object as XML string
+     * @param in              serialized object as XML string
      * @param targetNamespace desired output namespace (will be converted to lower case)
      * @return String with namespaces depending on project context
      */
@@ -593,7 +481,7 @@ public class Utils {
 
         if (SamplyShareUtils.isNullOrEmpty(in)) {
             return "";
-        } else if (SamplyShareUtils.isNullOrEmpty(targetNamespace) ){
+        } else if (SamplyShareUtils.isNullOrEmpty(targetNamespace)) {
             // For older clients (<2.0.0-RC5) that don't supply a target namespace, use the project name (or "ccp" for project "dktk")
             String fallbackNamespace = ProjectInfo.INSTANCE.getProjectName().toLowerCase();
             if (fallbackNamespace.equalsIgnoreCase("dktk")) {

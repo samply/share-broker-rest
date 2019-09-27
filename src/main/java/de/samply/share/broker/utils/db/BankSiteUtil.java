@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 Working Group on Joint Research, University Medical Center Mainz
  * Contact: info@osse-register.de
  *
@@ -62,7 +62,7 @@ public final class BankSiteUtil {
      *
      * @param bankSite the bank-site relation to update
      */
-    public static void updateBankSite(BankSite bankSite) {        
+    public static void updateBankSite(BankSite bankSite) {
         try (Connection conn = ResourceManager.getConnection() ) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
 
@@ -118,7 +118,7 @@ public final class BankSiteUtil {
      * @param siteId the id of the site to assign the bank to
      * @param approved has the assignment been checked and assured that it is correct?
      */
-    public static void setSiteIdForBank(Bank bank, int siteId, boolean approved) {
+    private static void setSiteIdForBank(Bank bank, int siteId, boolean approved) {
         Site site;
         SiteDao siteDao;
         
@@ -171,7 +171,7 @@ public final class BankSiteUtil {
      * @param bank the bank for which to get the assignment
      * @return the assignment between bank and site
      */
-    public static BankSite fetchBankSiteByBank(Bank bank) {
+    private static BankSite fetchBankSiteByBank(Bank bank) {
         List<BankSite> bankSites;
         BankSiteDao bankSiteDao;
 

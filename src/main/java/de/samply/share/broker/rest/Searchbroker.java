@@ -46,7 +46,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jooq.tools.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
-import org.jooq.tools.json.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +55,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.xml.bind.JAXBException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -238,12 +236,7 @@ public class Searchbroker {
         this.logger.info("sendQuery called");
 
         int id;
-        try {
-            id = SearchController.releaseQuery(xml, authenticatedUser);
-        } catch (JAXBException e) {
-            this.logger.warn("sendQuery id internal error: " + e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
+        id = SearchController.releaseQuery(xml, authenticatedUser);
 
         this.logger.info("sendQuery with id is sent");
         return Response.accepted().header("id", id).build();
@@ -450,7 +443,7 @@ public class Searchbroker {
         int bankId = Utils.getBankId(authorizationHeader);
         sendVersionReport(userAgent, bankId);
 
-        String inquiryList = Utils.fixNamespaces(inquiryHandler.list(bankId), xmlNamespaceHeader);
+        String inquiryList = inquiryHandler.list(bankId);
 
         if (StringUtils.isEmpty(inquiryList) || inquiryList.equalsIgnoreCase("error")) {
             this.logger.warn("There was an error while retrieving the list of inquiries");
@@ -493,6 +486,7 @@ public class Searchbroker {
     public Response getInquiry(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                @HeaderParam(HttpHeaders.USER_AGENT) String userAgentHeader,
                                @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
+                               @HeaderParam(Constants.HEADER_KEY_QUERY_LANGUAGE) @DefaultValue("QUERY") String queryLanguage,
                                @PathParam("inquiryid") int inquiryId) {
 
         if (isBankUnauthorized(authorizationHeader)) {
@@ -500,7 +494,7 @@ public class Searchbroker {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
-        String ret = inquiryHandler.getInquiry(inquiryId, uriInfo, userAgentHeader);
+        String ret = inquiryHandler.getInquiry(inquiryId, uriInfo, userAgentHeader, queryLanguage);
 
         Response response = buildResponse(xmlNamespaceHeader, inquiryId, ret);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {

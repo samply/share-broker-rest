@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 Working Group on Joint Research, University Medical Center Mainz
  * Contact: info@osse-register.de
  *
@@ -53,78 +53,6 @@ public final class ActionUtil {
     
     // Prevent instantiation
     private ActionUtil() {
-    }
-
-    /**
-     * Get all reminders for a given project id, ordered by date (ascending)
-     *
-     * @param projectId the id of the project
-     * @return the list of reminders for the project
-     */
-    public static List<Action> getRemindersForProject(int projectId) {
-        List<Action> actions = null;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            DSLContext create = ResourceManager.getDSLContext(conn);
-
-            actions = create.select()
-                    .from(Tables.ACTION)
-                    .where(Tables.ACTION.PROJECT_ID.equal(projectId))
-                        .and(Tables.ACTION.TYPE.equal(ActionType.AT_REMINDER))
-                    .orderBy(Tables.ACTION.DATE.asc())
-                    .fetchInto(Action.class);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return actions;
-    }
-
-    /**
-     * Get all external reminders for a given project id, ordered by date (ascending)
-     *
-     * @param projectId the id of the project
-     * @return the list of external reminders for the project
-     */
-    public static List<Action> getRemindersExternalForProject(int projectId) {
-        List<Action> actions = null;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            DSLContext create = ResourceManager.getDSLContext(conn);
-
-            actions = create.select()
-                    .from(Tables.ACTION)
-                    .where(Tables.ACTION.PROJECT_ID.equal(projectId))
-                        .and(Tables.ACTION.TYPE.equal(ActionType.AT_REMINDER_EXTERNAL))
-                    .orderBy(Tables.ACTION.DATE.asc())
-                    .fetchInto(Action.class);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return actions;
-    }
-
-    /**
-     * Get all callbacks for a given project id, ordered by date (descending)
-     *
-     * @param projectId the id of the project
-     * @return the list of callbacks for the project
-     */
-    public static List<Action> getCallbacksForProject(int projectId) {
-        List<Action> actions = null;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            DSLContext create = ResourceManager.getDSLContext(conn);
-
-            actions = create.select()
-                    .from(Tables.ACTION)
-                    .where(Tables.ACTION.PROJECT_ID.equal(projectId))
-                        .and(Tables.ACTION.TYPE.in(ActionType.AT_PROJECT_CALLBACK_RECEIVED, ActionType.AT_PROJECT_CALLBACK_SENT))
-                    .orderBy(Tables.ACTION.TIME.desc())
-                    .fetchInto(Action.class);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return actions;
     }
 
     /**
@@ -193,23 +121,6 @@ public final class ActionUtil {
     }
 
     /**
-     * Delete a reminder
-     *
-     * @param reminderId the id of the reminder to delete
-     */
-    public static void deleteReminder(int reminderId) {
-        ActionDao actionDao;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-            actionDao = new ActionDao(configuration);
-            actionDao.deleteById(reminderId);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
      * Add an action that indicates that an inquiry belonging to a project has been edited
      *
      * @param user the user that edited the inquiry
@@ -233,5 +144,4 @@ public final class ActionUtil {
             e.printStackTrace();
         }
     }
-
 }
