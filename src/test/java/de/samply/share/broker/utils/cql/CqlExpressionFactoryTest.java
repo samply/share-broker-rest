@@ -49,9 +49,7 @@ class CqlExpressionFactoryTest {
 
     @BeforeEach
     void initFactory() {
-        InputStream resourceAsStream = CqlExpressionFactoryTest.class.getResourceAsStream("samply_cql_config.xml");
-
-        factory = new CqlExpressionFactory(resourceAsStream);
+        factory = new CqlExpressionFactory();
     }
 
     @Test

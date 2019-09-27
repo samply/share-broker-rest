@@ -40,6 +40,123 @@ context {0}
 define InInitialPopulation:
     </preamble>
 
+    <!-- Sample type tissue -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:15:1</mdrUrn>
+        <codesystem>
+            <name>SampleMaterialType</name>
+            <url>https://fhir.bbmri.de/CodeSystem/SampleMaterialType</url>
+        </codesystem>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+    from [Specimen] S where {0})
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>S.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <pathCqlExpression>{0}</pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>Specimen.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <permittedValue>
+            <mdrKey>whole_blood-EDTA</mdrKey>
+            <cqlValue>whole-blood</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>whole_blood_stabillised</mdrKey>
+            <cqlValue>whole-blood</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma_EDTA</mdrKey>
+            <cqlValue>blood-plasma</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma_citrat</mdrKey>
+            <cqlValue>blood-plasma</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma_stabilised</mdrKey>
+            <cqlValue>blood-plasma</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>serum</mdrKey>
+            <cqlValue>blood-serum</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>periphal_blood_cells</mdrKey>
+            <cqlValue>peripheral-blood-cells-vital</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>bone_marrow</mdrKey>
+            <cqlValue>bone-marrow</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>liqour/CSF</mdrKey>
+            <cqlValue>csf-liquor</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>ascites</mdrKey>
+            <cqlValue>ascites</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>saliva</mdrKey>
+            <cqlValue>saliva</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>urine_spontaneous</mdrKey>
+            <cqlValue>urine</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>urine_cumulative</mdrKey>
+            <cqlValue>urine</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>faeces</mdrKey>
+            <cqlValue>stool-faeces</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>DNA</mdrKey>
+            <cqlValue>dna</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>cfDNA</mdrKey>
+            <cqlValue>cf-dna</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>RNA</mdrKey>
+            <cqlValue>rna</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>liquid_biosamples_other</mdrKey>
+            <cqlValue>liquid-other</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_formalin</mdrKey>
+            <cqlValue>tissue-formalin</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_frozen</mdrKey>
+            <cqlValue>tissue-frozen</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_PAX_or_similar</mdrKey>
+            <cqlValue>tissue-paxgene-or-else</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_other</mdrKey>
+            <cqlValue>tissue-other</cqlValue>
+        </permittedValue>
+    </uiField>
+
     <!-- Sample type liquid -->
     <uiField>
         <mdrUrn>urn:mdr16:dataelement:16:1</mdrUrn>
@@ -67,6 +184,94 @@ define InInitialPopulation:
                 <atomicCqlExpression>Specimen.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
             </atomicExpression>
         </entityType>
+        <permittedValue>
+            <mdrKey>whole_blood-EDTA</mdrKey>
+            <cqlValue>whole-blood</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>whole_blood_stabillised</mdrKey>
+            <cqlValue>whole-blood</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma_EDTA</mdrKey>
+            <cqlValue>blood-plasma</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma_citrat</mdrKey>
+            <cqlValue>blood-plasma</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma_stabilised</mdrKey>
+            <cqlValue>blood-plasma</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>serum</mdrKey>
+            <cqlValue>blood-serum</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>periphal_blood_cells</mdrKey>
+            <cqlValue>peripheral-blood-cells-vital</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>bone_marrow</mdrKey>
+            <cqlValue>bone-marrow</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>liqour/CSF</mdrKey>
+            <cqlValue>csf-liquor</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>ascites</mdrKey>
+            <cqlValue>ascites</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>saliva</mdrKey>
+            <cqlValue>saliva</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>urine_spontaneous</mdrKey>
+            <cqlValue>urine</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>urine_cumulative</mdrKey>
+            <cqlValue>urine</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>faeces</mdrKey>
+            <cqlValue>stool-faeces</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>DNA</mdrKey>
+            <cqlValue>dna</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>cfDNA</mdrKey>
+            <cqlValue>cf-dna</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>RNA</mdrKey>
+            <cqlValue>rna</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>liquid_biosamples_other</mdrKey>
+            <cqlValue>liquid-other</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_formalin</mdrKey>
+            <cqlValue>tissue-formalin</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_frozen</mdrKey>
+            <cqlValue>tissue-frozen</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_PAX_or_similar</mdrKey>
+            <cqlValue>tissue-paxgene-or-else</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_other</mdrKey>
+            <cqlValue>tissue-other</cqlValue>
+        </permittedValue>
     </uiField>
 
     <!-- Storage temperature -->
@@ -192,6 +397,96 @@ define InInitialPopulation:
         </entityType>
     </uiField>
 
+    <!-- Body Weight -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:29:1</mdrUrn>
+        <codesystem>
+            <name>loinc</name>
+            <url>http://loinc.org</url>
+        </codesystem>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+    from [Observation: Code ''29463-7'' from loinc] O
+    where {0})
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''kg''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg'') and (O.value as Quantity) &gt; {2} ''kg'')</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <singleton>
+                <name>Patient</name>
+            </singleton>
+            <pathCqlExpression>
+    exists(
+    from [Patient -&gt; Observation: Code ''29463-7'' from loinc] O
+    where {0})
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''kg''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg'') and (O.value as Quantity) &gt; {2} ''kg'')</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+    </uiField>
+
+    <!-- Body Height -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:30:1</mdrUrn>
+        <codesystem>
+            <name>loinc</name>
+            <url>http://loinc.org</url>
+        </codesystem>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+    from [Observation: Code ''8302-2'' from loinc] O
+    where {0})
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''cm''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''cm'') and (O.value as Quantity) &gt; {2} ''cm'')</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <singleton>
+                <name>Patient</name>
+            </singleton>
+            <pathCqlExpression>
+    exists(
+    from [Patient -&gt; Observation: Code ''8302-2'' from loinc] O
+    where {0})
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''cm''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''cm'') and (O.value as Quantity) &gt; {2} ''cm'')</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+    </uiField>
+
     <!-- BMI -->
     <uiField>
         <mdrUrn>urn:mdr16:dataelement:31:1</mdrUrn>
@@ -236,4 +531,5 @@ define InInitialPopulation:
             </atomicExpression>
         </entityType>
     </uiField>
+
 </cqlConfig>

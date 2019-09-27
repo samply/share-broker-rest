@@ -36,10 +36,6 @@ class CqlExpressionFactory {
         }
     }
 
-    CqlExpressionFactory(InputStream cqlConfigStream) {
-        initMaps(cqlConfigStream);
-    }
-
     private void initMaps(InputStream cqlConfigStream) {
         CqlConfig mapping;
         try {
