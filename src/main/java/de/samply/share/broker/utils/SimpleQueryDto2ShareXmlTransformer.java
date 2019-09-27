@@ -5,11 +5,7 @@ import de.samply.share.query.entity.SimpleQueryDto;
 import de.samply.share.query.field.AbstractQueryFieldDto;
 import de.samply.share.query.value.AbstractQueryValueDto;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import java.io.Serializable;
-import java.io.StringWriter;
 import java.util.List;
 
 public class SimpleQueryDto2ShareXmlTransformer {
@@ -22,9 +18,7 @@ public class SimpleQueryDto2ShareXmlTransformer {
         And andPojo = objectFactory.createAnd();
 
         addTermsToAndExpression(andPojo, queryDto.getDonorDto().getFieldsDto());
-        addTermsToAndExpression(andPojo, queryDto.getSampleContextDto().getFieldsDto());
         addTermsToAndExpression(andPojo, queryDto.getSampleDto().getFieldsDto());
-        addTermsToAndExpression(andPojo, queryDto.getEventDto().getFieldsDto());
 
         wherePojo.getAndOrEqOrLike().add(andPojo);
         queryPojo.setWhere(wherePojo);

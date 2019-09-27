@@ -48,7 +48,6 @@ public class MailSendingTask extends Task {
      */
     @Override
     public TaskResult doIt() {
-        MailUtils.checkAndSendNotifications();
         MailUtils.checkAndSendReminders();
         MailUtils.checkAndSendRemindersExternal();
         MailUtils.checkAndSendReportReminders();

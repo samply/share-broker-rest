@@ -88,21 +88,6 @@ public class MailUtils {
     private static final String MAIL_SUBJECT_REMINDER_EN = "Reminder for project (Number: ";
 
     // TODO: translations needed
-    private static final String MAIL_SUBJECT_ASSESSMENT_DE = "Begutachtung Ihres Projektvorschlags";
-    private static final String MAIL_SUBJECT_ASSESSMENT_EN = "Begutachtung Ihres Projektvorschlags";
-    
-    private static final String MAIL_SUBJECT_GRANTED_DE = "Weiterleitung Ihres Projektvorschlags";
-    private static final String MAIL_SUBJECT_GRANTED_EN = "Weiterleitung Ihres Projektvorschlags";
-    
-    private static final String MAIL_SUBJECT_REJECTED_DE = "Ablehnung Ihres Projektvorschlags";
-    private static final String MAIL_SUBJECT_REJECTED_EN = "Ablehnung Ihres Projektvorschlags";
-    
-    private static final String MAIL_SUBJECT_CALLBACK_DE = "Rückfragen zu Ihrem Projektvorschlag";
-    private static final String MAIL_SUBJECT_CALLBACK_EN = "Rückfragen zu Ihrem Projektvorschlag";
-    
-    private static final String MAIL_SUBJECT_ACTIVATED_DE = "Aktivierung Ihres Projekts";
-    private static final String MAIL_SUBJECT_ACTIVATED_EN = "Aktivierung Ihres Projekts";
-    
     private static final String MAIL_SUBJECT_REPORT_DE = "Zwischenbericht für Ihr Projekt";
     private static final String MAIL_SUBJECT_REPORT_EN = "Zwischenbericht für Ihr Projekt";
     
@@ -111,14 +96,6 @@ public class MailUtils {
     
     private static final String MAIL_SUBJECT_ENDING2_DE = "Update erforderlich";
     private static final String MAIL_SUBJECT_ENDING2_EN = "Update required";
-    
-    private static final String MAIL_SUBJECT_ARCHIVE1_DE = "Ihr Projektvorschlag";
-    private static final String MAIL_SUBJECT_ARCHIVE1_EN = "Your project proposal";
-    
-    private static final String MAIL_SUBJECT_ARCHIVE2_DE = "wird archiviert";
-    private static final String MAIL_SUBJECT_ARCHIVE2_EN = "is being archived";
-    
-
 
     /**
      * Check and send user-defined reminders.
@@ -147,26 +124,6 @@ public class MailUtils {
         }
     }
 
-    /**
-     * Check and send expiry notifications.
-     */
-    public static void checkAndSendNotifications() {
-        // Disabled due to request by ccp office
-        if (true) {
-            return;
-        }
-        logger.debug("Checking for expiring inquiries");
-        List<Inquiry> inquiries = InquiryUtil.getInquiriesThatExpireInDays(3);
-        if (inquiries == null || inquiries.size() < 1) {
-            logger.debug("No expiry warnings to send");
-        } else {
-            for (Inquiry inquiry : inquiries) {
-                MailUtils.sendExpiryWarning(inquiry);
-            }
-            logger.debug("Sent " + inquiries.size() + " expiry warnings.");
-        }
-    }
-    
     /**
      * Check and send time-based reminders to send reports
      *
@@ -318,7 +275,7 @@ public class MailUtils {
      * @param receiverAddress where to send the mail to
      * @param action which action causes the mail to be sent
      */
-    public static void sendReminder(String receiverAddress, Action action) {
+    private static void sendReminder(String receiverAddress, Action action) {
         if (Utils.getProjectStage().equals(ProjectStage.Development)) {
             logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
             return;
@@ -349,329 +306,6 @@ public class MailUtils {
         mailSenderThread.start();
     }
 
-
-    /**
-     * Send assessment information mail.
-     * Mail content can be changed in the soy templates
-     * 
-     * triggered by: ccp office reports project proposal as sent to assessment
-     * sender: ccp office
-     * receiver: inquirer
-     *
-     * @param project the project that is afflicted
-     */
-    public static void sendAssessmentInfo(Project project) {
-        if (Utils.getProjectStage().equals(ProjectStage.Development)) {
-            logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
-            return;
-        }
-        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
-        if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
-            logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
-            return;            
-        }
-        OutgoingEmail email = new OutgoingEmail();
-        String projectName = ProjectInfo.INSTANCE.getProjectName();
-
-        String appNrString = Integer.toString(project.getApplicationNumber());
-        String projectLabel = project.getName();
-
-        String locale = "en";
-        if (projectName.equalsIgnoreCase("dktk")) {
-            locale = "de";
-            email.setSubject(MAIL_SUBJECT_ASSESSMENT_DE + " " + projectLabel + " - " + appNrString);
-        } else {
-            email.setSubject(MAIL_SUBJECT_ASSESSMENT_EN + " " + projectLabel + " - " + appNrString);
-        }
-        User projectLeader = ProjectUtil.getProjectLeader(project);
-        Contact plContact = ContactUtil.getContactForUser(projectLeader);
-        email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
-        email.setLocale(locale);
-        email.putParameter("projectName", projectLabel);
-        email.putParameter("projectNr", appNrString);
-        email.putParameter("office", "true");
-        if (plContact.getTitle() != null && plContact.getTitle().length() > 0) {
-            email.putParameter("title", plContact.getTitle());
-        }
-        email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
-
-        EmailBuilder builder = initializeBuilder(mailSending);
-        builder.addTemplateFile("AssessmentContent.soy", "AssessmentContent");
-        email.setBuilder(builder);
-
-        Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
-        mailSenderThread.start();
-    }
-    
-
-    /**
-     * Send project granted information mail.
-     * Mail content can be changed in the soy templates
-     * 
-     * triggered by: ccp office grants project on web interface
-     * sender: ccp office
-     * receiver: inquirer
-     *
-     * @param project the project that is afflicted
-     * @param message the message to send to the inquirer
-     * @param siteIdList the list of ids of the sites, the project proposal will be sent to
-     */
-    public static void sendProjectGrantedInfo(Project project, String message, List<String> siteIdList) {
-        if (Utils.getProjectStage().equals(ProjectStage.Development)) {
-            logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
-            return;
-        }
-        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
-        if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
-            logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
-            return;            
-        }
-        OutgoingEmail email = new OutgoingEmail();
-        String projectName = ProjectInfo.INSTANCE.getProjectName();
-
-        String appNrString = Integer.toString(project.getApplicationNumber());
-        String projectLabel = project.getName();
-
-        String locale = "en";
-        if (projectName.equalsIgnoreCase("dktk")) {
-            locale = "de";
-            email.setSubject(MAIL_SUBJECT_GRANTED_DE + " " + projectLabel + " - " + appNrString);
-        } else {
-            email.setSubject(MAIL_SUBJECT_GRANTED_EN + " " + projectLabel + " - " + appNrString);
-        }
-        User projectLeader = ProjectUtil.getProjectLeader(project);
-        Contact plContact = ContactUtil.getContactForUser(projectLeader);
-
-        List<String> siteList = SiteUtil.getSiteNamesByIds(siteIdList);
-
-        String sites = Joiner.on(", ").join(siteList);
-
-        email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
-        email.setLocale(locale);
-        email.putParameter("projectName", projectLabel);
-        email.putParameter("projectNr", appNrString);
-        email.putParameter("office", "true");
-        email.putParameter("assessment", project.getExternalAssessment() ? "true" : null);
-        email.putParameter("message", message);
-        email.putParameter("sites", sites);
-        if (plContact.getTitle() != null && plContact.getTitle().length() > 0) {
-            email.putParameter("title", plContact.getTitle());
-        }
-        email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
-
-        EmailBuilder builder = initializeBuilder(mailSending);
-        builder.addTemplateFile("GrantProjectContent.soy", "GrantProjectContent");
-        email.setBuilder(builder);
-
-        Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
-        mailSenderThread.start();
-    }
-    
-
-    /**
-     * Send project rejected information mail.
-     * Mail content can be changed in the soy templates
-     * 
-     * triggered by: ccp office rejects project on web interface
-     * sender: ccp office
-     * receiver: inquirer
-     *
-     * @param project the project that is afflicted
-     * @param message the message to send to the inquirer
-     */
-    public static void sendProjectRejectedInfo(Project project, String message) {
-        if (Utils.getProjectStage().equals(ProjectStage.Development)) {
-            logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
-            return;
-        }
-        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
-        if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
-            logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
-            return;            
-        }
-        OutgoingEmail email = new OutgoingEmail();
-        String projectName = ProjectInfo.INSTANCE.getProjectName();
-
-        String appNrString = Integer.toString(project.getApplicationNumber());
-        String projectLabel = project.getName();
-
-        String locale = "en";
-        if (projectName.equalsIgnoreCase("dktk")) {
-            locale = "de";
-            email.setSubject(MAIL_SUBJECT_REJECTED_DE + " " + projectLabel + " - " + appNrString);
-        } else {
-            email.setSubject(MAIL_SUBJECT_REJECTED_EN + " " + projectLabel + " - " + appNrString);
-        }
-        User projectLeader = ProjectUtil.getProjectLeader(project);
-        Contact plContact = ContactUtil.getContactForUser(projectLeader);
-
-        email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
-        email.setLocale(locale);
-        email.putParameter("projectName", projectLabel);
-        email.putParameter("projectNr", appNrString);
-        email.putParameter("office", "true");
-        email.putParameter("assessment", project.getExternalAssessment() ? "true" : null);
-        email.putParameter("message", message);
-        if (plContact.getTitle() != null && plContact.getTitle().length() > 0) {
-            email.putParameter("title", plContact.getTitle());
-        }
-        email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
-
-        EmailBuilder builder = initializeBuilder(mailSending);
-        builder.addTemplateFile("RejectProjectContent.soy", "RejectProjectContent");
-        email.setBuilder(builder);
-
-        Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
-        mailSenderThread.start();
-    }
-    
-
-    /**
-     * Send project granted information mail.
-     * Mail content can be changed in the soy templates
-     * 
-     * triggered by: ccp office grants project on web interface
-     * sender: ccp office
-     * receiver: inquirer
-     *
-     * @param project the project that is afflicted
-     * @param message the message to send to the inquirer
-     */
-    public static void sendProjectCallbackInfo(Project project, String message) {
-        if (Utils.getProjectStage().equals(ProjectStage.Development)) {
-            logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
-            return;
-        }
-        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
-        if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
-            logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
-            return;            
-        }
-        OutgoingEmail email = new OutgoingEmail();
-        String projectName = ProjectInfo.INSTANCE.getProjectName();
-
-        String appNrString = Integer.toString(project.getApplicationNumber());
-        String projectLabel = project.getName();
-
-        String locale = "en";
-        if (projectName.equalsIgnoreCase("dktk")) {
-            locale = "de";
-            email.setSubject(MAIL_SUBJECT_CALLBACK_DE + " " + projectLabel + " - " + appNrString);
-        } else {
-            email.setSubject(MAIL_SUBJECT_CALLBACK_EN + " " + projectLabel + " - " + appNrString);
-        }
-        User projectLeader = ProjectUtil.getProjectLeader(project);
-        Contact plContact = ContactUtil.getContactForUser(projectLeader);
-
-        List<Site> siteList = ProjectUtil.fetchProjectPartners(project);
-        String sites = Joiner.on(", ").join(siteList);
-
-
-        email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
-        email.setLocale(locale);
-        email.putParameter("projectName", projectLabel);
-        email.putParameter("projectNr", appNrString);
-        email.putParameter("office", "true");
-        email.putParameter("message", message);
-        if (plContact.getTitle() != null && plContact.getTitle().length() > 0) {
-            email.putParameter("title", plContact.getTitle());
-        }
-        email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
-
-        EmailBuilder builder = initializeBuilder(mailSending);
-        builder.addTemplateFile("CallbackProjectContent.soy", "CallbackProjectContent");
-        email.setBuilder(builder);
-
-        Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
-        mailSenderThread.start();
-    }
-    
-
-    /**
-     * Send project activated information mail.
-     * Mail content can be changed in the soy templates
-     * 
-     * triggered by: ccp office grants project on web interface
-     * sender: ccp office
-     * receiver: inquirer
-     *
-     * @param project the project that is afflicted
-     * @param partnerIdList a list of ids of the project partners
-     */
-    public static void sendProjectActivatedInfo(Project project, List<String> partnerIdList) {
-        if (Utils.getProjectStage().equals(ProjectStage.Development)) {
-            logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
-            return;
-        }
-        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
-        if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
-            logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
-            return;            
-        }
-        OutgoingEmail email = new OutgoingEmail();
-        String projectName = ProjectInfo.INSTANCE.getProjectName();
-
-        Integer applicationNumber = project.getApplicationNumber();
-        String appNrString;
-        if (applicationNumber != null) {
-            appNrString = Integer.toString(applicationNumber);
-        } else {
-            appNrString = "-";
-        }
-        String projectLabel = project.getName();
-
-        String locale = "en";
-        if (projectName.equalsIgnoreCase("dktk")) {
-            locale = "de";
-            email.setSubject(MAIL_SUBJECT_ACTIVATED_DE + " " + projectLabel + " - " + appNrString);
-        } else {
-            email.setSubject(MAIL_SUBJECT_ACTIVATED_EN + " " + projectLabel + " - " + appNrString);
-        }
-        User projectLeader = ProjectUtil.getProjectLeader(project);
-        Contact plContact = ContactUtil.getContactForUser(projectLeader);
-
-        List<String> siteList = SiteUtil.getSiteNamesByIds(partnerIdList);
-
-        String sites = Joiner.on(", ").join(siteList);
-
-        int months = SamplyShareUtils.getMonthsDiff(project.getStarted(), project.getEndEstimated());
-
-        email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
-        email.setLocale(locale);
-        email.putParameter("projectName", projectLabel);
-        email.putParameter("projectNr", appNrString);
-        email.putParameter("office", "true");
-        email.putParameter("months", Integer.toString(months));
-        email.putParameter("end_planned", WebUtils.isoToGermanDateString(project.getEndEstimated()));
-        email.putParameter("partners", sites);
-        if (plContact.getTitle() != null && plContact.getTitle().length() > 0) {
-            email.putParameter("title", plContact.getTitle());
-        }
-        email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
-        EmailBuilder builder = initializeBuilder(mailSending);
-        builder.addTemplateFile("ActivateProjectContent.soy", "ActivateProjectContent");
-        email.setBuilder(builder);
-
-        Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
-        mailSenderThread.start();
-    }
-    
-
     /**
      * Send report reminder mail.
      * Mail content can be changed in the soy templates
@@ -683,7 +317,7 @@ public class MailUtils {
      * @param project the project that is afflicted
      * @param reminder the reminder that triggered this mail
      */
-    public static void sendReportReminder(Project project, Action reminder) {
+    private static void sendReportReminder(Project project, Action reminder) {
         if (Utils.getProjectStage().equals(ProjectStage.Development)) {
             logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
             return;
@@ -735,7 +369,6 @@ public class MailUtils {
         mailSenderThread.start();
     }
     
-
     /**
      * Send project ending information mail.
      * Mail content can be changed in the soy templates
@@ -746,7 +379,7 @@ public class MailUtils {
      *
      * @param project the project that is afflicted
      */
-    public static void sendProjectEndingInfo(Project project) {
+    private static void sendProjectEndingInfo(Project project) {
         if (Utils.getProjectStage().equals(ProjectStage.Development)) {
             logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
             return;
@@ -794,88 +427,6 @@ public class MailUtils {
         mailSenderThread.start();
     }
     
-
-    /**
-     * Send project archived information mail.
-     * Mail content can be changed in the soy templates
-     * 
-     * triggered by: ccp office closes project on web interface
-     * sender: ccp office
-     * receiver: project leader
-     *
-     * @param project the project that is afflicted
-     * @param message the message to send to the project leader
-     * @param hasFinalReport true if a final report is available for the project
-     */
-    public static void sendProjectArchivedInfo(Project project, String message, boolean hasFinalReport) {
-        if (Utils.getProjectStage().equals(ProjectStage.Development)) {
-            logger.debug("Project Stage is DEVELOPMENT. Skipping mail sending.");
-            return;
-        }
-        String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
-        if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
-            logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
-            return;            
-        }
-        OutgoingEmail email = new OutgoingEmail();
-        String projectName = ProjectInfo.INSTANCE.getProjectName();
-
-        Integer applicationNumber = project.getApplicationNumber();
-        String appNrString;
-        if (applicationNumber != null) {
-            appNrString = Integer.toString(applicationNumber);
-        } else {
-            appNrString = "-";
-        }
-        String projectLabel = project.getName();
-        boolean wasActive = project.getEndActual() != null ;
-        String locale = "en";
-        if (projectName.equalsIgnoreCase("dktk")) {
-            locale = "de";
-            if (wasActive) {
-                email.setSubject(MAIL_SUBJECT_ENDING1_DE + " " + projectLabel + " - " + appNrString + " - " + MAIL_SUBJECT_ARCHIVE2_DE);
-            } else {
-                email.setSubject(MAIL_SUBJECT_ARCHIVE1_DE + " " + projectLabel + " - " + appNrString + " - " + MAIL_SUBJECT_ARCHIVE2_DE);
-            }
-        } else {
-            if (wasActive) {
-                email.setSubject(MAIL_SUBJECT_ENDING1_EN + " " + projectLabel + " - " + appNrString + " - " + MAIL_SUBJECT_ARCHIVE2_EN);
-            } else {
-                email.setSubject(MAIL_SUBJECT_ARCHIVE1_EN + " " + projectLabel + " - " + appNrString + " - " + MAIL_SUBJECT_ARCHIVE2_EN);
-            }
-        }
-        User projectLeader = ProjectUtil.getProjectLeader(project);
-        Contact plContact = ContactUtil.getContactForUser(projectLeader);
-
-        email.addAddressee(projectLeader.getEmail());
-        email.addReplyTo(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
-        email.addCcRecipient(ProjectInfo.INSTANCE.getConfig().getProperty(CCP_OFFICE_MAIL));
-        email.setLocale(locale);
-        email.putParameter("projectName", projectLabel);
-        email.putParameter("projectNr", appNrString);
-        email.putParameter("office", "true");
-        email.putParameter("message", message);
-        if (wasActive) {
-            email.putParameter("end_actual", WebUtils.isoToGermanDateString(project.getEndActual()));
-        }
-        if (hasFinalReport) {
-            email.putParameter("has_final_report", "true");
-        }
-        if (plContact.getTitle() != null && plContact.getTitle().length() > 0) {
-            email.putParameter("title", plContact.getTitle());
-        }
-        email.putParameter("name", projectLeader.getName());
-        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
-
-        EmailBuilder builder = initializeBuilder(mailSending);
-        builder.addTemplateFile("ArchiveProjectContent.soy", "ArchiveProjectContent");
-        email.setBuilder(builder);
-
-        Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
-        mailSenderThread.start();
-    }
-    
-
     /**
      * Send user site assignment mail.
      * Mail content can be changed in the soy templates
