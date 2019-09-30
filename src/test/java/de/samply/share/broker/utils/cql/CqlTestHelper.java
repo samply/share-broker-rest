@@ -22,6 +22,9 @@ class CqlTestHelper {
 
     static final String ENTITY_TYPE = "Patient";
 
+    static final String SINGLETON_NAME_1 = "Patient";
+    static final String SINGLETON_NAME_2 = "Observation";
+
     @NotNull
     static SimpleQueryDto createSimpleQueryDto(FieldDecimalDto... fieldDtoList) {
         SimpleQueryDto queryDto = new SimpleQueryDto();
