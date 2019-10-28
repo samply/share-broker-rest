@@ -169,8 +169,8 @@ class CqlExpressionFactory {
             this.mdrUrn = mdrUrn;
             this.entityType = entityType;
             this.condition = valueDto.getCondition();
-            this.value = getCqlValue(mdrUrn, valueDto.getValueAsXmlString());
-            this.maxValue = getCqlValue(mdrUrn, valueDto.getMaxValueAsXmlString());
+            this.value = getCqlValue(mdrUrn, valueDto.getValueAsCqlString());
+            this.maxValue = getCqlValue(mdrUrn, valueDto.getMaxValueAsCqlString());
             this.extensionUrl = getExtensionUrl(mdrUrn);
         }
 
