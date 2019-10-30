@@ -539,6 +539,10 @@ define InInitialPopulation:
             <name>icd10</name>
             <url>http://hl7.org/fhir/sid/icd-10</url>
         </codesystem>
+        <codesystem>
+            <name>icd10gm</name>
+            <url>http://fhir.de/CodeSystem/dimdi/icd-10-gm</url>
+        </codesystem>
         <extensionUrl/>
         <entityType>
             <entityTypeName>Patient</entityTypeName>
@@ -549,7 +553,7 @@ define InInitialPopulation:
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>C.code.coding contains Code ''{2}'' from icd10</atomicCqlExpression>
+                <atomicCqlExpression>(exists([Condition: Code ''{2}'' from icd10]) or exists([Condition: Code ''{2}'' from icd10gm]))</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <entityType>
@@ -567,7 +571,7 @@ define InInitialPopulation:
 			-->
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>C.code.coding contains Code ''{2}'' from icd10</atomicCqlExpression>
+                <atomicCqlExpression>(exists([Condition: Code ''{2}'' from icd10]) or exists([Condition: Code ''{2}'' from icd10gm]))</atomicCqlExpression>
             </atomicExpression>
         </entityType>
     </uiField>
