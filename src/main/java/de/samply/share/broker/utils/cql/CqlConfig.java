@@ -1,5 +1,8 @@
 package de.samply.share.broker.utils.cql;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -36,9 +39,10 @@ class CqlConfig {
     static class CqlMdrFieldEntry {
         private String mdrUrn;
 
-        private String codesystemName;
-        private String codesystemUrl;
         private String extensionUrl;
+
+        @XmlElement(name = "codesystem")
+        private List<Codesystem> codesystemList = new ArrayList<>();
 
         @XmlElement(name = "permittedValue")
         private List<PermittedValueEntry> permittedValueEntryList = new ArrayList<>();
@@ -54,28 +58,20 @@ class CqlConfig {
             this.mdrUrn = mdrUrn;
         }
 
-        String getCodesystemName() {
-            return codesystemName;
-        }
-
-        public void setCodesystemName(String codesystemName) {
-            this.codesystemName = codesystemName;
-        }
-
-        String getCodesystemUrl() {
-            return codesystemUrl;
-        }
-
-        public void setCodesystemUrl(String codesystemUrl) {
-            this.codesystemUrl = codesystemUrl;
-        }
-
         String getExtensionUrl() {
             return extensionUrl;
         }
 
         public void setExtensionUrl(String extensionUrl) {
             this.extensionUrl = extensionUrl;
+        }
+
+        List<Codesystem> getCodesystemList() {
+            return codesystemList;
+        }
+
+        public void setCodesystemList(List<Codesystem> codesystemList) {
+            this.codesystemList = codesystemList;
         }
 
         List<PermittedValueEntry> getPermittedValueEntryList() {
@@ -92,6 +88,61 @@ class CqlConfig {
 
         void setEntityTypeEntryList(List<CqlEntityTypeEntry> entityTypeEntryList) {
             this.entityTypeEntryList = entityTypeEntryList;
+        }
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    static class Codesystem {
+        private String name;
+        private String url;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    static class Singleton {
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Singleton)) {
+                return false;
+            }
+
+            Singleton compare = (Singleton) obj;
+
+            EqualsBuilder builder = new EqualsBuilder();
+            builder.append(this.name, compare.name);
+            return builder.build();
+        }
+
+        @Override
+        public int hashCode() {
+            HashCodeBuilder builder = new HashCodeBuilder();
+            builder.append(name);
+            return builder.build();
         }
     }
 
@@ -126,6 +177,9 @@ class CqlConfig {
         @XmlElement(name = "atomicExpression")
         private List<CqlAtomicExpressionEntry> atomicExpressionList = new ArrayList<>();
 
+        @XmlElement(name = "singleton")
+        private List<Singleton> singletonList = new ArrayList<>();
+
         String getPathCqlExpression() {
             return pathCqlExpression;
         }
@@ -148,6 +202,14 @@ class CqlConfig {
 
         void setAtomicExpressionList(List<CqlAtomicExpressionEntry> atomicExpressionList) {
             this.atomicExpressionList = atomicExpressionList;
+        }
+
+        public List<Singleton> getSingletonList() {
+            return singletonList;
+        }
+
+        public void setSingletonList(List<Singleton> singletonList) {
+            this.singletonList = singletonList;
         }
     }
 
