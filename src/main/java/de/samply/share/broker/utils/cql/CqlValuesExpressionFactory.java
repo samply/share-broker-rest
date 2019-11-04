@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 class CqlValuesExpressionFactory {
 
@@ -19,7 +20,7 @@ class CqlValuesExpressionFactory {
     String create(String mdrUrn, String entityType, AbstractQueryFieldDto<?, ?> fieldDto) {
         List<String> atomicExpressions = new ArrayList<>();
         for (AbstractQueryValueDto<?> valueDto : fieldDto.getValuesDto()) {
-            CollectionUtils.addIgnoreNull(atomicExpressions, createSingleAtomicExpression(mdrUrn, entityType, valueDto));
+            CollectionUtils.addAll(atomicExpressions, createSingleAtomicExpressionListForOneValueDto(mdrUrn, entityType, valueDto));
         }
 
         if (atomicExpressions.isEmpty()) {
@@ -33,8 +34,15 @@ class CqlValuesExpressionFactory {
         }
     }
 
-    private String createSingleAtomicExpression(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
-        CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter = cqlExpressionFactory.createAtomicExpressionParameter(mdrUrn, entityType, valueDto);
-        return cqlExpressionFactory.getAtomicExpression(atomicExpressionParameter);
+    private List<String> createSingleAtomicExpressionListForOneValueDto(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = cqlExpressionFactory.createAtomicExpressionParameterList(mdrUrn, entityType, valueDto);
+        if (CollectionUtils.isEmpty(atomicExpressionParameterList)) {
+            return new ArrayList<>();
+        }
+
+        return atomicExpressionParameterList.stream()
+                .map(cqlExpressionFactory::getAtomicExpression)
+                .filter(cql -> !StringUtils.isBlank(cql))
+                .collect(Collectors.toList());
     }
 }

@@ -19,7 +19,7 @@ class CqlExpressionFactory {
 
     private final MultiKeyMap<String, CqlConfig.CqlAtomicExpressionEntry> mapAtomicExpressions = new MultiKeyMap<>();
     private final MultiKeyMap<String, CqlConfig.CqlEntityTypeEntry> mapPathExpressions = new MultiKeyMap<>();
-    private final MultiKeyMap<String, String> mapPermittedValues = new MultiKeyMap<>();
+    private final MultiKeyMap<String, List<String>> mapPermittedValues = new MultiKeyMap<>();
     private final MultiKeyMap<String, Set<CqlConfig.Singleton>> mapSingletons = new MultiKeyMap<>();
     private final Map<String, Set<CqlConfig.Codesystem>> mapCodesystems = new HashMap<>();
     private final Map<String, String> mapExtensions = new HashMap<>();
@@ -96,7 +96,13 @@ class CqlExpressionFactory {
 
         for (CqlConfig.CqlMdrFieldEntry mdrFieldEntry : mapping.getMdrFieldEntryList()) {
             for (CqlConfig.PermittedValueEntry permittedValueEntry : mdrFieldEntry.getPermittedValueEntryList()) {
-                mapPermittedValues.put(mdrFieldEntry.getMdrUrn(), permittedValueEntry.getMdrKey(), permittedValueEntry.getCqlValue());
+                List<String> cqlValues = mapPermittedValues.get(mdrFieldEntry.getMdrUrn(), permittedValueEntry.getMdrKey());
+                if (cqlValues == null) {
+                    cqlValues = new ArrayList<>();
+                }
+                cqlValues.add(permittedValueEntry.getCqlValue());
+
+                mapPermittedValues.put(mdrFieldEntry.getMdrUrn(), permittedValueEntry.getMdrKey(), cqlValues);
             }
         }
     }
@@ -141,12 +147,31 @@ class CqlExpressionFactory {
         return mapCodesystems.getOrDefault(mdrUrn, new HashSet<>());
     }
 
-    AtomicExpressionParameter createAtomicExpressionParameter(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
-        return new AtomicExpressionParameter(mdrUrn, entityType, valueDto);
+    List<AtomicExpressionParameter> createAtomicExpressionParameterList(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
+        List<AtomicExpressionParameter> atomicExpressionParameters = new ArrayList<>();
+
+        List<String> cqlValues = getCqlValueList(mdrUrn, valueDto.getValueAsCqlString());
+        if (cqlValues.size() == 1) {
+            return Collections.singletonList(new AtomicExpressionParameter(mdrUrn, entityType, valueDto.getCondition(), valueDto.getValueAsCqlString(), valueDto.getMaxValueAsCqlString()));
+        }
+
+        for (String cqlValue : cqlValues) {
+            // We have more than one cqlValue only when we deal with PermittedValues in which case we do not have a maximal value
+            String cqlMaxValue = "";
+
+            atomicExpressionParameters.add(new AtomicExpressionParameter(mdrUrn, entityType, valueDto.getCondition(), cqlValue, cqlMaxValue));
+        }
+
+        return atomicExpressionParameters;
     }
 
-    String getCqlValue(String mdrUrn, String mdrValue) {
-        return StringUtils.defaultString(mapPermittedValues.get(mdrUrn, mdrValue), mdrValue);
+    List<String> getCqlValueList(String mdrUrn, String mdrValue) {
+        List<String> cqlValues = mapPermittedValues.get(mdrUrn, mdrValue);
+        if (CollectionUtils.isEmpty(cqlValues)) {
+            return new ArrayList<>(Collections.singletonList(mdrValue));
+        }
+
+        return cqlValues;
     }
 
     Set<CqlConfig.Singleton> getSingletons(String mdrUrn, String entityType) {
@@ -165,12 +190,12 @@ class CqlExpressionFactory {
 
         private final String extensionUrl;
 
-        AtomicExpressionParameter(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
+        AtomicExpressionParameter(String mdrUrn, String entityType, SimpleValueCondition condition, String value, String maxValue) {
             this.mdrUrn = mdrUrn;
             this.entityType = entityType;
-            this.condition = valueDto.getCondition();
-            this.value = getCqlValue(mdrUrn, valueDto.getValueAsXmlString());
-            this.maxValue = getCqlValue(mdrUrn, valueDto.getMaxValueAsXmlString());
+            this.condition = condition;
+            this.value = value;
+            this.maxValue = maxValue;
             this.extensionUrl = getExtensionUrl(mdrUrn);
         }
 
