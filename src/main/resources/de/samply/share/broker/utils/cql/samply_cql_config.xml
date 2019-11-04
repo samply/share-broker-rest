@@ -212,6 +212,14 @@ define InInitialPopulation:
             <cqlValue>liquid-other</cqlValue>
         </permittedValue>
         <permittedValue>
+            <mdrKey>liquid_biosamples_other</mdrKey>
+            <cqlValue>buffy-coat</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>liquid_biosamples_other</mdrKey>
+            <cqlValue>derivative-other</cqlValue>
+        </permittedValue>
+        <permittedValue>
             <mdrKey>tissue_formalin</mdrKey>
             <cqlValue>tissue-formalin</cqlValue>
         </permittedValue>
@@ -226,6 +234,10 @@ define InInitialPopulation:
         <permittedValue>
             <mdrKey>tissue_other</mdrKey>
             <cqlValue>tissue-other</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_other</mdrKey>
+            <cqlValue>derivative-other</cqlValue>
         </permittedValue>
     </uiField>
 
@@ -330,6 +342,14 @@ define InInitialPopulation:
             <cqlValue>liquid-other</cqlValue>
         </permittedValue>
         <permittedValue>
+            <mdrKey>liquid_biosamples_other</mdrKey>
+            <cqlValue>buffy-coat</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>liquid_biosamples_other</mdrKey>
+            <cqlValue>derivative-other</cqlValue>
+        </permittedValue>
+        <permittedValue>
             <mdrKey>tissue_formalin</mdrKey>
             <cqlValue>tissue-formalin</cqlValue>
         </permittedValue>
@@ -344,6 +364,10 @@ define InInitialPopulation:
         <permittedValue>
             <mdrKey>tissue_other</mdrKey>
             <cqlValue>tissue-other</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_other</mdrKey>
+            <cqlValue>derivative-other</cqlValue>
         </permittedValue>
     </uiField>
 
@@ -389,7 +413,7 @@ define InInitialPopulation:
         <permittedValue>
             <!-- Plasma-Lithium-Heparin -->
             <mdrKey>plasma-lithium-heparin</mdrKey>
-            <cqlValue>temperatureOther</cqlValue>
+            <cqlValue>temperatureRoom</cqlValue>
         </permittedValue>
         <permittedValue>
             <!-- Room temperature -->
