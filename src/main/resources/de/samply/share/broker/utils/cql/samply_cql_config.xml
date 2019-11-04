@@ -40,6 +40,77 @@ context {0}
 define InInitialPopulation:
     </preamble>
 
+    <!-- Sampling date -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:12:1</mdrUrn>
+        <codesystem/>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+      from [Specimen] S
+	  where {0} )
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>FHIRHelpers.ToDateTime(S.collection.collected) {0} {2}</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>(FHIRHelpers.ToDateTime(S.collection.collected) between {2} and {3})</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <pathCqlExpression>{0}</pathCqlExpression>
+            <atomicExpression>
+              <operator>DEFAULT</operator>
+              <atomicCqlExpression>FHIRHelpers.ToDateTime(Specimen.collection.collected) {0} {2}</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>(FHIRHelpers.ToDateTime(Specimen.collection.collected) between {2} and {3})</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+    </uiField>
+
+    <!-- Donor age -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:14:1</mdrUrn>
+        <codesystem/>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>{0}</pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>AgeInYears() {0} {2}</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>(AgeInYears() between {2} and {3})
+                </atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <pathCqlExpression>
+    exists(
+      from [Patient] P
+      where {0} )
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(Today() - {2} year) {0} FHIRHelpers.ToDate(P.birthDate)</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>(FHIRHelpers.ToDateTime(P.birthDate) between (Today() - {3} year) and (Today() - {2} year))</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+    </uiField>
+
     <!-- Sample type tissue -->
     <uiField>
         <mdrUrn>urn:mdr16:dataelement:15:1</mdrUrn>
@@ -52,11 +123,12 @@ define InInitialPopulation:
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
     exists(
-    from [Specimen] S where {0})
+      from [Specimen] S
+	  where {0} )
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>S.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
+                <atomicCqlExpression>S.type.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <entityType>
@@ -64,7 +136,7 @@ define InInitialPopulation:
             <pathCqlExpression>{0}</pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>Specimen.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
+                <atomicCqlExpression>Specimen.type.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <permittedValue>
@@ -169,11 +241,12 @@ define InInitialPopulation:
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
     exists(
-    from [Specimen] S where {0})
+      from [Specimen] S
+	  where {0} )
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>S.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
+                <atomicCqlExpression>S.type.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <entityType>
@@ -181,7 +254,7 @@ define InInitialPopulation:
             <pathCqlExpression>{0}</pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>Specimen.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
+                <atomicCqlExpression>Specimen.type.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <permittedValue>
@@ -193,11 +266,11 @@ define InInitialPopulation:
             <cqlValue>whole-blood</cqlValue>
         </permittedValue>
         <permittedValue>
-            <mdrKey>plasma_EDTA</mdrKey>
+            <mdrKey>plasma-EDTA</mdrKey>
             <cqlValue>blood-plasma</cqlValue>
         </permittedValue>
         <permittedValue>
-            <mdrKey>plasma_citrat</mdrKey>
+            <mdrKey>plasma-citrat</mdrKey>
             <cqlValue>blood-plasma</cqlValue>
         </permittedValue>
         <permittedValue>
@@ -287,15 +360,16 @@ define InInitialPopulation:
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
     exists(
-    from [Specimen] S where {0})
+      from [Specimen] S
+	  where {0} )
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>
-    exists(
-    from S.extension E
-    where E.url = ''{1}''
-    and E.value.coding contains Code ''{2}'' from StorageTemperature)
+        ( exists(
+            from S.extension E
+            where E.url = ''{1}''
+              and E.value.coding contains Code ''{2}'' from StorageTemperature ) )
                 </atomicCqlExpression>
             </atomicExpression>
         </entityType>
@@ -305,10 +379,10 @@ define InInitialPopulation:
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>
-    exists(
-    from Specimen.extension E
-    where E.url = ''{1}''
-    and E.value.coding contains Code ''{2}'' from StorageTemperature)
+        ( exists(
+            from Specimen.extension E
+            where E.url = ''{1}''
+              and E.value.coding contains Code ''{2}'' from StorageTemperature ) )
                 </atomicCqlExpression>
             </atomicExpression>
         </entityType>
@@ -374,26 +448,175 @@ define InInitialPopulation:
             <pathCqlExpression>{0}</pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>Patient.gender {0} ''{2}''</atomicCqlExpression>
+                <atomicCqlExpression>Patient.gender = ''{2}''</atomicCqlExpression>
             </atomicExpression>
             <atomicExpression>
-                <operator>...</operator>
-                <atomicCqlExpression>(Patient.gender &lt; ''{3}'' and Patient.gender &gt; ''{2}'')</atomicCqlExpression>
+                <operator>&lt;&gt;</operator>
+                <atomicCqlExpression>P.gender != ''{2}''</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <entityType>
             <entityTypeName>Specimen</entityTypeName>
             <pathCqlExpression>
-    exists(from [Patient] P where {0})
+    exists(
+	  from [Patient] P
+	  where {0} )
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>P.gender {0} ''{2}''</atomicCqlExpression>
+                <atomicCqlExpression>P.gender = ''{2}''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>&lt;&gt;</operator>
+                <atomicCqlExpression>P.gender != ''{2}''</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <permittedValue>
+            <mdrKey>female</mdrKey>
+            <cqlValue>female</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>male</mdrKey>
+            <cqlValue>male</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>sex_other/intersexual</mdrKey>
+            <cqlValue>other</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>sex_uncharted</mdrKey>
+            <cqlValue>unknown</cqlValue>
+        </permittedValue>
+    </uiField>
+
+    <!-- Date of diagnosis -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:26:1</mdrUrn>
+        <codesystem/>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+      from [Condition] C
+      where {0} )
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>FHIRHelpers.ToDateTime(C.onset) {0} {2}</atomicCqlExpression>
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
-                <atomicCqlExpression>(P.gender &lt; ''{3}'' and P.gender &gt; ''{2}'')</atomicCqlExpression>
+                <atomicCqlExpression>(FHIRHelpers.ToDateTime(C.onset) between {2} and {3})</atomicCqlExpression>
             </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <singleton>
+                <name>Patient</name>
+            </singleton>
+            <pathCqlExpression>false</pathCqlExpression>
+			<!--
+            <pathCqlExpression>
+    exists(
+      from [Patient -&gt; Condition] C
+      where {0} )
+            </pathCqlExpression>
+			-->
+            <atomicExpression>
+              <operator>DEFAULT</operator>
+              <atomicCqlExpression>FHIRHelpers.ToDateTime(C.onset) {0} {2}</atomicCqlExpression></atomicExpression>
+            <atomicExpression>
+              <operator>...</operator>
+              <atomicCqlExpression>(FHIRHelpers.ToDateTime(C.onset) between {2} and {3})</atomicCqlExpression></atomicExpression>
+        </entityType>
+    </uiField>
+
+    <!-- Diagnosis ICD-10 -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:27:1</mdrUrn>
+        <codesystem>
+            <name>icd10</name>
+            <url>http://hl7.org/fhir/sid/icd-10</url>
+        </codesystem>
+        <codesystem>
+            <name>icd10gm</name>
+            <url>http://fhir.de/CodeSystem/dimdi/icd-10-gm</url>
+        </codesystem>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+      from [Condition] C
+      where {0} )
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(exists([Condition: Code ''{2}'' from icd10]) or exists([Condition: Code ''{2}'' from icd10gm]))</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <singleton>
+                <name>Patient</name>
+            </singleton>
+            <pathCqlExpression>false</pathCqlExpression>
+			<!--
+            <pathCqlExpression>
+    exists(
+      from [Patient -&gt; Condition] C
+      where {0} )
+            </pathCqlExpression>
+			-->
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(exists([Condition: Code ''{2}'' from icd10]) or exists([Condition: Code ''{2}'' from icd10gm]))</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+    </uiField>
+
+    <!-- Diagnosis age donor -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:28:1</mdrUrn>
+        <codesystem/>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+      from [Condition] C
+      where {0} )
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>AgeInYearsAt(FHIRHelpers.ToDateTime(C.onset)) {0} Ceiling({2})</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>(AgeInYearsAt(FHIRHelpers.ToDateTime(C.onset)) between Ceiling({2}) and Ceiling({3}))</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <singleton>
+              <name>Patient</name>
+            </singleton>
+            <pathCqlExpression>false</pathCqlExpression>
+			<!--
+            <pathCqlExpression>
+    exists(
+      from [Patient -&gt; Condition] C
+      where {0} )
+             </pathCqlExpression>
+			 -->
+             <atomicExpression>
+               <operator>DEFAULT</operator>
+               <atomicCqlExpression>AgeInYearsAt(FHIRHelpers.ToDateTime(C.onset)) {0} Ceiling({2})</atomicCqlExpression></atomicExpression>
+             <atomicExpression>
+               <operator>...</operator>
+               <atomicCqlExpression>(AgeInYearsAt(FHIRHelpers.ToDateTime(C.onset)) between Ceiling({2}) and Ceiling({3}))</atomicCqlExpression>
+             </atomicExpression>
         </entityType>
     </uiField>
 
@@ -409,12 +632,12 @@ define InInitialPopulation:
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
     exists(
-    from [Observation: Code ''29463-7'' from loinc] O
-    where {0})
+      from [Observation: Code ''29463-7'' from loinc] O
+      where {0} )
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''kg''</atomicCqlExpression>
+                <atomicCqlExpression>(O.value as Quantity) {0} {2} ''kg''</atomicCqlExpression>
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
@@ -426,14 +649,17 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
+            <pathCqlExpression>false</pathCqlExpression>
+			<!--
             <pathCqlExpression>
     exists(
-    from [Patient -&gt; Observation: Code ''29463-7'' from loinc] O
-    where {0})
+      from [Patient -&gt; Observation: Code ''29463-7'' from loinc] O
+      where {0} )
             </pathCqlExpression>
+			-->
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''kg''</atomicCqlExpression>
+                <atomicCqlExpression>(O.value as Quantity) {0} {2} ''kg''</atomicCqlExpression>
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
@@ -454,12 +680,12 @@ define InInitialPopulation:
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
     exists(
-    from [Observation: Code ''8302-2'' from loinc] O
-    where {0})
+      from [Observation: Code ''8302-2'' from loinc] O
+      where {0} )
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''cm''</atomicCqlExpression>
+                <atomicCqlExpression>(O.value as Quantity) {0} {2} ''cm''</atomicCqlExpression>
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
@@ -471,14 +697,17 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
+            <pathCqlExpression>false</pathCqlExpression>
+			<!--
             <pathCqlExpression>
     exists(
-    from [Patient -&gt; Observation: Code ''8302-2'' from loinc] O
-    where {0})
+      from [Patient -&gt; Observation: Code ''8302-2'' from loinc] O
+      where {0} )
             </pathCqlExpression>
+			-->
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''cm''</atomicCqlExpression>
+                <atomicCqlExpression>(O.value as Quantity) {0} {2} ''cm''</atomicCqlExpression>
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
@@ -499,12 +728,12 @@ define InInitialPopulation:
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
     exists(
-    from [Observation: Code ''39156-5'' from loinc] O
-    where {0})
+      from [Observation: Code ''39156-5'' from loinc] O
+      where {0} )
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''kg/m2''</atomicCqlExpression>
+                <atomicCqlExpression>(O.value as Quantity) {0} {2} ''kg/m2''</atomicCqlExpression>
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
@@ -516,14 +745,17 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
+            <pathCqlExpression>false</pathCqlExpression>
+			<!--
             <pathCqlExpression>
     exists(
-    from [Patient -&gt; Observation: Code ''39156-5'' from loinc] O
-    where {0})
+      from [Patient -&gt; Observation: Code ''39156-5'' from loinc] O
+      where {0} )
             </pathCqlExpression>
+			-->
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''kg/m2''</atomicCqlExpression>
+                <atomicCqlExpression>(O.value as Quantity) {0} {2} ''kg/m2''</atomicCqlExpression>
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
@@ -532,4 +764,119 @@ define InInitialPopulation:
         </entityType>
     </uiField>
 
+    <!-- Smoking habit -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:32:1</mdrUrn>
+        <codesystem>
+            <name>loinc</name>
+            <url>http://loinc.org</url>
+        </codesystem>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+      from [Observation: Code ''72166-2'' from loinc] O
+      where {0} )
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>O.value.coding contains Code ''{2}'' from loinc</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <pathCqlExpression>false</pathCqlExpression>
+			<!--
+            <pathCqlExpression>
+    exists(
+      from [Patient -&gt; Observation: Code ''72166-2'' from loinc] O
+      where {0} )
+             </pathCqlExpression>
+			 -->
+             <atomicExpression>
+               <operator>DEFAULT</operator>
+                 <atomicCqlExpression>O.value.coding contains Code ''{2}'' from loinc</atomicCqlExpression>
+             </atomicExpression>
+        </entityType>
+        <permittedValue>
+            <mdrKey>smoker_yes</mdrKey>
+            <cqlValue>LA18976-3</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>smoker_yes</mdrKey>
+            <cqlValue>LA18977-1</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>smoker_yes</mdrKey>
+            <cqlValue>LA18981-3</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>smoker_yes</mdrKey>
+            <cqlValue>LA18982-1</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>former_smoker</mdrKey>
+            <cqlValue>LA15920-4</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>smoker_no</mdrKey>
+            <cqlValue>LA18978-9</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>smoking_habit_uncharted</mdrKey>
+            <cqlValue>LA18979-7</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>smoking_habit_uncharted</mdrKey>
+            <cqlValue>LA18980-5</cqlValue>
+    </permittedValue>
+    </uiField>
+
+    <!-- Fasting status -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:33:1</mdrUrn>
+        <codesystem>
+            <name>FastingStatus</name>
+            <url>http://terminology.hl7.org/CodeSystem/v2-0916</url>
+        </codesystem>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+      from [Specimen] S
+      where {0} )
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>S.collection.fastingStatus.coding contains Code ''{2}'' from FastingStatus
+                </atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <pathCqlExpression>{0}</pathCqlExpression>
+            <atomicExpression>
+              <operator>DEFAULT</operator>
+              <atomicCqlExpression>Specimen.collection.fastingStatus.coding contains Code ''{2}'' from FastingStatus</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <permittedValue>
+            <mdrKey>fasting_sober</mdrKey>
+            <cqlValue>F</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>fasting_non_sober</mdrKey>
+            <cqlValue>NF</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>fasting_status_other</mdrKey>
+            <cqlValue>FNA</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>fasting_status_uncharted</mdrKey>
+            <cqlValue>NG</cqlValue>
+        </permittedValue>
+    </uiField>
 </cqlConfig>
