@@ -301,4 +301,24 @@ define InInitialPopulation:
         </entityType>
     </uiField>
 
+    <!-- Artifical MDR field / with two permitted values for the same mdr key -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:08:19</mdrUrn>
+        <codesystem/>
+        <permittedValue>
+            <mdrKey>SMOKER</mdrKey>
+            <cqlValue>SMOKER_1</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>SMOKER</mdrKey>
+            <cqlValue>SMOKER_2</cqlValue>
+        </permittedValue>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+        </entityType>
+    </uiField>
+
 </cqlConfig>
