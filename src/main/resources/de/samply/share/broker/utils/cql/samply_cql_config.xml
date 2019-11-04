@@ -49,7 +49,7 @@ define InInitialPopulation:
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
     exists(
-      from [Specimen] S 
+      from [Specimen] S
 	  where {0} )
             </pathCqlExpression>
             <atomicExpression>
@@ -123,7 +123,7 @@ define InInitialPopulation:
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
     exists(
-      from [Specimen] S 
+      from [Specimen] S
 	  where {0} )
             </pathCqlExpression>
             <atomicExpression>
@@ -241,7 +241,7 @@ define InInitialPopulation:
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
     exists(
-      from [Specimen] S 
+      from [Specimen] S
 	  where {0} )
             </pathCqlExpression>
             <atomicExpression>
@@ -360,7 +360,7 @@ define InInitialPopulation:
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
     exists(
-      from [Specimen] S 
+      from [Specimen] S
 	  where {0} )
             </pathCqlExpression>
             <atomicExpression>
@@ -515,7 +515,7 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
-            <pathCqlExpression>true</pathCqlExpression>
+            <pathCqlExpression>false</pathCqlExpression>
 			<!--
             <pathCqlExpression>
     exists(
@@ -561,7 +561,7 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
-            <pathCqlExpression>true</pathCqlExpression>
+            <pathCqlExpression>false</pathCqlExpression>
 			<!--
             <pathCqlExpression>
     exists(
@@ -602,7 +602,7 @@ define InInitialPopulation:
             <singleton>
               <name>Patient</name>
             </singleton>
-            <pathCqlExpression>true</pathCqlExpression>
+            <pathCqlExpression>false</pathCqlExpression>
 			<!--
             <pathCqlExpression>
     exists(
@@ -649,7 +649,7 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
-            <pathCqlExpression>true</pathCqlExpression>
+            <pathCqlExpression>false</pathCqlExpression>
 			<!--
             <pathCqlExpression>
     exists(
@@ -697,7 +697,7 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
-            <pathCqlExpression>true</pathCqlExpression>
+            <pathCqlExpression>false</pathCqlExpression>
 			<!--
             <pathCqlExpression>
     exists(
@@ -745,7 +745,7 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
-            <pathCqlExpression>true</pathCqlExpression>
+            <pathCqlExpression>false</pathCqlExpression>
 			<!--
             <pathCqlExpression>
     exists(
@@ -786,7 +786,7 @@ define InInitialPopulation:
         </entityType>
         <entityType>
             <entityTypeName>Specimen</entityTypeName>
-            <pathCqlExpression>true</pathCqlExpression>
+            <pathCqlExpression>false</pathCqlExpression>
 			<!--
             <pathCqlExpression>
     exists(
@@ -804,6 +804,18 @@ define InInitialPopulation:
             <cqlValue>LA18976-3</cqlValue>
         </permittedValue>
         <permittedValue>
+            <mdrKey>smoker_yes</mdrKey>
+            <cqlValue>LA18977-1</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>smoker_yes</mdrKey>
+            <cqlValue>LA18981-3</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>smoker_yes</mdrKey>
+            <cqlValue>LA18982-1</cqlValue>
+        </permittedValue>
+        <permittedValue>
             <mdrKey>former_smoker</mdrKey>
             <cqlValue>LA15920-4</cqlValue>
         </permittedValue>
@@ -815,6 +827,10 @@ define InInitialPopulation:
             <mdrKey>smoking_habit_uncharted</mdrKey>
             <cqlValue>LA18979-7</cqlValue>
         </permittedValue>
+        <permittedValue>
+            <mdrKey>smoking_habit_uncharted</mdrKey>
+            <cqlValue>LA18980-5</cqlValue>
+    </permittedValue>
     </uiField>
 
     <!-- Fasting status -->
