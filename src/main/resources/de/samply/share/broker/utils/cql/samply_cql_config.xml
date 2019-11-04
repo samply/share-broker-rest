@@ -3,9 +3,11 @@
 	This config file defines snippets for CQL queries.
 
 	The <preamble> must contain information about FHIR libraries and a variable {0} where the context (Specimen, Patient) will be inserted as well as a variable {1] where codesystems are inserted.
+    For fields (depending on entity type) which need a singleton statement the variable {2} definie the place where all singleton statements are inserted.
     Variable binding:
         {0}     context (Specimen, Patient)
         {1}     codesystem definitions
+        {2}     singleton statements
 
 	The <pathCqlExpression> represents the path starting at the resource corresponding to the context ending with the field in the FHIR resource corresponding to the UI field.
     Variable binding:
@@ -16,75 +18,284 @@
 	defined for <operator>DEFAULT</operator>.
 	Variable binding:
 	    {0}     operator
-	    {1}     name of a code-system (if present)
-	    {2}     url of an extension (if present)
-	    {3}     the first value
-	    {4}     the second value (max. value)
+	    {1}     url of an extension (if present)
+	    {2}     the first value
+	    {3}     the second value (max. value)
 
 	IMPORTANT:
 		A single apostrophe ' must be escaped by a double apostrophe ''
 		Additionally characters such as > < ... must be encoded as &lt; &gt; ... according to XML (see https://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references)
 -->
 <cqlConfig>
-    <preamble>
-        library Retrieve
-        using FHIR version ''4.0.0''
-        include FHIRHelpers version ''4.0.0''
+    <preamble>library Retrieve
+using FHIR version ''4.0.0''
+include FHIRHelpers version ''4.0.0''
 
-        {1}
+{1}
 
-        context {0}
+context {0}
 
-        define InInitialPopulation:
+{2}
+
+define InInitialPopulation:
     </preamble>
+
+    <!-- Sample type tissue -->
     <uiField>
-        <mdrUrn>urn:mdr16:dataelement:23:1</mdrUrn>
-        <codesystemName>   </codesystemName>
-        <codesystemUrl>   </codesystemUrl>
-        <extensionUrl>   </extensionUrl>
+        <mdrUrn>urn:mdr16:dataelement:15:1</mdrUrn>
+        <codesystem>
+            <name>SampleMaterialType</name>
+            <url>https://fhir.bbmri.de/CodeSystem/SampleMaterialType</url>
+        </codesystem>
+        <extensionUrl/>
         <entityType>
             <entityTypeName>Patient</entityTypeName>
-            <pathCqlExpression>{0}</pathCqlExpression>
+            <pathCqlExpression>
+    exists(
+    from [Specimen] S where {0})
+            </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>Patient.gender {0} ''{3}''</atomicCqlExpression>
-            </atomicExpression>
-            <atomicExpression>
-                <operator>...</operator>
-                <atomicCqlExpression>(Patient.gender &lt; ''{4}'' and Patient.gender &gt; ''{3}'')</atomicCqlExpression>
+                <atomicCqlExpression>S.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <entityType>
             <entityTypeName>Specimen</entityTypeName>
-            <pathCqlExpression>exists(from [Patient] P where {0})</pathCqlExpression>
+            <pathCqlExpression>{0}</pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>P.gender {0} ''{3}''</atomicCqlExpression>
-            </atomicExpression>
-            <atomicExpression>
-                <operator>...</operator>
-                <atomicCqlExpression>(P.gender &lt; ''{4}'' and P.gender &gt; ''{3}'')</atomicCqlExpression>
+                <atomicCqlExpression>Specimen.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
             </atomicExpression>
         </entityType>
+        <permittedValue>
+            <mdrKey>whole_blood-EDTA</mdrKey>
+            <cqlValue>whole-blood</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>whole_blood_stabillised</mdrKey>
+            <cqlValue>whole-blood</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma_EDTA</mdrKey>
+            <cqlValue>blood-plasma</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma_citrat</mdrKey>
+            <cqlValue>blood-plasma</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma_stabilised</mdrKey>
+            <cqlValue>blood-plasma</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>serum</mdrKey>
+            <cqlValue>blood-serum</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>periphal_blood_cells</mdrKey>
+            <cqlValue>peripheral-blood-cells-vital</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>bone_marrow</mdrKey>
+            <cqlValue>bone-marrow</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>liqour/CSF</mdrKey>
+            <cqlValue>csf-liquor</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>ascites</mdrKey>
+            <cqlValue>ascites</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>saliva</mdrKey>
+            <cqlValue>saliva</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>urine_spontaneous</mdrKey>
+            <cqlValue>urine</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>urine_cumulative</mdrKey>
+            <cqlValue>urine</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>faeces</mdrKey>
+            <cqlValue>stool-faeces</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>DNA</mdrKey>
+            <cqlValue>dna</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>cfDNA</mdrKey>
+            <cqlValue>cf-dna</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>RNA</mdrKey>
+            <cqlValue>rna</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>liquid_biosamples_other</mdrKey>
+            <cqlValue>liquid-other</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_formalin</mdrKey>
+            <cqlValue>tissue-formalin</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_frozen</mdrKey>
+            <cqlValue>tissue-frozen</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_PAX_or_similar</mdrKey>
+            <cqlValue>tissue-paxgene-or-else</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_other</mdrKey>
+            <cqlValue>tissue-other</cqlValue>
+        </permittedValue>
     </uiField>
+
+    <!-- Sample type liquid -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:16:1</mdrUrn>
+        <codesystem>
+            <name>SampleMaterialType</name>
+            <url>https://fhir.bbmri.de/CodeSystem/SampleMaterialType</url>
+        </codesystem>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+    from [Specimen] S where {0})
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>S.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <pathCqlExpression>{0}</pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>Specimen.value.coding contains Code ''{2}'' from SampleMaterialType</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <permittedValue>
+            <mdrKey>whole_blood-EDTA</mdrKey>
+            <cqlValue>whole-blood</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>whole_blood_stabillised</mdrKey>
+            <cqlValue>whole-blood</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma_EDTA</mdrKey>
+            <cqlValue>blood-plasma</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma_citrat</mdrKey>
+            <cqlValue>blood-plasma</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma_stabilised</mdrKey>
+            <cqlValue>blood-plasma</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>serum</mdrKey>
+            <cqlValue>blood-serum</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>periphal_blood_cells</mdrKey>
+            <cqlValue>peripheral-blood-cells-vital</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>bone_marrow</mdrKey>
+            <cqlValue>bone-marrow</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>liqour/CSF</mdrKey>
+            <cqlValue>csf-liquor</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>ascites</mdrKey>
+            <cqlValue>ascites</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>saliva</mdrKey>
+            <cqlValue>saliva</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>urine_spontaneous</mdrKey>
+            <cqlValue>urine</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>urine_cumulative</mdrKey>
+            <cqlValue>urine</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>faeces</mdrKey>
+            <cqlValue>stool-faeces</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>DNA</mdrKey>
+            <cqlValue>dna</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>cfDNA</mdrKey>
+            <cqlValue>cf-dna</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>RNA</mdrKey>
+            <cqlValue>rna</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>liquid_biosamples_other</mdrKey>
+            <cqlValue>liquid-other</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_formalin</mdrKey>
+            <cqlValue>tissue-formalin</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_frozen</mdrKey>
+            <cqlValue>tissue-frozen</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_PAX_or_similar</mdrKey>
+            <cqlValue>tissue-paxgene-or-else</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_other</mdrKey>
+            <cqlValue>tissue-other</cqlValue>
+        </permittedValue>
+    </uiField>
+
+    <!-- Storage temperature -->
     <uiField>
         <mdrUrn>urn:mdr16:dataelement:17:1</mdrUrn>
         <codesystemName>StorageTemperature</codesystemName>
-        <codesystemUrl>https://fhir.bbmri.de/CodeSystem/StorageTemperature</codesystemUrl>
+        <codesystem>
+            <name>StorageTemperature</name>
+            <url>https://fhir.bbmri.de/CodeSystem/StorageTemperature</url>
+        </codesystem>
         <extensionUrl>https://fhir.bbmri.de/StructureDefinition/StorageTemperature</extensionUrl>
         <entityType>
             <entityTypeName>Patient</entityTypeName>
             <pathCqlExpression>
-                exists(
-                from [Specimen] S where {0})
+    exists(
+    from [Specimen] S where {0})
             </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>
-                    exists(
-                    from S.extension E
-                    where E.url = ''{2}''
-                    and E.value.coding contains Code ''{3}'' from {1})
+    exists(
+    from S.extension E
+    where E.url = ''{1}''
+    and E.value.coding contains Code ''{2}'' from StorageTemperature)
                 </atomicCqlExpression>
             </atomicExpression>
         </entityType>
@@ -94,10 +305,10 @@
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>
-                    exists(
-                    from Specimen.extension E
-                    where E.url = ''{2}''
-                    and E.value.coding contains Code ''{3}'' from {1}})
+    exists(
+    from Specimen.extension E
+    where E.url = ''{1}''
+    and E.value.coding contains Code ''{2}'' from StorageTemperature)
                 </atomicCqlExpression>
             </atomicExpression>
         </entityType>
@@ -150,34 +361,175 @@
             <!-- Uncharted storage temperature -->
             <mdrKey>storage_temperature_uncharted</mdrKey>
             <cqlValue>temperatureOther</cqlValue>
-        </permittedValue>    </uiField>
+        </permittedValue>
+    </uiField>
+
+    <!-- Sex -->
     <uiField>
-        <mdrUrn>urn:mdr16:dataelement:16:1</mdrUrn>
-        <codesystemName>SampleMaterialType</codesystemName>
-        <codesystemUrl>https://fhir.bbmri.de/CodeSystem/SampleMaterialType</codesystemUrl>
+        <mdrUrn>urn:mdr16:dataelement:23:1</mdrUrn>
+        <codesystems/>
         <extensionUrl/>
         <entityType>
             <entityTypeName>Patient</entityTypeName>
-            <pathCqlExpression>
-                exists(
-                from [Specimen] S where {0})
-            </pathCqlExpression>
+            <pathCqlExpression>{0}</pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>
-                    S.value.coding contains Code ''{3}'' from {1}
-                </atomicCqlExpression>
+                <atomicCqlExpression>Patient.gender {0} ''{2}''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>(Patient.gender &lt; ''{3}'' and Patient.gender &gt; ''{2}'')</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <entityType>
             <entityTypeName>Specimen</entityTypeName>
-            <pathCqlExpression>{0}</pathCqlExpression>
+            <pathCqlExpression>
+    exists(from [Patient] P where {0})
+            </pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>
-                    Specimen.value.coding contains Code ''{3}'' from {1}
-                </atomicCqlExpression>
+                <atomicCqlExpression>P.gender {0} ''{2}''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>(P.gender &lt; ''{3}'' and P.gender &gt; ''{2}'')</atomicCqlExpression>
             </atomicExpression>
         </entityType>
     </uiField>
+
+    <!-- Body Weight -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:29:1</mdrUrn>
+        <codesystem>
+            <name>loinc</name>
+            <url>http://loinc.org</url>
+        </codesystem>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+    from [Observation: Code ''29463-7'' from loinc] O
+    where {0})
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''kg''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg'') and (O.value as Quantity) &gt; {2} ''kg'')</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <singleton>
+                <name>Patient</name>
+            </singleton>
+            <pathCqlExpression>
+    exists(
+    from [Patient -&gt; Observation: Code ''29463-7'' from loinc] O
+    where {0})
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''kg''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg'') and (O.value as Quantity) &gt; {2} ''kg'')</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+    </uiField>
+
+    <!-- Body Height -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:30:1</mdrUrn>
+        <codesystem>
+            <name>loinc</name>
+            <url>http://loinc.org</url>
+        </codesystem>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+    from [Observation: Code ''8302-2'' from loinc] O
+    where {0})
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''cm''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''cm'') and (O.value as Quantity) &gt; {2} ''cm'')</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <singleton>
+                <name>Patient</name>
+            </singleton>
+            <pathCqlExpression>
+    exists(
+    from [Patient -&gt; Observation: Code ''8302-2'' from loinc] O
+    where {0})
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''cm''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''cm'') and (O.value as Quantity) &gt; {2} ''cm'')</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+    </uiField>
+
+    <!-- BMI -->
+    <uiField>
+        <mdrUrn>urn:mdr16:dataelement:31:1</mdrUrn>
+        <codesystem>
+            <name>loinc</name>
+            <url>http://loinc.org</url>
+        </codesystem>
+        <extensionUrl/>
+        <entityType>
+            <entityTypeName>Patient</entityTypeName>
+            <pathCqlExpression>
+    exists(
+    from [Observation: Code ''39156-5'' from loinc] O
+    where {0})
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''kg/m2''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg/m2'') and (O.value as Quantity) &gt; {2} ''kg/m2'')</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+        <entityType>
+            <entityTypeName>Specimen</entityTypeName>
+            <singleton>
+                <name>Patient</name>
+            </singleton>
+            <pathCqlExpression>
+    exists(
+    from [Patient -&gt; Observation: Code ''39156-5'' from loinc] O
+    where {0})
+            </pathCqlExpression>
+            <atomicExpression>
+                <operator>DEFAULT</operator>
+                <atomicCqlExpression>(O.value as Quantity) {0} {1} ''kg/m2''</atomicCqlExpression>
+            </atomicExpression>
+            <atomicExpression>
+                <operator>...</operator>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg/m2'') and (O.value as Quantity) &gt; {2} ''kg/m2'')</atomicCqlExpression>
+            </atomicExpression>
+        </entityType>
+    </uiField>
+
 </cqlConfig>

@@ -12,12 +12,14 @@ public class SimpleQueryDto2CqlTransformer {
 
     public String toQuery(SimpleQueryDto queryDto, String entityType) {
         CqlCodesytemDefinitionsFactory codesytemDefinitionsFactory = new CqlCodesytemDefinitionsFactory(cqlExpressionFactory);
+        CqlSingletonStatementsFactory singletonsFactory = new CqlSingletonStatementsFactory(cqlExpressionFactory);
         CqlFieldExpressionFactory fieldExpressionFactory = new CqlFieldExpressionFactory(cqlExpressionFactory);
         CqlPredicateFactory predicateFactory = new CqlPredicateFactory(fieldExpressionFactory);
 
         String codesystemDefinitions = codesytemDefinitionsFactory.create(queryDto);
+        String singletonStatements = singletonsFactory.create(queryDto, entityType);
         String cqlPredicate = predicateFactory.create(queryDto, entityType);
 
-        return cqlExpressionFactory.getPreamble(entityType, codesystemDefinitions) + cqlPredicate;
+        return cqlExpressionFactory.getPreamble(entityType, codesystemDefinitions, singletonStatements) + cqlPredicate;
     }
 }
