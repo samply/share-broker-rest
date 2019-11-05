@@ -6,6 +6,8 @@ import org.easymock.EasyMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+
 import static org.hamcrest.MatcherAssert.*;
 import static de.samply.share.broker.utils.cql.CqlTestHelper.ENTITY_TYPE;
 import static de.samply.share.broker.utils.cql.CqlTestHelper.MDR_URN_1;
@@ -37,6 +39,8 @@ class CqlValuesExpressionFactoryTest {
 
     @Test
     void test_create_oneValue() {
+        expect(expressionFactory.createAtomicExpressionParameterList(anyString(), anyString(), anyObject())).andStubReturn(Collections.singletonList(null));
+
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-1");
         replay(expressionFactory);
 
@@ -49,6 +53,8 @@ class CqlValuesExpressionFactoryTest {
 
     @Test
     void test_create_twoValues() {
+        expect(expressionFactory.createAtomicExpressionParameterList(anyString(), anyString(), anyObject())).andStubReturn(Collections.singletonList(null));
+
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-1");
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-2");
         replay(expressionFactory);
@@ -63,6 +69,8 @@ class CqlValuesExpressionFactoryTest {
 
     @Test
     void test_create_threeValues() {
+        expect(expressionFactory.createAtomicExpressionParameterList(anyString(), anyString(), anyObject())).andStubReturn(Collections.singletonList(null));
+
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-1");
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-2");
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-3");
@@ -79,6 +87,8 @@ class CqlValuesExpressionFactoryTest {
 
     @Test
     void test_create_threeValuesButOneMissingAtomicExpression() {
+        expect(expressionFactory.createAtomicExpressionParameterList(anyString(), anyString(), anyObject())).andStubReturn(Collections.singletonList(null));
+
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-1");
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn(null);
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-3");

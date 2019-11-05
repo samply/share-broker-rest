@@ -7,11 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -27,6 +23,8 @@ class CqlExpressionFactoryTest {
     private static final String MDR_URN_PATIENT = "urn:mdr16:dataelement:08:16";
     private static final String MDR_URN_PATIENT_OBSERVATION = "urn:mdr16:dataelement:08:17";
     private static final String MDR_URN_PATIENT_PATIENT = "urn:mdr16:dataelement:08:18";
+
+    private static final String MDR_URN_TWO_CQL_VALUES = "urn:mdr16:dataelement:08:19";
 
     private static final String ENTITY_TYPE_PATIENT = "Patient";
     private static final String ENTITY_TYPE_SPECIMEN = "Specimen";
@@ -85,9 +83,10 @@ class CqlExpressionFactoryTest {
     @Test
     void test_getAtomicExpression_operatorNotSpecifiedUseDefault() {
         ValueStringDto valueDto = createValueDto(SimpleValueCondition.EQUALS);
-        CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter = factory.createAtomicExpressionParameter(URN_GENDER, ENTITY_TYPE_SPECIMEN, valueDto);
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_GENDER, ENTITY_TYPE_SPECIMEN, valueDto);
+        assertThat("Expected is a list with only one parameter", atomicExpressionParameterList.size(), is(1));
 
-        String atomicExpression = factory.getAtomicExpression(atomicExpressionParameter);
+        String atomicExpression = factory.getAtomicExpression(atomicExpressionParameterList.get(0));
         assertThat("Error reading atomic expression for unspecified operator using default expression.",
                 StringUtils.trim(atomicExpression),
                 is("P.gender = '13'"));
@@ -96,9 +95,11 @@ class CqlExpressionFactoryTest {
     @Test
     void test_getAtomicExpression_operatorSpecified() {
         ValueStringDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
-        CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter = factory.createAtomicExpressionParameter(URN_GENDER, ENTITY_TYPE_SPECIMEN, valueDto);
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_GENDER, ENTITY_TYPE_SPECIMEN, valueDto);
 
-        String atomicExpression = factory.getAtomicExpression(atomicExpressionParameter);
+        assertThat("Expected is a list with only one parameter", atomicExpressionParameterList.size(), is(1));
+
+        String atomicExpression = factory.getAtomicExpression(atomicExpressionParameterList.get(0));
         assertThat("Error reading atomic expression for specified operator.",
                 StringUtils.trim(atomicExpression),
                 is("(P.gender < '17' and P.gender > '13')"));
@@ -107,9 +108,11 @@ class CqlExpressionFactoryTest {
     @Test
     void test_getAtomicExpression_notExistingMdrUrn() {
         ValueStringDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
-        CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter = factory.createAtomicExpressionParameter(URN_NOT_EXISTING, ENTITY_TYPE_SPECIMEN, valueDto);
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_NOT_EXISTING, ENTITY_TYPE_SPECIMEN, valueDto);
 
-        String atomicExpression = factory.getAtomicExpression(atomicExpressionParameter);
+        assertThat("Expected is a list with only one parameter", atomicExpressionParameterList.size(), is(1));
+
+        String atomicExpression = factory.getAtomicExpression(atomicExpressionParameterList.get(0));
         assertThat("Error getting atomic expression for non-existing MDR-urn.",
                 StringUtils.trim(atomicExpression),
                 is(""));
@@ -118,9 +121,11 @@ class CqlExpressionFactoryTest {
     @Test
     void test_getAtomicExpression_notExistingEntityType() {
         ValueStringDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
-        CqlExpressionFactory.AtomicExpressionParameter atomicExpressionParameter = factory.createAtomicExpressionParameter(URN_GENDER, ENTITY_TYPE_NOT_EXISTING, valueDto);
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_GENDER, ENTITY_TYPE_NOT_EXISTING, valueDto);
 
-        String atomicExpression = factory.getAtomicExpression(atomicExpressionParameter);
+        assertThat("Expected is a list with only one parameter", atomicExpressionParameterList.size(), is(1));
+
+        String atomicExpression = factory.getAtomicExpression(atomicExpressionParameterList.get(0));
         assertThat("Error getting atomic expression for non-existing entity type.",
                 StringUtils.trim(atomicExpression),
                 is(""));
@@ -227,16 +232,33 @@ class CqlExpressionFactoryTest {
     }
 
     @Test
-    void test_getCqlValue_configured() {
-        String cqlValue = factory.getCqlValue(URN_TEMPERATURE, "RT");
+    void test_getCqlValueList_configured() {
+        List<String> cqlValueList = factory.getCqlValueList(URN_TEMPERATURE, "RT");
+        assertThat("Expected is only one cqlValue", cqlValueList.size(), is(1));
+
+        String cqlValue = cqlValueList.get(0);
         assertThat("Error getting cql value for permitted value in config file.", StringUtils.trim(cqlValue), is("temperatureRoom"));
     }
 
     @Test
-    void test_getCqlValue_notConfigured() {
+    void test_getCqlValueList_notConfigured() {
         final String not_configured = "NOT CONFIGURED";
-        String cqlValue = factory.getCqlValue(URN_TEMPERATURE, not_configured);
+        List<String> cqlValueList = factory.getCqlValueList(URN_TEMPERATURE, not_configured);
+        assertThat("Expected is only one cqlValue", cqlValueList.size(), is(1));
+
+        String cqlValue = cqlValueList.get(0);
         assertThat("Error getting cql value for permitted value not configured in config file.", StringUtils.trim(cqlValue), is(not_configured));
+    }
+
+    @Test
+    void test_getCqlValueList_twoAssociatedCqlValues() {
+        List<String> cqlValueList = factory.getCqlValueList(MDR_URN_TWO_CQL_VALUES, "SMOKER");
+        assertThat("Expected are two cqlValues", cqlValueList.size(), is(2));
+
+        List<String> cqlValues = cqlValueList.stream().map(StringUtils::trim).sorted().collect(Collectors.toList());
+        List<String> expectedCqlValues = Arrays.asList("SMOKER_1", "SMOKER_2");
+
+        assertThat("Error getting cql value for permitted value not configured in config file.", cqlValues, is(expectedCqlValues));
     }
 
     @NotNull
