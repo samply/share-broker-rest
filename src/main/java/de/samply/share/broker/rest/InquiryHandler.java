@@ -613,11 +613,11 @@ public class InquiryHandler {
         return returnValue.toString();
     }
 
-    private boolean isQueryLanguageViewQuery(String queryLanguage) {
+    static boolean isQueryLanguageViewQuery(String queryLanguage) {
         return StringUtils.equalsIgnoreCase(queryLanguage, QUERYLANGUAGE_QUERY);
     }
 
-    private boolean isQueryLanguageCql(String queryLanguage) {
+    static boolean isQueryLanguageCql(String queryLanguage) {
         return StringUtils.equalsIgnoreCase(queryLanguage, QUERYLANGUAGE_CQL);
     }
 
