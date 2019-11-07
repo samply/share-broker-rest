@@ -539,14 +539,11 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
-            <pathCqlExpression>false</pathCqlExpression>
-			<!--
             <pathCqlExpression>
     exists(
       from [Patient -&gt; Condition] C
       where {0} )
             </pathCqlExpression>
-			-->
             <atomicExpression>
               <operator>DEFAULT</operator>
               <atomicCqlExpression>FHIRHelpers.ToDateTime(C.onset) {0} {2}</atomicCqlExpression></atomicExpression>
@@ -585,14 +582,11 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
-            <pathCqlExpression>false</pathCqlExpression>
-			<!--
             <pathCqlExpression>
     exists(
       from [Patient -&gt; Condition] C
       where {0} )
             </pathCqlExpression>
-			-->
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>(exists([Condition: Code ''{2}'' from icd10]) or exists([Condition: Code ''{2}'' from icd10gm]))</atomicCqlExpression>
@@ -626,14 +620,11 @@ define InInitialPopulation:
             <singleton>
               <name>Patient</name>
             </singleton>
-            <pathCqlExpression>false</pathCqlExpression>
-			<!--
             <pathCqlExpression>
     exists(
       from [Patient -&gt; Condition] C
       where {0} )
              </pathCqlExpression>
-			 -->
              <atomicExpression>
                <operator>DEFAULT</operator>
                <atomicCqlExpression>AgeInYearsAt(FHIRHelpers.ToDateTime(C.onset)) {0} Ceiling({2})</atomicCqlExpression></atomicExpression>
@@ -673,14 +664,11 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
-            <pathCqlExpression>false</pathCqlExpression>
-			<!--
             <pathCqlExpression>
     exists(
       from [Patient -&gt; Observation: Code ''29463-7'' from loinc] O
       where {0} )
             </pathCqlExpression>
-			-->
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>(O.value as Quantity) {0} {2} ''kg''</atomicCqlExpression>
@@ -721,14 +709,11 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
-            <pathCqlExpression>false</pathCqlExpression>
-			<!--
             <pathCqlExpression>
     exists(
       from [Patient -&gt; Observation: Code ''8302-2'' from loinc] O
       where {0} )
             </pathCqlExpression>
-			-->
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>(O.value as Quantity) {0} {2} ''cm''</atomicCqlExpression>
@@ -769,14 +754,11 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
-            <pathCqlExpression>false</pathCqlExpression>
-			<!--
             <pathCqlExpression>
     exists(
       from [Patient -&gt; Observation: Code ''39156-5'' from loinc] O
       where {0} )
             </pathCqlExpression>
-			-->
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>(O.value as Quantity) {0} {2} ''kg/m2''</atomicCqlExpression>
@@ -810,14 +792,11 @@ define InInitialPopulation:
         </entityType>
         <entityType>
             <entityTypeName>Specimen</entityTypeName>
-            <pathCqlExpression>false</pathCqlExpression>
-			<!--
             <pathCqlExpression>
     exists(
       from [Patient -&gt; Observation: Code ''72166-2'' from loinc] O
       where {0} )
              </pathCqlExpression>
-			 -->
              <atomicExpression>
                <operator>DEFAULT</operator>
                  <atomicCqlExpression>O.value.coding contains Code ''{2}'' from loinc</atomicCqlExpression>
