@@ -152,7 +152,7 @@ class CqlExpressionFactory {
 
         List<String> cqlValues = getCqlValueList(mdrUrn, valueDto.getValueAsCqlString());
         if (cqlValues.size() == 1) {
-            return Collections.singletonList(new AtomicExpressionParameter(mdrUrn, entityType, valueDto.getCondition(), valueDto.getValueAsCqlString(), valueDto.getMaxValueAsCqlString()));
+            return Collections.singletonList(new AtomicExpressionParameter(mdrUrn, entityType, valueDto.getCondition(), cqlValues.get(0), valueDto.getMaxValueAsCqlString()));
         }
 
         for (String cqlValue : cqlValues) {

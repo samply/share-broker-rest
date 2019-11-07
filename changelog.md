@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.4.2 - 2019-11-07]
+### Bugfix
+- Permitted value mapping MDR to CQL (for one CQL value only)
+
 ## [3.4.0 - 2019-11-04]
 ### Added
 - Allow more than one CQL value per permitted MDR value
