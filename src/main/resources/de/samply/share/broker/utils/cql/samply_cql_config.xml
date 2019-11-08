@@ -106,7 +106,7 @@ define InInitialPopulation:
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
-                <atomicCqlExpression>(FHIRHelpers.ToDateTime(P.birthDate) between (Today() - {3} year) and (Today() - {2} year))</atomicCqlExpression>
+                <atomicCqlExpression>(FHIRHelpers.ToDate(P.birthDate) between (Today() - {3} year) and (Today() - {2} year))</atomicCqlExpression>
             </atomicExpression>
         </entityType>
     </uiField>
@@ -582,14 +582,10 @@ define InInitialPopulation:
             <singleton>
                 <name>Patient</name>
             </singleton>
-            <pathCqlExpression>
-    exists(
-      from [Patient -&gt; Condition] C
-      where {0} )
-            </pathCqlExpression>
+            <pathCqlExpression>{0}</pathCqlExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
-                <atomicCqlExpression>(exists([Condition: Code ''{2}'' from icd10]) or exists([Condition: Code ''{2}'' from icd10gm]))</atomicCqlExpression>
+                <atomicCqlExpression>(exists([Patient -&gt; Condition: Code ''{2}'' from icd10]) or exists([Patient -&gt; Condition: Code ''{2}'' from icd10gm]))</atomicCqlExpression>
             </atomicExpression>
         </entityType>
     </uiField>
@@ -656,7 +652,7 @@ define InInitialPopulation:
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
-                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg'') and (O.value as Quantity) &gt; {2} ''kg'')</atomicCqlExpression>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg'' and (O.value as Quantity) &gt; {2} ''kg'')</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <entityType>
@@ -675,7 +671,7 @@ define InInitialPopulation:
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
-                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg'') and (O.value as Quantity) &gt; {2} ''kg'')</atomicCqlExpression>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg'' and (O.value as Quantity) &gt; {2} ''kg'')</atomicCqlExpression>
             </atomicExpression>
         </entityType>
     </uiField>
@@ -701,7 +697,7 @@ define InInitialPopulation:
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
-                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''cm'') and (O.value as Quantity) &gt; {2} ''cm'')</atomicCqlExpression>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''cm'' and (O.value as Quantity) &gt; {2} ''cm'')</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <entityType>
@@ -720,7 +716,7 @@ define InInitialPopulation:
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
-                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''cm'') and (O.value as Quantity) &gt; {2} ''cm'')</atomicCqlExpression>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''cm'' and (O.value as Quantity) &gt; {2} ''cm'')</atomicCqlExpression>
             </atomicExpression>
         </entityType>
     </uiField>
@@ -746,7 +742,7 @@ define InInitialPopulation:
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
-                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg/m2'') and (O.value as Quantity) &gt; {2} ''kg/m2'')</atomicCqlExpression>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg/m2'' and (O.value as Quantity) &gt; {2} ''kg/m2'')</atomicCqlExpression>
             </atomicExpression>
         </entityType>
         <entityType>
@@ -765,7 +761,7 @@ define InInitialPopulation:
             </atomicExpression>
             <atomicExpression>
                 <operator>...</operator>
-                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg/m2'') and (O.value as Quantity) &gt; {2} ''kg/m2'')</atomicCqlExpression>
+                <atomicCqlExpression>((O.value as Quantity) &lt; {3} ''kg/m2'' and (O.value as Quantity) &gt; {2} ''kg/m2'')</atomicCqlExpression>
             </atomicExpression>
         </entityType>
     </uiField>
@@ -792,6 +788,9 @@ define InInitialPopulation:
         </entityType>
         <entityType>
             <entityTypeName>Specimen</entityTypeName>
+            <singleton>
+                <name>Patient</name>
+            </singleton>
             <pathCqlExpression>
     exists(
       from [Patient -&gt; Observation: Code ''72166-2'' from loinc] O
