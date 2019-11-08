@@ -144,15 +144,15 @@ define InInitialPopulation:
             <cqlValue>whole-blood</cqlValue>
         </permittedValue>
         <permittedValue>
-            <mdrKey>whole_blood_stabillised</mdrKey>
+            <mdrKey>whole_blood_stabilised</mdrKey>
             <cqlValue>whole-blood</cqlValue>
         </permittedValue>
         <permittedValue>
-            <mdrKey>plasma_EDTA</mdrKey>
+            <mdrKey>plasma-EDTA</mdrKey>
             <cqlValue>blood-plasma</cqlValue>
         </permittedValue>
         <permittedValue>
-            <mdrKey>plasma_citrat</mdrKey>
+            <mdrKey>plasma-citrate</mdrKey>
             <cqlValue>blood-plasma</cqlValue>
         </permittedValue>
         <permittedValue>
@@ -164,7 +164,7 @@ define InInitialPopulation:
             <cqlValue>blood-serum</cqlValue>
         </permittedValue>
         <permittedValue>
-            <mdrKey>periphal_blood_cells</mdrKey>
+            <mdrKey>peripheral_blood_cells</mdrKey>
             <cqlValue>peripheral-blood-cells-vital</cqlValue>
         </permittedValue>
         <permittedValue>
@@ -172,7 +172,7 @@ define InInitialPopulation:
             <cqlValue>bone-marrow</cqlValue>
         </permittedValue>
         <permittedValue>
-            <mdrKey>liqour/CSF</mdrKey>
+            <mdrKey>liquor/CSF</mdrKey>
             <cqlValue>csf-liquor</cqlValue>
         </permittedValue>
         <permittedValue>
@@ -274,7 +274,7 @@ define InInitialPopulation:
             <cqlValue>whole-blood</cqlValue>
         </permittedValue>
         <permittedValue>
-            <mdrKey>whole_blood_stabillised</mdrKey>
+            <mdrKey>whole_blood_stabilised</mdrKey>
             <cqlValue>whole-blood</cqlValue>
         </permittedValue>
         <permittedValue>
@@ -282,7 +282,7 @@ define InInitialPopulation:
             <cqlValue>blood-plasma</cqlValue>
         </permittedValue>
         <permittedValue>
-            <mdrKey>plasma-citrat</mdrKey>
+            <mdrKey>plasma-citrate</mdrKey>
             <cqlValue>blood-plasma</cqlValue>
         </permittedValue>
         <permittedValue>
@@ -294,7 +294,7 @@ define InInitialPopulation:
             <cqlValue>blood-serum</cqlValue>
         </permittedValue>
         <permittedValue>
-            <mdrKey>periphal_blood_cells</mdrKey>
+            <mdrKey>peripheral_blood_cells</mdrKey>
             <cqlValue>peripheral-blood-cells-vital</cqlValue>
         </permittedValue>
         <permittedValue>
@@ -302,7 +302,7 @@ define InInitialPopulation:
             <cqlValue>bone-marrow</cqlValue>
         </permittedValue>
         <permittedValue>
-            <mdrKey>liqour/CSF</mdrKey>
+            <mdrKey>liquor/CSF</mdrKey>
             <cqlValue>csf-liquor</cqlValue>
         </permittedValue>
         <permittedValue>
