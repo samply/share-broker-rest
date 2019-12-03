@@ -25,20 +25,19 @@
  */
 package de.samply.share.broker.utils.db;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
+import de.samply.share.broker.jdbc.ResourceManager;
+import de.samply.share.broker.model.db.tables.daos.InquirySiteDao;
+import de.samply.share.broker.model.db.tables.pojos.InquirySite;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultConfiguration;
 
-import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.model.db.tables.daos.InquirySiteDao;
-import de.samply.share.broker.model.db.tables.pojos.InquirySite;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class provides static methods for CRUD operations for InquirySite

@@ -7,12 +7,10 @@ import org.junit.jupiter.api.Test;
 
 import static de.samply.share.broker.utils.cql.CqlTestHelper.ENTITY_TYPE;
 import static de.samply.share.broker.utils.cql.CqlTestHelper.MDR_URN_1;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-
-import static org.easymock.EasyMock.*;
 
 class CqlFieldExpressionFactoryTest {
 

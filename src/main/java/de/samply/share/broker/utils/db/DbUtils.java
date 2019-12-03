@@ -25,17 +25,16 @@
  */
 package de.samply.share.broker.utils.db;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
+import de.samply.share.broker.jdbc.ResourceManager;
+import de.samply.share.broker.model.db.tables.daos.UserDao;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultConfiguration;
 
-import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.model.db.tables.daos.UserDao;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * Offers some helper methods for db access.

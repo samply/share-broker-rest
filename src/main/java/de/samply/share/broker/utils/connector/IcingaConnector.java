@@ -2,8 +2,6 @@ package de.samply.share.broker.utils.connector;
 
 import com.google.gson.Gson;
 import de.samply.common.http.HttpConnector;
-import de.samply.share.broker.listener.Proxy;
-import de.samply.share.broker.utils.Config;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.common.model.dto.monitoring.StatusReportItem;
 import de.samply.share.common.utils.ProjectInfo;
@@ -21,22 +19,14 @@ import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 

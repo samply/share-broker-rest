@@ -25,38 +25,27 @@
  */
 package de.samply.share.broker.utils;
 
-import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.List;
-
-import javax.faces.application.ProjectStage;
-
-import de.samply.share.common.utils.SamplyShareUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-
 import de.samply.common.mailing.EmailBuilder;
 import de.samply.common.mailing.MailSender;
 import de.samply.common.mailing.MailSending;
 import de.samply.common.mailing.OutgoingEmail;
-import de.samply.share.broker.model.db.tables.pojos.Action;
-import de.samply.share.broker.model.db.tables.pojos.Bank;
-import de.samply.share.broker.model.db.tables.pojos.Contact;
-import de.samply.share.broker.model.db.tables.pojos.Inquiry;
-import de.samply.share.broker.model.db.tables.pojos.Project;
-import de.samply.share.broker.model.db.tables.pojos.Site;
-import de.samply.share.broker.model.db.tables.pojos.User;
+import de.samply.share.broker.model.db.tables.pojos.*;
 import de.samply.share.broker.thread.MailSenderThread;
 import de.samply.share.broker.utils.db.ActionUtil;
 import de.samply.share.broker.utils.db.ContactUtil;
 import de.samply.share.broker.utils.db.InquiryUtil;
 import de.samply.share.broker.utils.db.ProjectUtil;
-import de.samply.share.broker.utils.db.SiteUtil;
 import de.samply.share.common.utils.ProjectInfo;
+import de.samply.share.common.utils.SamplyShareUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.faces.application.ProjectStage;
+import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.List;
 
 /**
  * An utility class holding methods to send emails.

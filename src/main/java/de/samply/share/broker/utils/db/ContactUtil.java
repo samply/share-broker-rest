@@ -26,10 +26,13 @@
 
 package de.samply.share.broker.utils.db;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Arrays;
-
+import com.google.common.base.Joiner;
+import de.samply.share.broker.jdbc.ResourceManager;
+import de.samply.share.broker.model.db.Tables;
+import de.samply.share.broker.model.db.tables.daos.ContactDao;
+import de.samply.share.broker.model.db.tables.daos.UserDao;
+import de.samply.share.broker.model.db.tables.pojos.Contact;
+import de.samply.share.broker.model.db.tables.pojos.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
@@ -38,14 +41,9 @@ import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultConfiguration;
 
-import com.google.common.base.Joiner;
-
-import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.model.db.Tables;
-import de.samply.share.broker.model.db.tables.daos.ContactDao;
-import de.samply.share.broker.model.db.tables.daos.UserDao;
-import de.samply.share.broker.model.db.tables.pojos.Contact;
-import de.samply.share.broker.model.db.tables.pojos.User;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Arrays;
 
 /**
  * This class provides static methods for CRUD operations for Contact Objects

@@ -29,8 +29,11 @@
  */
 package de.samply.share.broker.filter;
 
-import java.io.IOException;
-import java.util.List;
+import com.google.common.base.Splitter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.omnifaces.filter.HttpFilter;
+import org.omnifaces.util.Servlets;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -38,13 +41,8 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.omnifaces.filter.HttpFilter;
-import org.omnifaces.util.Servlets;
-
-import com.google.common.base.Splitter;
+import java.io.IOException;
+import java.util.List;
 
 /** Access Control Filter.
  *
