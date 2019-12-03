@@ -29,22 +29,6 @@
  */
 package de.samply.share.broker.rest;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
-
-import javax.ws.rs.core.Response;
-
-import de.samply.share.common.utils.SamplyShareUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.jooq.Configuration;
-import org.jooq.DSLContext;
-import org.jooq.Record;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DefaultConfiguration;
-
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
 import de.samply.share.broker.model.db.tables.daos.AuthtokenDao;
@@ -59,6 +43,20 @@ import de.samply.share.broker.utils.MailUtils;
 import de.samply.share.broker.utils.db.BankSiteUtil;
 import de.samply.share.broker.utils.db.SiteUtil;
 import de.samply.share.broker.utils.db.TokenRequestUtil;
+import de.samply.share.common.utils.SamplyShareUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jooq.Configuration;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DefaultConfiguration;
+
+import javax.ws.rs.core.Response;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Handles the whole management of connected banks. Registration, activation, deletion.

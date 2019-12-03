@@ -2,6 +2,7 @@ package de.samply.share.broker.listener;
 
 import de.samply.common.config.Configuration;
 import de.samply.common.config.ObjectFactory;
+import de.samply.common.http.HttpConnector;
 import de.samply.config.util.JAXBUtil;
 import de.samply.share.common.model.dto.UserAgent;
 import de.samply.share.common.utils.ProjectInfo;
@@ -9,8 +10,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xml.sax.SAXException;
 
-import javax.faces.context.FacesContext;
-import javax.servlet.ServletContext;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
@@ -18,11 +17,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
-import de.samply.common.http.HttpConnector;
 
 import static de.samply.common.http.HttpConnector.*;
-import static de.samply.common.http.HttpConnector.PROXY_BYPASS_PRIVATE_NETWORKS;
-import static de.samply.common.http.HttpConnector.USER_AGENT;
 import static de.samply.share.broker.utils.Utils.getRealPath;
 
 public class Proxy {
