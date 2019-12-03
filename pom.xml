@@ -46,6 +46,7 @@
         <jsf-renderer.version>2.0.0</jsf-renderer.version>
         <share-common.version>3.3.1</share-common.version>
         <share-dto.version>4.6.4</share-dto.version>
+        <bbmri-auth-dto.version>1.2.0</bbmri-auth-dto.version>
         <!-- general dependencies -->
         <!-- We must keep the older mojarra version as the opening of elements
              in the search_query.xhtml is not working, otherwise. -->
@@ -195,6 +196,11 @@
         </plugins>
     </build>
     <dependencies>
+        <dependency>
+            <groupId>de.samply</groupId>
+            <artifactId>bbmri-auth-dto</artifactId>
+            <version>${bbmri-auth-dto.version}</version>
+        </dependency>
         <dependency>
             <groupId>de.samply</groupId>
             <artifactId>share-dto</artifactId>

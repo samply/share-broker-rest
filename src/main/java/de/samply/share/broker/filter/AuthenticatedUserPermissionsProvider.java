@@ -1,6 +1,7 @@
 package de.samply.share.broker.filter;
 
-import de.samply.auth.rest.RoleDTO;
+
+import de.samply.bbmri.auth.rest.RoleDTO;
 
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.event.Observes;

@@ -1,11 +1,11 @@
 package de.samply.share.broker.filter;
 
 
-import de.samply.auth.client.jwt.JWTException;
-import de.samply.auth.client.jwt.JWTIDToken;
 import de.samply.auth.rest.LocationDTO;
 import de.samply.auth.rest.LocationListDTO;
-import de.samply.auth.rest.RoleDTO;
+import de.samply.bbmri.auth.client.jwt.JWTException;
+import de.samply.bbmri.auth.client.jwt.JWTIDToken;
+import de.samply.bbmri.auth.rest.RoleDTO;
 import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.broker.utils.db.ContactUtil;
 import de.samply.share.broker.utils.db.SiteUtil;
