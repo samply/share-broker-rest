@@ -95,7 +95,7 @@ public final class UserUtil {
             user.setAuthid(jwtIdToken.getSubject());
             user.setEmail(getClaim(jwtIdToken, JWTVocabulary.EMAIL));
             user.setName(getClaim(jwtIdToken, JWTVocabulary.NAME));
-            user.setUsername(getClaim(jwtIdToken, JWTVocabulary.EMAIL));
+            user.setUsername(getClaim(jwtIdToken, JWTVocabulary.NAME));
             userDao.insert(user);
             user = userDao.fetchOneByAuthid(user.getAuthid());
         } catch (SQLException e) {
