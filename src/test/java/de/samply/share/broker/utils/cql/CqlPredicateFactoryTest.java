@@ -7,10 +7,10 @@ import org.easymock.EasyMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.MatcherAssert.*;
 import static de.samply.share.broker.utils.cql.CqlTestHelper.*;
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 class CqlPredicateFactoryTest {
 

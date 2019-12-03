@@ -32,7 +32,6 @@ import de.samply.share.broker.model.db.enums.DocumentType;
 import de.samply.share.broker.model.db.enums.InquiryStatus;
 import de.samply.share.broker.model.db.enums.ProjectStatus;
 import de.samply.share.broker.model.db.tables.daos.InquiryDao;
-import de.samply.share.broker.model.db.tables.daos.ProjectDao;
 import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.Project;

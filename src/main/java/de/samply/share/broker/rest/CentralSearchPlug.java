@@ -29,38 +29,31 @@
  */
 package de.samply.share.broker.rest;
 
-import java.net.URI;
-import java.util.Arrays;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-
-import de.samply.share.common.utils.*;
-import de.samply.share.utils.QueryConverter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.omnifaces.model.tree.TreeModel;
-
 import de.samply.common.mdrclient.MdrClient;
 import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.broker.utils.db.DocumentUtil;
 import de.samply.share.broker.utils.db.InquiryUtil;
 import de.samply.share.broker.utils.db.UserUtil;
 import de.samply.share.common.model.uiquerybuilder.QueryItem;
+import de.samply.share.common.utils.*;
 import de.samply.share.common.utils.oauth2.OAuthUtils;
 import de.samply.share.model.common.Query;
+import de.samply.share.utils.QueryConverter;
 import de.samply.web.mdrFaces.MdrContext;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.omnifaces.model.tree.TreeModel;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.*;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import java.net.URI;
+import java.util.Arrays;
 
 /**
  * The Class CentralSearchPlug.

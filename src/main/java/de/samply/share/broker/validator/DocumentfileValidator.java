@@ -29,8 +29,8 @@
  */
 package de.samply.share.broker.validator;
 
-import java.util.ArrayList;
-import java.util.List;
+import de.samply.share.common.utils.SamplyShareUtils;
+import org.jooq.tools.StringUtils;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
@@ -39,9 +39,8 @@ import javax.faces.validator.FacesValidator;
 import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
 import javax.servlet.http.Part;
-
-import de.samply.share.common.utils.SamplyShareUtils;
-import org.jooq.tools.StringUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Check if a document is not bigger than the defined threshold of 10MB and has one of the allowed suffixes

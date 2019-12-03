@@ -1,22 +1,22 @@
 /**
  * Copyright (C) 2015 Working Group on Joint Research, University Medical Center Mainz
  * Contact: info@osse-register.de
- *
+ * <p>
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
  * Software Foundation; either version 3 of the License, or (at your option) any
  * later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- *
+ * <p>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program; if not, see <http://www.gnu.org/licenses>.
- *
+ * <p>
  * Additional permission under GNU GPL version 3 section 7:
- *
+ * <p>
  * If you modify this Program, or any covered work, by linking or combining it
  * with Jersey (https://jersey.java.net) (or a modified version of that
  * library), containing parts covered by the terms of the General Public
@@ -26,16 +26,14 @@
 
 package de.samply.share.broker.utils.db;
 
-import de.samply.auth.client.jwt.JWTException;
-import de.samply.auth.client.jwt.JWTIDToken;
+import de.samply.bbmri.auth.client.jwt.JWTIDToken;
+import de.samply.bbmri.auth.client.jwt.JWTVocabulary;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
 import de.samply.share.broker.model.db.tables.daos.SiteDao;
 import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.model.db.tables.pojos.User;
-import de.samply.share.common.utils.ProjectInfo;
-import de.samply.share.common.utils.oauth2.OAuthConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
@@ -44,24 +42,23 @@ import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultConfiguration;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
 /**
  *  This class provides static methods for CRUD operations for User Objects
- *  
+ *
  *  @see User
  */
 public final class UserUtil {
-    
+
     private static final Logger logger = LogManager.getLogger(UserUtil.class);
 
     // Prevent instantiation
     private UserUtil() {
     }
-    
+
     /**
      * Update user.
      *
@@ -70,7 +67,7 @@ public final class UserUtil {
     public static void updateUser(User user) {
         UserDao userDao;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
 
             userDao = new UserDao(configuration);
@@ -90,21 +87,21 @@ public final class UserUtil {
     public static User createUser(JWTIDToken jwtIdToken) {
         User user = null;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             UserDao userDao = new UserDao(configuration);
 
             user = new User();
             user.setAuthid(jwtIdToken.getSubject());
-            user.setEmail(jwtIdToken.getEmail());
-            user.setName(jwtIdToken.getName());
-            user.setUsername(jwtIdToken.getEmail());
+            user.setEmail(getClaim(jwtIdToken, JWTVocabulary.EMAIL));
+            user.setName(getClaim(jwtIdToken, JWTVocabulary.NAME));
+            user.setUsername(getClaim(jwtIdToken, JWTVocabulary.EMAIL));
             userDao.insert(user);
             user = userDao.fetchOneByAuthid(user.getAuthid());
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        
+
         return user;
     }
 
@@ -116,14 +113,15 @@ public final class UserUtil {
      * @return the updated user
      */
     public static User updateUser(User user, JWTIDToken jwtIdToken) {
-        logger.info("User changed auth id: " + jwtIdToken.getEmail() + " - is now: " + jwtIdToken.getSubject() + " . Was before: " + user.getAuthid());
-        try (Connection conn = ResourceManager.getConnection() ) {
+        String email= getClaim(jwtIdToken, JWTVocabulary.EMAIL);
+        logger.info("User changed auth id: " + email + " - is now: " + jwtIdToken.getSubject() + " . Was before: " + user.getAuthid());
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             UserDao userDao = new UserDao(configuration);
             user.setAuthid(jwtIdToken.getSubject());
-            user.setEmail(jwtIdToken.getEmail());
-            user.setName(jwtIdToken.getName());
-            user.setUsername(jwtIdToken.getEmail());
+            user.setEmail(email);
+            user.setName((getClaim(jwtIdToken, JWTVocabulary.NAME)));
+            user.setUsername(email);
 
             userDao.update(user);
             user = userDao.fetchOneByAuthid(user.getAuthid());
@@ -141,7 +139,7 @@ public final class UserUtil {
      * @return the created or updated user
      */
     public static User createOrUpdateUser(JWTIDToken jwtIdToken) {
-        User user = fetchUserByUserNameIgnoreCase(jwtIdToken.getEmail());
+        User user = fetchUserByUserNameIgnoreCase(getClaim(jwtIdToken, JWTVocabulary.EMAIL));
         if (user == null) {
             return createUser(jwtIdToken);
         } else {
@@ -158,14 +156,14 @@ public final class UserUtil {
     public static Site getSiteForUser(User user) {
         Site site = null;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             DSLContext dslContext = ResourceManager.getDSLContext(conn);
-            
+
             site = dslContext.select()
-                  .from(Tables.USER.join(Tables.USER_SITE).onKey().join(Tables.SITE).onKey())
-                  .where(Tables.USER.ID.equal(user.getId()))
-                  .fetchOneInto(Site.class);
-            
+                    .from(Tables.USER.join(Tables.USER_SITE).onKey().join(Tables.SITE).onKey())
+                    .where(Tables.USER.ID.equal(user.getId()))
+                    .fetchOneInto(Site.class);
+
         } catch (SQLException e) {
             logger.error("SQL Exception caught", e);
         }
@@ -194,18 +192,18 @@ public final class UserUtil {
      * @return the id of the site he belongs to
      */
     public static Integer getSiteIdForUserId(int userId) {
-        Site site ;
+        Site site;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             DSLContext dslContext = ResourceManager.getDSLContext(conn);
-            
+
             site = dslContext.select()
-                  .from(Tables.USER.join(Tables.USER_SITE).onKey().join(Tables.SITE).onKey())
-                  .where(Tables.USER.ID.equal(userId))
-                  .fetchOneInto(Site.class);
-            
+                    .from(Tables.USER.join(Tables.USER_SITE).onKey().join(Tables.SITE).onKey())
+                    .where(Tables.USER.ID.equal(userId))
+                    .fetchOneInto(Site.class);
+
             return site.getId();
-            
+
         } catch (SQLException e) {
             logger.error("SQL Exception caught", e);
         }
@@ -222,10 +220,10 @@ public final class UserUtil {
     public static void setSiteIdForUser(User user, int siteId, boolean approved) {
         Site site;
         SiteDao siteDao;
-        
-        try (Connection conn = ResourceManager.getConnection() ) {
+
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-            
+
             siteDao = new SiteDao(configuration);
             site = siteDao.fetchOneById(siteId);
             if (site == null) {
@@ -249,10 +247,10 @@ public final class UserUtil {
     public static void setSiteIdForUserId(int userId, int siteId, boolean approved) {
         User user;
         UserDao userDao;
-        
-        try (Connection conn = ResourceManager.getConnection() ) {
+
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
-            
+
             userDao = new UserDao(configuration);
             user = userDao.fetchOneById(userId);
             if (user == null) {
@@ -275,7 +273,7 @@ public final class UserUtil {
         List<User> users = null;
         UserDao userDao;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             userDao = new UserDao(configuration);
             users = userDao.findAll();
@@ -295,7 +293,7 @@ public final class UserUtil {
         User user = null;
         Record record;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             DSLContext create = ResourceManager.getDSLContext(conn);
 
             record = create.select().from(Tables.USER).where(Tables.USER.USERNAME.equalIgnoreCase(userName)).fetchOne();
@@ -318,7 +316,7 @@ public final class UserUtil {
         User user = null;
         UserDao userDao;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             userDao = new UserDao(configuration);
             user = userDao.fetchOneByAuthid(authId);
@@ -338,7 +336,7 @@ public final class UserUtil {
         User user;
         UserDao userDao;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
+        try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             userDao = new UserDao(configuration);
             user = userDao.fetchOneById(userId);
@@ -349,5 +347,9 @@ public final class UserUtil {
             e.printStackTrace();
         }
         return "Unbekannt";
+    }
+
+    private static String getClaim(JWTIDToken jwtIdToken, String vocabulary) {
+        return (String) jwtIdToken.getClaimsSet().getClaim(vocabulary);
     }
 }

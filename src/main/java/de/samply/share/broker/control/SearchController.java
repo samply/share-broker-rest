@@ -38,7 +38,6 @@ import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
 import org.jooq.tools.json.ParseException;
 
-import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.List;
 
