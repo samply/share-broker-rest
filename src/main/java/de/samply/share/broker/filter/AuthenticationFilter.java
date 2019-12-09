@@ -80,9 +80,6 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             return;
         }
 
-        // Update user, contact and sites in database
-        storeInDb(requestContext, jwtIdToken);
-
         //send user to AuthenticatedUserProvider to get access to the user from everywhere
         userAuthenticatedEvent.fire(jwtIdToken.getSubject());
         //send permissions to AuthenticatedUserPermissionsProvider to get access to the permissions from everywhere
