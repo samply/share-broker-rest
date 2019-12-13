@@ -61,7 +61,7 @@ import static org.jooq.impl.DSL.select;
  */
 public final class InquiryUtil {
 
-    public static final long INQUIRY_TTL = TimeUnit.DAYS.toMillis(28);
+    public static final long INQUIRY_TTL = TimeUnit.MINUTES.toMillis(5);
     private static final Logger logger = LogManager.getLogger(InquiryUtil.class);
 
     // Prevent instantiation

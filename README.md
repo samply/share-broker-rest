@@ -45,22 +45,10 @@ mvn install -Psamply
 
 ### Docker
 
-Use the Docker-Compose of the [GBA-Central](https://github.com/bbmride/gba-central) and run only the Searchbroker with:
-
-```
-docker-compose up searchbroker
-```
-
-#### Or build and run manually:
-
-If postgres connection errors occur, try your ip for POSTGRES_HOST.
-
     docker network create gba
     
-    
-    docker rm pg-searchbroker
-    
     docker run \
+        --rm \
         --name pg-searchbroker \
         --network=gba \
         -e POSTGRES_USER=samply \
@@ -70,13 +58,12 @@ If postgres connection errors occur, try your ip for POSTGRES_HOST.
     postgres:9.6
     
     
-    docker kill searchbroker
-
-    docker rm searchbroker
+    mvn clean install -Psamply
     
     docker build . -t searchbroker:latest
     
     docker run \
+        --rm \
         --name=searchbroker \
         --network=gba \
         -p 8080:8080 \
