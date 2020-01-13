@@ -1,15 +1,11 @@
 package de.samply.share.broker.filter;
 
 
-import de.samply.auth.client.jwt.JWTException;
-import de.samply.auth.client.jwt.JWTIDToken;
-import de.samply.auth.rest.LocationDTO;
-import de.samply.auth.rest.LocationListDTO;
-import de.samply.auth.rest.RoleDTO;
+import de.samply.bbmri.auth.client.jwt.JWTException;
+import de.samply.bbmri.auth.client.jwt.JWTIDToken;
+import de.samply.bbmri.auth.rest.RoleDTO;
 import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.broker.utils.db.ContactUtil;
-import de.samply.share.broker.utils.db.SiteUtil;
-import de.samply.share.broker.utils.db.UserSiteUtil;
 import de.samply.share.broker.utils.db.UserUtil;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.oauth2.OAuthConfig;
@@ -28,8 +24,6 @@ import javax.ws.rs.ext.Provider;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
 
 
 /**
@@ -85,9 +79,6 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             abortWithUnauthorized(requestContext);
             return;
         }
-
-        // Update user, contact and sites in database
-        storeInDb(requestContext, jwtIdToken);
 
         //send user to AuthenticatedUserProvider to get access to the user from everywhere
         userAuthenticatedEvent.fire(jwtIdToken.getSubject());

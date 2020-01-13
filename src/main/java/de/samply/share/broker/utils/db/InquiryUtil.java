@@ -32,7 +32,6 @@ import de.samply.share.broker.model.db.enums.DocumentType;
 import de.samply.share.broker.model.db.enums.InquiryStatus;
 import de.samply.share.broker.model.db.enums.ProjectStatus;
 import de.samply.share.broker.model.db.tables.daos.InquiryDao;
-import de.samply.share.broker.model.db.tables.daos.ProjectDao;
 import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.Project;
@@ -62,7 +61,7 @@ import static org.jooq.impl.DSL.select;
  */
 public final class InquiryUtil {
 
-    public static final long INQUIRY_TTL = TimeUnit.DAYS.toMillis(28);
+    public static final long INQUIRY_TTL = TimeUnit.MINUTES.toMillis(5);
     private static final Logger logger = LogManager.getLogger(InquiryUtil.class);
 
     // Prevent instantiation

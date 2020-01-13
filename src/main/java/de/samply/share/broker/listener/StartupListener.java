@@ -29,29 +29,26 @@
  */
 package de.samply.share.broker.listener;
 
+import de.samply.common.http.HttpConnector;
+import de.samply.common.mdrclient.MdrClient;
+import de.samply.config.util.FileFinderUtil;
+import de.samply.share.broker.utils.Config;
+import de.samply.share.broker.utils.db.Migration;
+import de.samply.share.common.utils.ProjectInfo;
+import de.samply.web.mdrFaces.MdrContext;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
+
+import javax.servlet.ServletContextEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
-
-import javax.servlet.ServletContextEvent;
-
-import de.samply.config.util.FileFinderUtil;
-import de.samply.share.broker.job.DbCleanupJob;
-import de.samply.share.broker.utils.db.Migration;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import de.samply.common.http.HttpConnector;
-import de.samply.common.mdrclient.MdrClient;
-import de.samply.share.broker.utils.Config;
-import de.samply.share.common.utils.ProjectInfo;
-import de.samply.web.mdrFaces.MdrContext;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.quartz.*;
-import org.quartz.impl.StdSchedulerFactory;
 
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobBuilder.newJob;
@@ -119,25 +116,6 @@ public class StartupListener implements javax.servlet.ServletContextListener {
         HttpConnector httpConnector = Proxy.getHttpConnector();
         MdrClient mdrClient = new MdrClient(mdrUrl, httpConnector.getJerseyClient(mdrUrl));
         MdrContext.getMdrContext().init(mdrClient);
-        spawnSchedulerJobs();
-    }
-
-    private void spawnSchedulerJobs() {
-        try {
-            Scheduler sched = null;
-            sched = sf.getScheduler();
-            sched.start();
-            JobDetail job = newJob(DbCleanupJob.class)
-                    .withIdentity("dbCleanup", "group1")
-                    .build();
-            CronTrigger trigger = newTrigger()
-                    .withIdentity("trigger1", "group1")
-                    .withSchedule(cronSchedule("0 0 2 * * ?"))
-                    .build();
-            sched.scheduleJob(job, trigger);
-        } catch (SchedulerException e) {
-            e.printStackTrace();
-        }
     }
 
 }

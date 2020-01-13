@@ -26,9 +26,9 @@
 
 package de.samply.share.broker.utils.db;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
+import de.samply.share.broker.jdbc.ResourceManager;
+import de.samply.share.broker.model.db.Tables;
+import de.samply.share.broker.model.db.tables.pojos.Tokenrequest;
 import de.samply.share.common.utils.SamplyShareUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,9 +37,8 @@ import org.jooq.DatePart;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
 
-import de.samply.share.broker.jdbc.ResourceManager;
-import de.samply.share.broker.model.db.Tables;
-import de.samply.share.broker.model.db.tables.pojos.Tokenrequest;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * This class provides static methods for CRUD operations for TokenRequest

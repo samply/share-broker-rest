@@ -29,9 +29,7 @@
  */
 package de.samply.share.broker.validator;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import com.itextpdf.text.pdf.PdfReader;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
@@ -40,8 +38,9 @@ import javax.faces.validator.FacesValidator;
 import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
 import javax.servlet.http.Part;
-
-import com.itextpdf.text.pdf.PdfReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Check if a document is not bigger than the defined threshold of 10MB and has is a pdf file
