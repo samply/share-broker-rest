@@ -1,7 +1,7 @@
 package de.samply.share.broker.utils.cql;
 
-import de.samply.share.query.entity.SimpleQueryDto;
-import de.samply.share.query.field.AbstractQueryFieldDto;
+import de.samply.share.essentialquery.EssentialSimpleFieldDto;
+import de.samply.share.essentialquery.EssentialSimpleQueryDto;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.MessageFormat;
@@ -17,14 +17,14 @@ class CqlSingletonStatementsFactory {
         this.cqlExpressionFactory = cqlExpressionFactory;
     }
 
-    String create(SimpleQueryDto queryDto, String entityType) {
-        return createSingletonStatements(FieldDtoCollector.collect(queryDto), entityType);
+    String create(EssentialSimpleQueryDto queryDto, String entityType) {
+        return createSingletonStatements(queryDto.getFieldDtos(), entityType);
     }
 
-    private String createSingletonStatements(List<AbstractQueryFieldDto<?, ?>> fieldsDto, String entityType) {
+    private String createSingletonStatements(List<EssentialSimpleFieldDto> fieldsDto, String entityType) {
         Set<String> singletonStatements = new HashSet<>();
 
-        for (AbstractQueryFieldDto<?, ?> fieldDto : fieldsDto) {
+        for (EssentialSimpleFieldDto fieldDto : fieldsDto) {
             String mdrUrn = fieldDto.getUrn();
 
             for (CqlConfig.Singleton singleton : cqlExpressionFactory.getSingletons(mdrUrn, entityType)) {

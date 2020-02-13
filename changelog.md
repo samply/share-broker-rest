@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [4.0.0 - 2020-02-12]
+### Changed
+- Use EssentialSimpleQueryDto instead of SimpleQueryDto
+
 ## [3.4.7 - XXX]
 ### Changed
 - Inquiries expire date from 28 days to 5 minutes

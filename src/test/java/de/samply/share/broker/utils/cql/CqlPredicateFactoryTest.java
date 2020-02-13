@@ -1,8 +1,8 @@
 package de.samply.share.broker.utils.cql;
 
-import de.samply.share.query.entity.SimpleQueryDto;
-import de.samply.share.query.field.FieldDecimalDto;
-import de.samply.share.query.value.ValueDecimalDto;
+import de.samply.share.essentialquery.EssentialSimpleFieldDto;
+import de.samply.share.essentialquery.EssentialSimpleQueryDto;
+import de.samply.share.essentialquery.EssentialSimpleValueDto;
 import org.easymock.EasyMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,15 +28,15 @@ class CqlPredicateFactoryTest {
     void test_create_noFields() {
         replay(fieldExpressionFactory);
 
-        String predicate = predicateFactory.create(new SimpleQueryDto(), ENTITY_TYPE);
+        String predicate = predicateFactory.create(new EssentialSimpleQueryDto(), ENTITY_TYPE);
         assertThat("No fields should result in trivial predicate 'true'", predicate, is("true"));
     }
 
     @Test
     void test_create_oneFieldWithoutAtomicExpression() {
-        ValueDecimalDto valueDto = CqlTestHelper.createValueDto(1, 2);
-        FieldDecimalDto fieldDto = CqlTestHelper.createFieldDto(valueDto);
-        SimpleQueryDto queryDto = CqlTestHelper.createSimpleQueryDto(fieldDto);
+        EssentialSimpleValueDto valueDto = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleFieldDto fieldDto = CqlTestHelper.createFieldDto(valueDto);
+        EssentialSimpleQueryDto queryDto = CqlTestHelper.createSimpleQueryDto(fieldDto);
 
         expect(fieldExpressionFactory.create(anyString(), anyString(), anyObject())).andReturn(null);
 
@@ -48,9 +48,9 @@ class CqlPredicateFactoryTest {
 
     @Test
     void test_create_oneField() {
-        ValueDecimalDto valueDto = CqlTestHelper.createValueDto(1, 2);
-        FieldDecimalDto fieldDto = CqlTestHelper.createFieldDto(MDR_URN_1, valueDto);
-        SimpleQueryDto queryDto = CqlTestHelper.createSimpleQueryDto(fieldDto);
+        EssentialSimpleValueDto valueDto = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleFieldDto fieldDto = CqlTestHelper.createFieldDto(MDR_URN_1, valueDto);
+        EssentialSimpleQueryDto queryDto = CqlTestHelper.createSimpleQueryDto(fieldDto);
 
         expect(fieldExpressionFactory.create(eq(MDR_URN_1), eq(ENTITY_TYPE), anyObject())).andReturn("field-expression-1");
 
@@ -62,13 +62,13 @@ class CqlPredicateFactoryTest {
 
     @Test
     void test_create_twoFields() {
-        ValueDecimalDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
-        FieldDecimalDto fieldDto1 = CqlTestHelper.createFieldDto(MDR_URN_1, valueDto1);
+        EssentialSimpleValueDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleFieldDto fieldDto1 = CqlTestHelper.createFieldDto(MDR_URN_1, valueDto1);
 
-        ValueDecimalDto valueDto2 = CqlTestHelper.createValueDto(1, 2);
-        FieldDecimalDto fieldDto2 = CqlTestHelper.createFieldDto(MDR_URN_2, valueDto2);
+        EssentialSimpleValueDto valueDto2 = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleFieldDto fieldDto2 = CqlTestHelper.createFieldDto(MDR_URN_2, valueDto2);
 
-        SimpleQueryDto queryDto = CqlTestHelper.createSimpleQueryDto(fieldDto1, fieldDto2);
+        EssentialSimpleQueryDto queryDto = CqlTestHelper.createSimpleQueryDto(fieldDto1, fieldDto2);
 
         expect(fieldExpressionFactory.create(eq(MDR_URN_1), eq(ENTITY_TYPE), anyObject())).andReturn("field-expression-1");
         expect(fieldExpressionFactory.create(eq(MDR_URN_2), eq(ENTITY_TYPE), anyObject())).andReturn("field-expression-2");
@@ -81,13 +81,13 @@ class CqlPredicateFactoryTest {
 
     @Test
     void test_create_twoFieldsInTwoEntites() {
-        ValueDecimalDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
-        FieldDecimalDto fieldDto1 = CqlTestHelper.createFieldDto(MDR_URN_1, valueDto1);
+        EssentialSimpleValueDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleFieldDto fieldDto1 = CqlTestHelper.createFieldDto(MDR_URN_1, valueDto1);
 
-        ValueDecimalDto valueDto2 = CqlTestHelper.createValueDto(1, 2);
-        FieldDecimalDto fieldDto2 = CqlTestHelper.createFieldDto(MDR_URN_2, valueDto2);
+        EssentialSimpleValueDto valueDto2 = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleFieldDto fieldDto2 = CqlTestHelper.createFieldDto(MDR_URN_2, valueDto2);
 
-        SimpleQueryDto queryDto = CqlTestHelper.createSimpleQueryDtoTwoFieldsInTwoEntities(fieldDto1, fieldDto2);
+        EssentialSimpleQueryDto queryDto = CqlTestHelper.createSimpleQueryDto(fieldDto1, fieldDto2);
 
         expect(fieldExpressionFactory.create(eq(MDR_URN_1), eq(ENTITY_TYPE), anyObject())).andReturn("field-expression-1");
         expect(fieldExpressionFactory.create(eq(MDR_URN_2), eq(ENTITY_TYPE), anyObject())).andReturn("field-expression-2");
@@ -100,13 +100,13 @@ class CqlPredicateFactoryTest {
 
     @Test
     void test_create_twoFieldsOneWithoutAtomicExpression() {
-        ValueDecimalDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
-        FieldDecimalDto fieldDto1 = CqlTestHelper.createFieldDto(MDR_URN_1, valueDto1);
+        EssentialSimpleValueDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleFieldDto fieldDto1 = CqlTestHelper.createFieldDto(MDR_URN_1, valueDto1);
 
-        ValueDecimalDto valueDto2 = CqlTestHelper.createValueDto(1, 2);
-        FieldDecimalDto fieldDto2 = CqlTestHelper.createFieldDto(MDR_URN_2, valueDto2);
+        EssentialSimpleValueDto valueDto2 = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleFieldDto fieldDto2 = CqlTestHelper.createFieldDto(MDR_URN_2, valueDto2);
 
-        SimpleQueryDto queryDto = CqlTestHelper.createSimpleQueryDto(fieldDto1, fieldDto2);
+        EssentialSimpleQueryDto queryDto = CqlTestHelper.createSimpleQueryDto(fieldDto1, fieldDto2);
 
         expect(fieldExpressionFactory.create(eq(MDR_URN_1), eq(ENTITY_TYPE), anyObject())).andReturn(null);
         expect(fieldExpressionFactory.create(eq(MDR_URN_2), eq(ENTITY_TYPE), anyObject())).andReturn("field-expression-2");
@@ -119,13 +119,13 @@ class CqlPredicateFactoryTest {
 
     @Test
     void test_create_twoFieldsBothWithoutAtomicExpression() {
-        ValueDecimalDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
-        FieldDecimalDto fieldDto1 = CqlTestHelper.createFieldDto(MDR_URN_1, valueDto1);
+        EssentialSimpleValueDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleFieldDto fieldDto1 = CqlTestHelper.createFieldDto(MDR_URN_1, valueDto1);
 
-        ValueDecimalDto valueDto2 = CqlTestHelper.createValueDto(1, 2);
-        FieldDecimalDto fieldDto2 = CqlTestHelper.createFieldDto(MDR_URN_2, valueDto2);
+        EssentialSimpleValueDto valueDto2 = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleFieldDto fieldDto2 = CqlTestHelper.createFieldDto(MDR_URN_2, valueDto2);
 
-        SimpleQueryDto queryDto = CqlTestHelper.createSimpleQueryDto(fieldDto1, fieldDto2);
+        EssentialSimpleQueryDto queryDto = CqlTestHelper.createSimpleQueryDto(fieldDto1, fieldDto2);
 
         expect(fieldExpressionFactory.create(eq(MDR_URN_1), eq(ENTITY_TYPE), anyObject())).andReturn(null);
         expect(fieldExpressionFactory.create(eq(MDR_URN_2), eq(ENTITY_TYPE), anyObject())).andReturn(null);

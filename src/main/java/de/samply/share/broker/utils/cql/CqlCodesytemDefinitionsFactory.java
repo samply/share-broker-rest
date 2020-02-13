@@ -1,7 +1,7 @@
 package de.samply.share.broker.utils.cql;
 
-import de.samply.share.query.entity.SimpleQueryDto;
-import de.samply.share.query.field.AbstractQueryFieldDto;
+import de.samply.share.essentialquery.EssentialSimpleFieldDto;
+import de.samply.share.essentialquery.EssentialSimpleQueryDto;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.MessageFormat;
@@ -18,14 +18,14 @@ class CqlCodesytemDefinitionsFactory {
         this.cqlExpressionFactory = cqlExpressionFactory;
     }
 
-    String create(SimpleQueryDto queryDto) {
-        return createCodesystemDefinition(FieldDtoCollector.collect(queryDto));
+    String create(EssentialSimpleQueryDto queryDto) {
+        return createCodesystemDefinition(queryDto.getFieldDtos());
     }
 
-    private String createCodesystemDefinition(List<AbstractQueryFieldDto<?, ?>> fieldsDto) {
+    private String createCodesystemDefinition(List<EssentialSimpleFieldDto> fieldsDto) {
         Set<String> codesystemDefinitions = new HashSet<>();
 
-        for (AbstractQueryFieldDto<?, ?> fieldDto : fieldsDto) {
+        for (EssentialSimpleFieldDto fieldDto : fieldsDto) {
             String mdrUrn = fieldDto.getUrn();
 
             for (CqlConfig.Codesystem codesystem : cqlExpressionFactory.getCodesystems(mdrUrn)) {
