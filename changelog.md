@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [4.0.0 - 2020-02-12]
 ### Changed
 - Use EssentialSimpleQueryDto instead of SimpleQueryDto
+- JUnit4 --> JUnit5
 
 ## [3.4.7 - XXX]
 ### Changed
