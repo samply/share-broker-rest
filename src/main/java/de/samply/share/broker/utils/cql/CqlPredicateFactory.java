@@ -1,7 +1,7 @@
 package de.samply.share.broker.utils.cql;
 
-import de.samply.share.query.entity.SimpleQueryDto;
-import de.samply.share.query.field.AbstractQueryFieldDto;
+import de.samply.share.essentialquery.EssentialSimpleFieldDto;
+import de.samply.share.essentialquery.EssentialSimpleQueryDto;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,14 +16,14 @@ class CqlPredicateFactory {
         this.fieldExpressionFactory = fieldExpressionFactory;
     }
 
-    String create(SimpleQueryDto queryDto, String entityType) {
-        return createCqlPredicate(entityType, FieldDtoCollector.collect(queryDto));
+    String create(EssentialSimpleQueryDto queryDto, String entityType) {
+        return createCqlPredicate(entityType, queryDto.getFieldDtos());
     }
 
-    private String createCqlPredicate(String entityType, List<AbstractQueryFieldDto<?, ?>> fieldsDto) {
+    private String createCqlPredicate(String entityType, List<EssentialSimpleFieldDto> fieldsDto) {
         List<String> pathExpressionList = new ArrayList<>();
 
-        for (AbstractQueryFieldDto<?, ?> fieldDto : fieldsDto) {
+        for (EssentialSimpleFieldDto fieldDto : fieldsDto) {
             String mdrUrn = fieldDto.getUrn();
             CollectionUtils.addIgnoreNull(pathExpressionList, fieldExpressionFactory.create(mdrUrn, entityType, fieldDto));
         }

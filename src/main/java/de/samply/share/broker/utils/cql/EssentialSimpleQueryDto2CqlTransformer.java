@@ -1,16 +1,16 @@
 package de.samply.share.broker.utils.cql;
 
-import de.samply.share.query.entity.SimpleQueryDto;
+import de.samply.share.essentialquery.EssentialSimpleQueryDto;
 
-public class SimpleQueryDto2CqlTransformer {
+public class EssentialSimpleQueryDto2CqlTransformer {
 
     private final CqlExpressionFactory cqlExpressionFactory;
 
-    public SimpleQueryDto2CqlTransformer() {
+    public EssentialSimpleQueryDto2CqlTransformer() {
         this.cqlExpressionFactory = new CqlExpressionFactory();
     }
 
-    public String toQuery(SimpleQueryDto queryDto, String entityType) {
+    public String toQuery(EssentialSimpleQueryDto queryDto, String entityType) {
         CqlCodesytemDefinitionsFactory codesytemDefinitionsFactory = new CqlCodesytemDefinitionsFactory(cqlExpressionFactory);
         CqlSingletonStatementsFactory singletonsFactory = new CqlSingletonStatementsFactory(cqlExpressionFactory);
         CqlFieldExpressionFactory fieldExpressionFactory = new CqlFieldExpressionFactory(cqlExpressionFactory);

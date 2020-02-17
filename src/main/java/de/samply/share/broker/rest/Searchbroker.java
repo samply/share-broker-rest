@@ -86,6 +86,13 @@ public class Searchbroker {
     @AuthenticatedUser
     User authenticatedUser;
 
+    @Path("/version")
+    @Produces(MediaType.APPLICATION_JSON)
+    @GET
+    public Response getVersion(){
+        return Response.ok(new Gson().toJson(ProjectInfo.INSTANCE.getVersionString())).build();
+    }
+
     @Secured
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
