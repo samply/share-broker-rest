@@ -1,6 +1,6 @@
 package de.samply.share.broker.utils.cql;
 
-import de.samply.share.query.field.FieldDecimalDto;
+import de.samply.share.essentialquery.EssentialSimpleFieldDto;
 import org.easymock.EasyMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ class CqlFieldExpressionFactoryTest {
 
         replay(expressionFactory, valuesExpressionFactory);
 
-        FieldDecimalDto fieldDto = CqlTestHelper.createFieldDto();
+        EssentialSimpleFieldDto fieldDto = CqlTestHelper.createFieldDto();
 
         String atomicExpression = fieldExpressionFactory.create(MDR_URN_1, ENTITY_TYPE, fieldDto);
         assertThat("Error creating field expression with missing values expression.", atomicExpression, nullValue());
@@ -46,7 +46,7 @@ class CqlFieldExpressionFactoryTest {
 
         replay(expressionFactory, valuesExpressionFactory);
 
-        FieldDecimalDto fieldDto = CqlTestHelper.createFieldDto();
+        EssentialSimpleFieldDto fieldDto = CqlTestHelper.createFieldDto();
 
         String atomicExpression = fieldExpressionFactory.create(MDR_URN_1, ENTITY_TYPE, fieldDto);
         assertThat("Error creating field expression with filled values expression.", atomicExpression, is("path-expression"));

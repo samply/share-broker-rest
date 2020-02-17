@@ -1,8 +1,8 @@
 package de.samply.share.broker.utils.cql;
 
-import de.samply.share.query.entity.SimpleQueryDto;
-import de.samply.share.query.field.FieldDecimalDto;
-import de.samply.share.query.value.ValueDecimalDto;
+import de.samply.share.essentialquery.EssentialSimpleFieldDto;
+import de.samply.share.essentialquery.EssentialSimpleQueryDto;
+import de.samply.share.essentialquery.EssentialSimpleValueDto;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.jetbrains.annotations.NotNull;
@@ -36,13 +36,13 @@ class CqlCodesystemDefinitionsFactoryTest {
     void test_create_emptyDto() {
         replay(expressionFactory);
 
-        String codesystemDefinitions = codesytemDefinitionsFactory.create(new SimpleQueryDto());
+        String codesystemDefinitions = codesytemDefinitionsFactory.create(new EssentialSimpleQueryDto());
         assertThat("Error creating codesystem definition for empty DTO.", CqlTestHelper.trim(codesystemDefinitions), is(""));
     }
 
     @Test
     void test_create_WithoutCodesystem() {
-        SimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1);
+        EssentialSimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1);
 
         expect(expressionFactory.getCodesystems(MDR_URN_1)).andReturn(new HashSet<>());
 
@@ -54,7 +54,7 @@ class CqlCodesystemDefinitionsFactoryTest {
 
     @Test
     void test_create_WithCodesystem() {
-        SimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1);
+        EssentialSimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1);
 
         Set<CqlConfig.Codesystem> expectedCodesystems1 =
                 createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1));
@@ -68,7 +68,7 @@ class CqlCodesystemDefinitionsFactoryTest {
 
     @Test
     void test_create_WithTwoDifferentCodesystems() {
-        SimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1, MDR_URN_2);
+        EssentialSimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1, MDR_URN_2);
 
         Set<CqlConfig.Codesystem> expectedCodesystems1 =
                 createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1));
@@ -87,7 +87,7 @@ class CqlCodesystemDefinitionsFactoryTest {
 
     @Test
     void test_create_WithTwoDifferentCodesystemsInOneField() {
-        SimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1);
+        EssentialSimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1);
 
         Set<CqlConfig.Codesystem> expectedCodesystems1 =
                 createExpectedCodesystemList(
@@ -104,7 +104,7 @@ class CqlCodesystemDefinitionsFactoryTest {
 
     @Test
     void test_create_WithTwoDifferentCodesystemsInTwoEntities() {
-        SimpleQueryDto queryDto = createDtoWithTwoFields(MDR_URN_1, MDR_URN_2);
+        EssentialSimpleQueryDto queryDto = createDtoWithTwoFields(MDR_URN_1, MDR_URN_2);
 
         Set<CqlConfig.Codesystem> expectedCodesystems1 =
                 createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1));
@@ -123,7 +123,7 @@ class CqlCodesystemDefinitionsFactoryTest {
 
     @Test
     void test_create_WithTheSameCodesystemsInTwoEntities() {
-        SimpleQueryDto queryDto = createDtoWithTwoFields(MDR_URN_1, MDR_URN_2);
+        EssentialSimpleQueryDto queryDto = createDtoWithTwoFields(MDR_URN_1, MDR_URN_2);
 
         Set<CqlConfig.Codesystem> expectedCodesystems1 =
                 createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1));
@@ -141,7 +141,7 @@ class CqlCodesystemDefinitionsFactoryTest {
 
     @Test
     void test_create_WithTheSameCodesystemTwice() {
-        SimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1, MDR_URN_2);
+        EssentialSimpleQueryDto queryDto = createDtoWithFields(MDR_URN_1, MDR_URN_2);
 
         Set<CqlConfig.Codesystem> expectedCodesystems1 =
                 createExpectedCodesystemList(createExpectedCodesystem(CODESYSTEM_NAME_1, CODESYSTEM_URL_1));
@@ -158,27 +158,27 @@ class CqlCodesystemDefinitionsFactoryTest {
     }
 
     @NotNull
-    private SimpleQueryDto createDtoWithFields(String... urnList) {
-        List<FieldDecimalDto> fieldDtos = new ArrayList<>();
+    private EssentialSimpleQueryDto createDtoWithFields(String... urnList) {
+        List<EssentialSimpleFieldDto> fieldDtos = new ArrayList<>();
 
         for (String mdrUrn : urnList) {
-            ValueDecimalDto valueDto = CqlTestHelper.createValueDto(11.0, 47.0);
-            FieldDecimalDto fieldDto = CqlTestHelper.createFieldDto(mdrUrn, valueDto);
+            EssentialSimpleValueDto valueDto = CqlTestHelper.createValueDto(11.0, 47.0);
+            EssentialSimpleFieldDto fieldDto = createFieldDto(mdrUrn, valueDto);
             fieldDtos.add(fieldDto);
         }
 
-        return CqlTestHelper.createSimpleQueryDto(fieldDtos.toArray(new FieldDecimalDto[]{}));
+        return CqlTestHelper.createSimpleQueryDto(fieldDtos.toArray(new EssentialSimpleFieldDto[]{}));
     }
 
     @NotNull
-    private SimpleQueryDto createDtoWithTwoFields(String mdrUrn1, String mdrUrn2) {
-        ValueDecimalDto valueDto1 = CqlTestHelper.createValueDto(11.0, 47.0);
-        FieldDecimalDto fieldDto1 = CqlTestHelper.createFieldDto(mdrUrn1, valueDto1);
+    private EssentialSimpleQueryDto createDtoWithTwoFields(String mdrUrn1, String mdrUrn2) {
+        EssentialSimpleValueDto valueDto1 = CqlTestHelper.createValueDto(11.0, 47.0);
+        EssentialSimpleFieldDto fieldDto1 = createFieldDto(mdrUrn1, valueDto1);
 
-        ValueDecimalDto valueDto2 = CqlTestHelper.createValueDto(11.0, 47.0);
-        FieldDecimalDto fieldDto2 = CqlTestHelper.createFieldDto(mdrUrn2, valueDto2);
+        EssentialSimpleValueDto valueDto2 = CqlTestHelper.createValueDto(11.0, 47.0);
+        EssentialSimpleFieldDto fieldDto2 = CqlTestHelper.createFieldDto(mdrUrn2, valueDto2);
 
-        return CqlTestHelper.createSimpleQueryDtoTwoFieldsInTwoEntities(fieldDto1, fieldDto2);
+        return CqlTestHelper.createSimpleQueryDto(fieldDto1, fieldDto2);
     }
 
     @NotNull

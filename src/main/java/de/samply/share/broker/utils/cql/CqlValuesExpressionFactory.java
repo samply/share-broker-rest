@@ -1,7 +1,8 @@
 package de.samply.share.broker.utils.cql;
 
-import de.samply.share.query.field.AbstractQueryFieldDto;
-import de.samply.share.query.value.AbstractQueryValueDto;
+import de.samply.share.essentialquery.EssentialSimpleFieldDto;
+import de.samply.share.essentialquery.EssentialSimpleValueDto;
+import de.samply.share.essentialquery.EssentialValueType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -17,10 +18,10 @@ class CqlValuesExpressionFactory {
         this.cqlExpressionFactory = cqlExpressionFactory;
     }
 
-    String create(String mdrUrn, String entityType, AbstractQueryFieldDto<?, ?> fieldDto) {
+    String create(String mdrUrn, String entityType, EssentialSimpleFieldDto fieldDto) {
         List<String> atomicExpressions = new ArrayList<>();
-        for (AbstractQueryValueDto<?> valueDto : fieldDto.getValuesDto()) {
-            CollectionUtils.addAll(atomicExpressions, createSingleAtomicExpressionListForOneValueDto(mdrUrn, entityType, valueDto));
+        for (EssentialSimpleValueDto valueDto : fieldDto.getValueDtos()) {
+            CollectionUtils.addAll(atomicExpressions, createSingleAtomicExpressionListForOneValueDto(mdrUrn, entityType, fieldDto.getValueType(), valueDto));
         }
 
         if (atomicExpressions.isEmpty()) {
@@ -34,8 +35,8 @@ class CqlValuesExpressionFactory {
         }
     }
 
-    private List<String> createSingleAtomicExpressionListForOneValueDto(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
-        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = cqlExpressionFactory.createAtomicExpressionParameterList(mdrUrn, entityType, valueDto);
+    private List<String> createSingleAtomicExpressionListForOneValueDto(String mdrUrn, String entityType, EssentialValueType valueType, EssentialSimpleValueDto valueDto) {
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = cqlExpressionFactory.createAtomicExpressionParameterList(mdrUrn, entityType, valueType, valueDto);
         if (CollectionUtils.isEmpty(atomicExpressionParameterList)) {
             return new ArrayList<>();
         }

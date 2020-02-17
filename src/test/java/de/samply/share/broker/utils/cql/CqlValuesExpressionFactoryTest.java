@@ -1,7 +1,7 @@
 package de.samply.share.broker.utils.cql;
 
-import de.samply.share.query.field.FieldDecimalDto;
-import de.samply.share.query.value.ValueDecimalDto;
+import de.samply.share.essentialquery.EssentialSimpleFieldDto;
+import de.samply.share.essentialquery.EssentialSimpleValueDto;
 import org.easymock.EasyMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class CqlValuesExpressionFactoryTest {
     void test_create_noValue() {
         replay(expressionFactory);
 
-        FieldDecimalDto fieldDto = CqlTestHelper.createFieldDto();
+        EssentialSimpleFieldDto fieldDto = CqlTestHelper.createFieldDto();
 
         String atomicExpression = valuesExpressionFactory.create(MDR_URN_1, ENTITY_TYPE, fieldDto);
         assertThat("Error creating atomic expression for no values.", atomicExpression, nullValue());
@@ -39,13 +39,13 @@ class CqlValuesExpressionFactoryTest {
 
     @Test
     void test_create_oneValue() {
-        expect(expressionFactory.createAtomicExpressionParameterList(anyString(), anyString(), anyObject())).andStubReturn(Collections.singletonList(null));
+        expect(expressionFactory.createAtomicExpressionParameterList(anyString(), anyString(), anyObject(), anyObject())).andStubReturn(Collections.singletonList(null));
 
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-1");
         replay(expressionFactory);
 
-        ValueDecimalDto valueDto = CqlTestHelper.createValueDto(1, 2);
-        FieldDecimalDto fieldDto = CqlTestHelper.createFieldDto(valueDto);
+        EssentialSimpleValueDto valueDto = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleFieldDto fieldDto = CqlTestHelper.createFieldDto(valueDto);
 
         String atomicExpression = valuesExpressionFactory.create(MDR_URN_1, ENTITY_TYPE, fieldDto);
         assertThat("Error creating atomic expression for one value.", atomicExpression, is("atomic-expression-1"));
@@ -53,15 +53,15 @@ class CqlValuesExpressionFactoryTest {
 
     @Test
     void test_create_twoValues() {
-        expect(expressionFactory.createAtomicExpressionParameterList(anyString(), anyString(), anyObject())).andStubReturn(Collections.singletonList(null));
+        expect(expressionFactory.createAtomicExpressionParameterList(anyString(), anyString(), anyObject(), anyObject())).andStubReturn(Collections.singletonList(null));
 
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-1");
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-2");
         replay(expressionFactory);
 
-        ValueDecimalDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
-        ValueDecimalDto valueDto2 = CqlTestHelper.createValueDto(1, 3);
-        FieldDecimalDto fieldDto = CqlTestHelper.createFieldDto(valueDto1, valueDto2);
+        EssentialSimpleValueDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleValueDto valueDto2 = CqlTestHelper.createValueDto(1, 3);
+        EssentialSimpleFieldDto fieldDto = CqlTestHelper.createFieldDto(valueDto1, valueDto2);
 
         String atomicExpression = valuesExpressionFactory.create(MDR_URN_1, ENTITY_TYPE, fieldDto);
         assertThat("Error creating atomic expression for two values.", atomicExpression, is("(atomic-expression-1 or atomic-expression-2)"));
@@ -69,17 +69,17 @@ class CqlValuesExpressionFactoryTest {
 
     @Test
     void test_create_threeValues() {
-        expect(expressionFactory.createAtomicExpressionParameterList(anyString(), anyString(), anyObject())).andStubReturn(Collections.singletonList(null));
+        expect(expressionFactory.createAtomicExpressionParameterList(anyString(), anyString(), anyObject(), anyObject())).andStubReturn(Collections.singletonList(null));
 
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-1");
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-2");
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-3");
         replay(expressionFactory);
 
-        ValueDecimalDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
-        ValueDecimalDto valueDto2 = CqlTestHelper.createValueDto(1, 3);
-        ValueDecimalDto valueDto3 = CqlTestHelper.createValueDto(1, 4);
-        FieldDecimalDto fieldDto = CqlTestHelper.createFieldDto(valueDto1, valueDto2, valueDto3);
+        EssentialSimpleValueDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleValueDto valueDto2 = CqlTestHelper.createValueDto(1, 3);
+        EssentialSimpleValueDto valueDto3 = CqlTestHelper.createValueDto(1, 4);
+        EssentialSimpleFieldDto fieldDto = CqlTestHelper.createFieldDto(valueDto1, valueDto2, valueDto3);
 
         String atomicExpression = valuesExpressionFactory.create(MDR_URN_1, ENTITY_TYPE, fieldDto);
         assertThat("Error creating atomic expression for three values.", atomicExpression, is("(atomic-expression-1 or atomic-expression-2 or atomic-expression-3)"));
@@ -87,17 +87,17 @@ class CqlValuesExpressionFactoryTest {
 
     @Test
     void test_create_threeValuesButOneMissingAtomicExpression() {
-        expect(expressionFactory.createAtomicExpressionParameterList(anyString(), anyString(), anyObject())).andStubReturn(Collections.singletonList(null));
+        expect(expressionFactory.createAtomicExpressionParameterList(anyString(), anyString(), anyObject(), anyObject())).andStubReturn(Collections.singletonList(null));
 
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-1");
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn(null);
         expect(expressionFactory.getAtomicExpression(anyObject())).andReturn("atomic-expression-3");
         replay(expressionFactory);
 
-        ValueDecimalDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
-        ValueDecimalDto valueDto2 = CqlTestHelper.createValueDto(1, 3);
-        ValueDecimalDto valueDto3 = CqlTestHelper.createValueDto(1, 4);
-        FieldDecimalDto fieldDto = CqlTestHelper.createFieldDto(valueDto1, valueDto2, valueDto3);
+        EssentialSimpleValueDto valueDto1 = CqlTestHelper.createValueDto(1, 2);
+        EssentialSimpleValueDto valueDto2 = CqlTestHelper.createValueDto(1, 3);
+        EssentialSimpleValueDto valueDto3 = CqlTestHelper.createValueDto(1, 4);
+        EssentialSimpleFieldDto fieldDto = CqlTestHelper.createFieldDto(valueDto1, valueDto2, valueDto3);
 
         String atomicExpression = valuesExpressionFactory.create(MDR_URN_1, ENTITY_TYPE, fieldDto);
         assertThat("Error creating atomic expression for three values but with one missing atomic expression.", atomicExpression, is("(atomic-expression-1 or atomic-expression-3)"));
