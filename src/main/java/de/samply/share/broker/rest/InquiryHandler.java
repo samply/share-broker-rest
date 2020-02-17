@@ -40,12 +40,13 @@ import de.samply.share.broker.model.db.tables.daos.ReplyDao;
 import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.*;
-import de.samply.share.broker.utils.SimpleQueryDto2ShareXmlTransformer;
-import de.samply.share.broker.utils.cql.SimpleQueryDto2CqlTransformer;
+import de.samply.share.broker.utils.EssentialSimpleQueryDto2ShareXmlTransformer;
+import de.samply.share.broker.utils.cql.EssentialSimpleQueryDto2CqlTransformer;
 import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
+import de.samply.share.essentialquery.EssentialSimpleQueryDto;
 import de.samply.share.model.common.Contact;
 import de.samply.share.model.common.*;
 import de.samply.share.model.common.inquiry.InquiriesIdList;
@@ -103,7 +104,7 @@ public class InquiryHandler {
     /**
      * Store an inquiry and release it (or wait for ccp office authorization first)
      *
-     * @param simpleQueryDtoXml  the query criteria of the inquiry as SimpleQueryDto represented as XML
+     * @param simpleQueryDtoXml  the query criteria of the inquiry as EssentialSimpleQueryDto represented as XML
      * @param userid             the id of the user that releases the inquiry
      * @param inquiryName        the label of the inquiry
      * @param inquiryDescription the description of the inquiry
@@ -123,7 +124,7 @@ public class InquiryHandler {
     /**
      * Store a new inquiry draft
      *
-     * @param simpleQueryDtoXml  the query criteria of the inquiry as SimpleQueryDto represented as XML
+     * @param simpleQueryDtoXml  the query criteria of the inquiry as EssentialSimpleQueryDto represented as XML
      * @param userid             the id of the user that releases the inquiry
      * @param inquiryName        the label of the inquiry
      * @param inquiryDescription the description of the inquiry
@@ -873,10 +874,10 @@ public class InquiryHandler {
 
     private String createCql(String simpleQueryDtoXml, String entityType) throws JAXBException {
         if (!StringUtils.isEmpty(simpleQueryDtoXml)) {
-            JAXBContext jaxbContext = JAXBContext.newInstance(SimpleQueryDto.class);
-            SimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, SimpleQueryDto.class);
+            JAXBContext jaxbContext = JAXBContext.newInstance(EssentialSimpleQueryDto.class);
+            EssentialSimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, EssentialSimpleQueryDto.class);
 
-            return new SimpleQueryDto2CqlTransformer().toQuery(simpleQueryDto, entityType);
+            return new EssentialSimpleQueryDto2CqlTransformer().toQuery(simpleQueryDto, entityType);
         }
 
         return "false";
@@ -896,9 +897,9 @@ public class InquiryHandler {
         Query query;
 
         if (!StringUtils.isEmpty(simpleQueryDtoXml)) {
-            JAXBContext jaxbContext = JAXBContext.newInstance(SimpleQueryDto.class);
-            SimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, SimpleQueryDto.class);
-            query = new SimpleQueryDto2ShareXmlTransformer().toQuery(simpleQueryDto);
+            JAXBContext jaxbContext = JAXBContext.newInstance(EssentialSimpleQueryDto.class);
+            EssentialSimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, EssentialSimpleQueryDto.class);
+            query = new EssentialSimpleQueryDto2ShareXmlTransformer().toQuery(simpleQueryDto);
         } else {
             query = new Query();
             Where where = new Where();

@@ -1,5 +1,7 @@
 package de.samply.share.broker.utils.cql;
 
+import de.samply.share.essentialquery.EssentialSimpleValueDto;
+import de.samply.share.essentialquery.EssentialValueType;
 import de.samply.share.query.enums.SimpleValueCondition;
 import de.samply.share.query.value.AbstractQueryValueDto;
 import org.apache.commons.collections4.CollectionUtils;
@@ -148,12 +150,12 @@ class CqlExpressionFactory {
         return mapCodesystems.getOrDefault(mdrUrn, new HashSet<>());
     }
 
-    List<AtomicExpressionParameter> createAtomicExpressionParameterList(String mdrUrn, String entityType, AbstractQueryValueDto<?> valueDto) {
+    List<AtomicExpressionParameter> createAtomicExpressionParameterList(String mdrUrn, String entityType, EssentialValueType valueType, EssentialSimpleValueDto valueDto) {
         List<AtomicExpressionParameter> atomicExpressionParameters = new ArrayList<>();
 
-        List<String> cqlValues = getCqlValueList(mdrUrn, valueDto.getValueAsCqlString());
+        List<String> cqlValues = getCqlValueList(mdrUrn, valueType.asCqlString(valueDto.getValue()));
         if (cqlValues.size() == 1) {
-            return Collections.singletonList(new AtomicExpressionParameter(mdrUrn, entityType, valueDto.getCondition(), cqlValues.get(0), valueDto.getMaxValueAsCqlString()));
+            return Collections.singletonList(new AtomicExpressionParameter(mdrUrn, entityType, valueDto.getCondition(), cqlValues.get(0), valueType.asCqlString(valueDto.getMaxValue())));
         }
 
         for (String cqlValue : cqlValues) {
@@ -214,8 +216,6 @@ class CqlExpressionFactory {
                     return "...";
                 case EQUALS:
                     return "=";
-                case LIKE:
-                    return "~";
                 case GREATER:
                     return ">";
                 case LESS:

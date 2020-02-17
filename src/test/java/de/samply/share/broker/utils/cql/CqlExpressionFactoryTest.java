@@ -1,7 +1,8 @@
 package de.samply.share.broker.utils.cql;
 
+import de.samply.share.essentialquery.EssentialSimpleValueDto;
+import de.samply.share.essentialquery.EssentialValueType;
 import de.samply.share.query.enums.SimpleValueCondition;
-import de.samply.share.query.value.ValueStringDto;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,8 +83,8 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getAtomicExpression_operatorNotSpecifiedUseDefault() {
-        ValueStringDto valueDto = createValueDto(SimpleValueCondition.EQUALS);
-        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_GENDER, ENTITY_TYPE_SPECIMEN, valueDto);
+        EssentialSimpleValueDto valueDto = createValueDto(SimpleValueCondition.EQUALS);
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_GENDER, ENTITY_TYPE_SPECIMEN, EssentialValueType.DECIMAL, valueDto);
         assertThat("Expected is a list with only one parameter", atomicExpressionParameterList.size(), is(1));
 
         String atomicExpression = factory.getAtomicExpression(atomicExpressionParameterList.get(0));
@@ -94,8 +95,8 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getAtomicExpression_operatorSpecified() {
-        ValueStringDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
-        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_GENDER, ENTITY_TYPE_SPECIMEN, valueDto);
+        EssentialSimpleValueDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_GENDER, ENTITY_TYPE_SPECIMEN, EssentialValueType.DECIMAL, valueDto);
 
         assertThat("Expected is a list with only one parameter", atomicExpressionParameterList.size(), is(1));
 
@@ -107,8 +108,8 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getAtomicExpression_notExistingMdrUrn() {
-        ValueStringDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
-        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_NOT_EXISTING, ENTITY_TYPE_SPECIMEN, valueDto);
+        EssentialSimpleValueDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_NOT_EXISTING, ENTITY_TYPE_SPECIMEN, EssentialValueType.DECIMAL, valueDto);
 
         assertThat("Expected is a list with only one parameter", atomicExpressionParameterList.size(), is(1));
 
@@ -120,8 +121,8 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getAtomicExpression_notExistingEntityType() {
-        ValueStringDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
-        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_GENDER, ENTITY_TYPE_NOT_EXISTING, valueDto);
+        EssentialSimpleValueDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_GENDER, ENTITY_TYPE_NOT_EXISTING, EssentialValueType.DECIMAL, valueDto);
 
         assertThat("Expected is a list with only one parameter", atomicExpressionParameterList.size(), is(1));
 
@@ -262,8 +263,8 @@ class CqlExpressionFactoryTest {
     }
 
     @NotNull
-    private ValueStringDto createValueDto(SimpleValueCondition condition) {
-        ValueStringDto valueDto = new ValueStringDto();
+    private EssentialSimpleValueDto createValueDto(SimpleValueCondition condition) {
+        EssentialSimpleValueDto valueDto = new EssentialSimpleValueDto();
         valueDto.setCondition(condition);
         valueDto.setValue("13");
         valueDto.setMaxValue("17");

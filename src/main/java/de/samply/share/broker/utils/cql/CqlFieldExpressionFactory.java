@@ -1,6 +1,6 @@
 package de.samply.share.broker.utils.cql;
 
-import de.samply.share.query.field.AbstractQueryFieldDto;
+import de.samply.share.essentialquery.EssentialSimpleFieldDto;
 import org.apache.commons.lang3.StringUtils;
 
 class CqlFieldExpressionFactory {
@@ -17,7 +17,7 @@ class CqlFieldExpressionFactory {
         this.valuesExpressionFactory = valuesExpressionFactory;
     }
 
-    String create(String mdrUrn, String entityType, AbstractQueryFieldDto<?, ?> fieldDto) {
+    String create(String mdrUrn, String entityType, EssentialSimpleFieldDto fieldDto) {
         String valuesExpression = valuesExpressionFactory.create(mdrUrn, entityType, fieldDto);
 
         if (!StringUtils.isEmpty(valuesExpression)) {

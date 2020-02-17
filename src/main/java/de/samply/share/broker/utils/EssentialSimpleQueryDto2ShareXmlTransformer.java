@@ -1,32 +1,31 @@
 package de.samply.share.broker.utils;
 
+import de.samply.share.essentialquery.EssentialSimpleFieldDto;
+import de.samply.share.essentialquery.EssentialSimpleQueryDto;
+import de.samply.share.essentialquery.EssentialSimpleValueDto;
 import de.samply.share.model.common.*;
-import de.samply.share.query.entity.SimpleQueryDto;
-import de.samply.share.query.field.AbstractQueryFieldDto;
-import de.samply.share.query.value.AbstractQueryValueDto;
 
 import java.io.Serializable;
 import java.util.List;
 
-public class SimpleQueryDto2ShareXmlTransformer {
+public class EssentialSimpleQueryDto2ShareXmlTransformer {
 
-    public Query toQuery(SimpleQueryDto queryDto) {
+    public Query toQuery(EssentialSimpleQueryDto queryDto) {
         ObjectFactory objectFactory = new ObjectFactory();
 
         Query queryPojo = objectFactory.createQuery();
         Where wherePojo = objectFactory.createWhere();
         And andPojo = objectFactory.createAnd();
 
-        addTermsToAndExpression(andPojo, queryDto.getDonorDto().getFieldsDto());
-        addTermsToAndExpression(andPojo, queryDto.getSampleDto().getFieldsDto());
+        addTermsToAndExpression(andPojo, queryDto.getFieldDtos());
 
         wherePojo.getAndOrEqOrLike().add(andPojo);
         queryPojo.setWhere(wherePojo);
         return queryPojo;
     }
 
-    private void addTermsToAndExpression(And andPojo, List<AbstractQueryFieldDto<?, ?>> fieldsDto) {
-        for (AbstractQueryFieldDto<?, ?> fieldDto : fieldsDto) {
+    private void addTermsToAndExpression(And andPojo, List<EssentialSimpleFieldDto> fieldsDto) {
+        for (EssentialSimpleFieldDto fieldDto : fieldsDto) {
             ObjectFactory objectFactory = new ObjectFactory();
             Or orPojo = objectFactory.createOr();
 
@@ -37,28 +36,24 @@ public class SimpleQueryDto2ShareXmlTransformer {
     }
 
     private void addTermsToOrExpression(
-            Or orPojo, AbstractQueryFieldDto<?, ?> fieldDto) {
-        for (AbstractQueryValueDto<?> valueDto : fieldDto.getValuesDto()) {
+            Or orPojo, EssentialSimpleFieldDto fieldDto) {
+        for (EssentialSimpleValueDto valueDto : fieldDto.getValueDtos()) {
             Serializable eqPojo = getEgLtGtBetween(valueDto, fieldDto.getUrn());
 
             orPojo.getAndOrEqOrLike().add(eqPojo);
         }
     }
 
-    private Serializable getEgLtGtBetween(AbstractQueryValueDto<?> valueDto, String urn) {
+    private Serializable getEgLtGtBetween(EssentialSimpleValueDto valueDto, String urn) {
         ObjectFactory objectFactory = new ObjectFactory();
 
-        Attribute valueAttribute = createAttribute(urn, valueDto.getValueAsXmlString());
+        Attribute valueAttribute = createAttribute(urn, valueDto.getValue());
 
         switch (valueDto.getCondition()) {
             case EQUALS:
                 Eq eqPojo = objectFactory.createEq();
                 eqPojo.setAttribute(valueAttribute);
                 return eqPojo;
-            case LIKE:
-                Like likePojo = objectFactory.createLike();
-                likePojo.setAttribute(valueAttribute);
-                return likePojo;
             case NOT_EQUALS:
                 Neq neqPojo = objectFactory.createNeq();
                 neqPojo.setAttribute(valueAttribute);
@@ -83,7 +78,7 @@ public class SimpleQueryDto2ShareXmlTransformer {
                 Geq minPojo = objectFactory.createGeq();
                 minPojo.setAttribute(valueAttribute);
 
-                String valueAsString = valueDto.getMaxValueAsXmlString();
+                String valueAsString = valueDto.getMaxValue();
                 Attribute maxValueAttribute = createAttribute(urn, valueAsString);
 
                 Leq maxPojo = objectFactory.createLeq();
