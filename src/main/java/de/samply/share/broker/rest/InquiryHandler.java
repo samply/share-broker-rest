@@ -40,6 +40,7 @@ import de.samply.share.broker.model.db.tables.daos.ReplyDao;
 import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.statistics.StatisticsHandler;
 import de.samply.share.broker.utils.EssentialSimpleQueryDto2ShareXmlTransformer;
 import de.samply.share.broker.utils.cql.EssentialSimpleQueryDto2CqlTransformer;
 import de.samply.share.broker.utils.db.*;
@@ -173,6 +174,8 @@ public class InquiryHandler {
 
             createAndSaveInquiryCriteria(simpleQueryDtoXml, inquiry, connection);
 
+            createAndSaveStatistics(simpleQueryDtoXml, inquiry.getId());
+
             if (exposeId > 0) {
                 Document expose = DocumentUtil.getDocumentById(exposeId);
                 // TODO: this threw an NPE
@@ -195,6 +198,17 @@ public class InquiryHandler {
         }
 
         return returnValue;
+    }
+
+    private void createAndSaveStatistics(String simpleQueryDtoXml, Integer inquiryId) {
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(EssentialSimpleQueryDto.class);
+            EssentialSimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, EssentialSimpleQueryDto.class);
+            StatisticsHandler statisticsHandler = new StatisticsHandler();
+            statisticsHandler.save(simpleQueryDto, inquiryId);
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
