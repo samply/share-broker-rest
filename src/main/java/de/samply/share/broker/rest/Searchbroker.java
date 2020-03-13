@@ -112,7 +112,27 @@ public class Searchbroker {
                 jsonObject.put("collectionId", site.getCollectionid());
                 biobank.add(jsonObject);
             }
-            return Response.ok(biobank).build();
+            return Response.ok(biobank)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", HttpMethod.POST)
+                    .header("Access-Control-Allow-Headers", "origin, Content-Type, Accept, Authorization")
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/getDirectoryID")
+    @OPTIONS
+    public Response getDirectoryID_OPTIONS(List<String> biobankNameList) {
+        try {
+            return Response.ok()
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", HttpMethod.POST)
+                    .header("Access-Control-Allow-Headers", "origin, Content-Type, Accept, Authorization")
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
