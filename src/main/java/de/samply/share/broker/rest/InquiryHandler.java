@@ -53,7 +53,6 @@ import de.samply.share.model.common.*;
 import de.samply.share.model.common.inquiry.InquiriesIdList;
 import de.samply.share.model.cql.CqlQuery;
 import de.samply.share.model.cql.CqlQueryList;
-import de.samply.share.query.entity.SimpleQueryDto;
 import de.samply.share.utils.QueryConverter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;

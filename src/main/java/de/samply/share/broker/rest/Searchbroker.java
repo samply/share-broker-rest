@@ -35,6 +35,7 @@ import de.samply.share.broker.filter.AuthenticatedUser;
 import de.samply.share.broker.filter.Secured;
 import de.samply.share.broker.model.db.tables.daos.InquiryDao;
 import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.statistics.NTokenHandler;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.model.dto.SiteInfo;
@@ -87,10 +88,13 @@ public class Searchbroker {
     User authenticatedUser;
 
     @Path("/version")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
     @GET
-    public Response getVersion(){
-        return Response.ok(new Gson().toJson(ProjectInfo.INSTANCE.getVersionString())).build();
+    public Response getVersion() {
+        return Response.ok(new Gson().toJson(ProjectInfo.INSTANCE.getVersionString()))
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", HttpMethod.GET)
+                .build();
     }
 
     @Secured
@@ -100,16 +104,16 @@ public class Searchbroker {
     @POST
     public Response getDirectoryID(List<String> biobankNameList) {
         try {
-            JSONArray biobank= new JSONArray();
+            JSONArray biobank = new JSONArray();
             for (String biobankName : biobankNameList) {
-                JSONObject jsonObject= new JSONObject();
+                JSONObject jsonObject = new JSONObject();
                 Site site = SiteUtil.fetchSiteByNameIgnoreCase(biobankName);
-                jsonObject.put("biobankId",site.getBiobankid());
-                jsonObject.put("collectionId",site.getCollectionid());
+                jsonObject.put("biobankId", site.getBiobankid());
+                jsonObject.put("collectionId", site.getCollectionid());
                 biobank.add(jsonObject);
             }
             return Response.ok(biobank).build();
-        }catch (Exception e){
+        } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -232,20 +236,72 @@ public class Searchbroker {
      * Get query from UI
      *
      * @param xml the query
-     * @return 200 or 500 code
+     * @return 202 or 500 code
      */
     @POST
     @Path("/sendQuery")
     @Produces(MediaType.APPLICATION_XML)
     @Consumes(MediaType.APPLICATION_XML)
-    public Response sendQuery(String xml) {
+    public Response sendQuery(String xml, @HeaderParam("ntoken") String ntoken) {
         this.logger.info("sendQuery called");
 
-        int id;
-        id = SearchController.releaseQuery(xml, authenticatedUser);
+        SearchController.releaseQuery(xml, ntoken, authenticatedUser);
 
-        this.logger.info("sendQuery with id is sent");
-        return Response.accepted().header("id", id).build();
+        this.logger.info("sendQuery with ntoken '" + ntoken + "'is sent");
+        return Response.accepted()
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", HttpMethod.POST)
+                .header("Access-Control-Allow-Headers", "origin, content-type, accept, ntoken")
+                .header("Access-Control-Expose-Headers", "ntoken")
+                .header("ntoken", ntoken)
+                .build();
+    }
+
+    /**
+     * Get query from UI
+     *
+     * @param xml the query
+     * @return 200 or 500 code
+     */
+    @OPTIONS
+    @Path("/sendQuery")
+    @Produces(MediaType.APPLICATION_XML)
+    @Consumes(MediaType.APPLICATION_XML)
+    public Response sendQueryOPTIONS(String xml, @HeaderParam("ntoken") String ntoken) {
+        this.logger.info("sendQuery called (OPTIONS)");
+        return Response.ok(new Gson().toJson(ProjectInfo.INSTANCE.getVersionString()))
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", HttpMethod.POST)
+                .header("Access-Control-Allow-Headers", "origin, content-type, accept, ntoken")
+                .header("Access-Control-Expose-Headers", "ntoken")
+                .build();
+    }
+
+    @GET
+    @Path("/getQuery")
+    @Produces(MediaType.APPLICATION_XML)
+    public Response getQuery(@QueryParam("ntoken") @DefaultValue("") String nToken) {
+        this.logger.info("getQuery called");
+        String query = new NTokenHandler().findLatestQuery(nToken);
+
+        return Response.ok()
+                .entity(query)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", HttpMethod.GET)
+                .header("Access-Control-Allow-Headers", "origin, content-type, accept")
+                .build();
+    }
+
+    @OPTIONS
+    @Path("/getQuery")
+    @Produces(MediaType.APPLICATION_XML)
+    public Response getQuery_OPTIONS(@QueryParam("ntoken") @DefaultValue("") String nToken) {
+        this.logger.info("getQuery called (OPTIONS)");
+        return Response.ok()
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", HttpMethod.GET)
+                .header("Access-Control-Allow-Headers", "origin, content-type, accept")
+                .build();
     }
 
     /**
@@ -258,9 +314,34 @@ public class Searchbroker {
     @GET
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response getReply(@QueryParam("id") int id) {
-        String reply = SearchController.getReplysFromQuery(id);
-        return Response.ok().header("reply", reply).build();
+    public Response getReply(
+            @QueryParam("id") @DefaultValue("-1") int id,
+            @QueryParam("ntoken") @DefaultValue("") String nToken) {
+        int usedId = id;
+        if (id < 0 && !StringUtils.isEmpty(nToken)) {
+            usedId = new NTokenHandler().findLatestInquiryId(nToken);
+        }
+
+        String reply = SearchController.getReplysFromQuery(usedId);
+        return Response.ok()
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", HttpMethod.GET)
+                .header("Access-Control-Allow-Headers", "origin, content-type, authorization, reply")
+                .header("Access-Control-Expose-Headers", "reply")
+                .header("reply", reply)
+                .build();
+    }
+
+    @OPTIONS
+    @Path("/getReply")
+    @Consumes(MediaType.TEXT_PLAIN)
+    public Response getReply_OPTIONS(@QueryParam("id") int id, @QueryParam("ntoken") String nToken) {
+        return Response.ok()
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", HttpMethod.GET)
+                .header("Access-Control-Allow-Headers", "origin, content-type, authorization, reply")
+                .header("Access-Control-Expose-Headers", "reply")
+                .build();
     }
 
     /**
@@ -272,20 +353,32 @@ public class Searchbroker {
     @GET
     @Path("/getAnonymousReply")
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response getAnonymousReply(@QueryParam("id") int id) {
-        String reply = SearchController.getReplysFromQuery(id);
+    public Response getAnonymousReply(
+            @QueryParam("id") @DefaultValue("-1") int id,
+            @QueryParam("ntoken") @DefaultValue("") String nToken) {
+        int usedId = id;
+        if (id < 0 && !StringUtils.isEmpty(nToken)) {
+            usedId = new NTokenHandler().findLatestInquiryId(nToken);
+        }
+
+        String reply = SearchController.getReplysFromQuery(usedId);
 
         JsonParser parser = new JsonParser();
         JsonElement tradeElement = parser.parse(reply);
         JsonArray jsonReply = tradeElement.getAsJsonArray();
-        for (int i = 0; i < jsonReply.size(); i++)
-        {
+        for (int i = 0; i < jsonReply.size(); i++) {
             JsonObject jsonObj = jsonReply.get(i).getAsJsonObject();
             jsonObj.remove("site");
             jsonObj.addProperty("site", "anonymous");
         }
 
-        return Response.ok().header("reply", jsonReply.toString()).build();
+        return Response.ok()
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", HttpMethod.GET)
+                .header("Access-Control-Allow-Headers", "origin, content-type, accept, reply")
+                .header("Access-Control-Expose-Headers", "reply")
+                .header("reply", jsonReply.toString())
+                .build();
     }
 
     /**
@@ -299,7 +392,13 @@ public class Searchbroker {
     public Response getSize() {
         long size = SiteUtil.fetchSites().stream().filter(Site::getActive).count();
 
-        return Response.ok().header("size", size).build();
+        return Response.ok()
+                .header("Access-Control-Allow-Methods", HttpMethod.GET)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Headers", "size")
+                .header("Access-Control-Expose-Headers", "size")
+                .header("size", size)
+                .build();
     }
 
 
@@ -802,7 +901,7 @@ public class Searchbroker {
      * @param authorizationHeader the authorization header
      * @param userAgent           the user agent of the client
      * @param request             the http request
-     * @param siteId        the id of the site to set
+     * @param siteId              the id of the site to set
      * @return <CODE>200</CODE> on success
      * <CODE>401</CODE> on authorization error
      * <CODE>404</CODE> if the site or bank could not be found

@@ -30,9 +30,11 @@ import de.samply.share.broker.model.db.tables.pojos.Reply;
 import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.model.db.tables.pojos.User;
 import de.samply.share.broker.rest.InquiryHandler;
+import de.samply.share.broker.statistics.NTokenHandler;
 import de.samply.share.broker.utils.db.BankSiteUtil;
 import de.samply.share.broker.utils.db.ReplyUtil;
 import de.samply.share.broker.utils.db.SiteUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
@@ -54,15 +56,20 @@ public class SearchController {
      * @return the query ID
      */
 
-    public static int releaseQuery(String simpleQueryDtoXml, User loggedUser) {
+    private static NTokenHandler N_TOKEN_HANDLER = new NTokenHandler();
+
+    public static void releaseQuery(String simpleQueryDtoXml, String ntoken, User loggedUser) {
         InquiryHandler inquiryHandler = new InquiryHandler();
         int inquiryId = inquiryHandler.storeAndRelease(simpleQueryDtoXml, loggedUser.getId(), "", "", -1, -1, new ArrayList<>(), true);
+        if (inquiryId > 0 && !StringUtils.isBlank(ntoken)) {
+            N_TOKEN_HANDLER.saveNToken(inquiryId, ntoken, simpleQueryDtoXml);
+        }
+
         List<String> siteIds = new ArrayList<>();
         for (Site site : SiteUtil.fetchSites()) {
             siteIds.add(site.getId().toString());
         }
         inquiryHandler.setSitesForInquiry(inquiryId, siteIds);
-        return inquiryId;
     }
 
     /**
