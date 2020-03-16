@@ -47,13 +47,17 @@ import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
+import de.samply.share.essentialquery.EssentialSimpleFieldDto;
 import de.samply.share.essentialquery.EssentialSimpleQueryDto;
+import de.samply.share.essentialquery.EssentialSimpleValueDto;
 import de.samply.share.model.common.Contact;
 import de.samply.share.model.common.*;
 import de.samply.share.model.common.inquiry.InquiriesIdList;
 import de.samply.share.model.cql.CqlQuery;
 import de.samply.share.model.cql.CqlQueryList;
+import de.samply.share.query.enums.SimpleValueCondition;
 import de.samply.share.utils.QueryConverter;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -83,6 +87,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The Class InquiryHandler.
@@ -201,8 +206,7 @@ public class InquiryHandler {
 
     private void createAndSaveStatistics(String simpleQueryDtoXml, Integer inquiryId) {
         try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(EssentialSimpleQueryDto.class);
-            EssentialSimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, EssentialSimpleQueryDto.class);
+            EssentialSimpleQueryDto simpleQueryDto = xmlString2Dto(simpleQueryDtoXml);
             StatisticsHandler statisticsHandler = new StatisticsHandler();
             statisticsHandler.save(simpleQueryDto, inquiryId);
         } catch (JAXBException e) {
@@ -887,8 +891,7 @@ public class InquiryHandler {
 
     private String createCql(String simpleQueryDtoXml, String entityType) throws JAXBException {
         if (!StringUtils.isEmpty(simpleQueryDtoXml)) {
-            JAXBContext jaxbContext = JAXBContext.newInstance(EssentialSimpleQueryDto.class);
-            EssentialSimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, EssentialSimpleQueryDto.class);
+            EssentialSimpleQueryDto simpleQueryDto = xmlString2Dto(simpleQueryDtoXml);
 
             return new EssentialSimpleQueryDto2CqlTransformer().toQuery(simpleQueryDto, entityType);
         }
@@ -910,8 +913,7 @@ public class InquiryHandler {
         Query query;
 
         if (!StringUtils.isEmpty(simpleQueryDtoXml)) {
-            JAXBContext jaxbContext = JAXBContext.newInstance(EssentialSimpleQueryDto.class);
-            EssentialSimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, EssentialSimpleQueryDto.class);
+            EssentialSimpleQueryDto simpleQueryDto = xmlString2Dto(simpleQueryDtoXml);
             query = new EssentialSimpleQueryDto2ShareXmlTransformer().toQuery(simpleQueryDto);
         } else {
             query = new Query();
@@ -1042,5 +1044,36 @@ public class InquiryHandler {
         }
 
         return returnValue;
+    }
+
+    private EssentialSimpleQueryDto xmlString2Dto(String simpleQueryDtoXml) throws JAXBException {
+        JAXBContext jaxbContext = JAXBContext.newInstance(EssentialSimpleQueryDto.class);
+        EssentialSimpleQueryDto queryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, EssentialSimpleQueryDto.class);
+
+        for (EssentialSimpleFieldDto field : queryDto.getFieldDtos()) {
+            field.setValueDtos(
+                    field.getValueDtos().stream()
+                            .filter(valueDto -> !isEmpty(valueDto))
+                            .collect(Collectors.toList()));
+        }
+
+        queryDto.setFieldDtos(queryDto.getFieldDtos().stream()
+                .filter(fieldDto -> !isEmpty(fieldDto))
+                .collect(Collectors.toList()));
+
+        return queryDto;
+    }
+
+    private boolean isEmpty(EssentialSimpleValueDto valueDto) {
+        return isEmptyValue(valueDto.getValue()) ||
+                (valueDto.getCondition() == SimpleValueCondition.BETWEEN && isEmptyValue(valueDto.getMaxValue()));
+    }
+
+    private boolean isEmptyValue(String value) {
+        return StringUtils.isEmpty(value) || "null".equalsIgnoreCase(value);
+    }
+
+    private boolean isEmpty(EssentialSimpleFieldDto fieldDto) {
+        return CollectionUtils.isEmpty(fieldDto.getValueDtos());
     }
 }
