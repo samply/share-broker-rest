@@ -40,6 +40,7 @@ import de.samply.share.broker.model.db.tables.daos.ReplyDao;
 import de.samply.share.broker.model.db.tables.daos.UserDao;
 import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.statistics.StatisticFileWriter;
 import de.samply.share.broker.statistics.StatisticsHandler;
 import de.samply.share.broker.utils.EssentialSimpleQueryDto2ShareXmlTransformer;
 import de.samply.share.broker.utils.cql.EssentialSimpleQueryDto2CqlTransformer;
@@ -206,6 +207,8 @@ public class InquiryHandler {
             EssentialSimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, EssentialSimpleQueryDto.class);
             StatisticsHandler statisticsHandler = new StatisticsHandler();
             statisticsHandler.save(simpleQueryDto, inquiryId);
+            StatisticFileWriter statisticFileWriter = new StatisticFileWriter();
+            statisticFileWriter.save(simpleQueryDto, inquiryId);
         } catch (JAXBException e) {
             e.printStackTrace();
         }
