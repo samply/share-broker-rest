@@ -355,7 +355,8 @@ public class Searchbroker {
     @OPTIONS
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response getReply_OPTIONS(@QueryParam("id") int id, @QueryParam("ntoken") String nToken) {
+    public Response getReply_OPTIONS(@QueryParam("id") @DefaultValue("-1") int id,
+                                     @QueryParam("ntoken") @DefaultValue("") String nToken) {
         return Response.ok()
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Methods", HttpMethod.GET)

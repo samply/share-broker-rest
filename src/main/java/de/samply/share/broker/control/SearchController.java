@@ -59,6 +59,8 @@ public class SearchController {
     private static NTokenHandler N_TOKEN_HANDLER = new NTokenHandler();
 
     public static void releaseQuery(String simpleQueryDtoXml, String ntoken, User loggedUser) {
+        N_TOKEN_HANDLER.deactivateNToken(ntoken);
+
         InquiryHandler inquiryHandler = new InquiryHandler();
         int inquiryId = inquiryHandler.storeAndRelease(simpleQueryDtoXml, loggedUser.getId(), "", "", -1, -1, new ArrayList<>(), true);
         if (inquiryId > 0 && !StringUtils.isBlank(ntoken)) {

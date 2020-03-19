@@ -4,6 +4,7 @@ import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
 import de.samply.share.broker.model.db.tables.daos.NtokenQueryDao;
 import de.samply.share.broker.model.db.tables.pojos.NtokenQuery;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.Configuration;
@@ -38,10 +39,12 @@ public class NTokenHandler {
                             Tables.NTOKEN_QUERY.INQUIRYID,
                             Tables.NTOKEN_QUERY.NTOKEN,
                             Tables.NTOKEN_QUERY.QUERY,
+                            Tables.NTOKEN_QUERY.ACTIVE,
                             Tables.NTOKEN_QUERY.WASCREATED)
                     .values(ntokenQuery.getInquiryid(),
                             ntokenQuery.getNtoken(),
                             ntokenQuery.getQuery(),
+                            true,
                             ntokenQuery.getWascreated())
                     .execute();
 
@@ -90,11 +93,41 @@ public class NTokenHandler {
             Optional<NtokenQuery> latestNTokenQueryOptional =
                     ntokenQueries.stream().max(Comparator.comparing(NtokenQuery::getWascreated));
 
-            return latestNTokenQueryOptional.get().getInquiryid();
+            NtokenQuery ntokenQuery = latestNTokenQueryOptional.get();
+
+            return BooleanUtils.isTrue(ntokenQuery.getActive()) ? ntokenQuery.getInquiryid() : -1;
         } catch (SQLException e) {
             logger.error("SQL Exception caught", e);
         }
 
         return -1;
+    }
+
+    public void deactivateNToken(String nToken) {
+        try (Connection conn = ResourceManager.getConnection()) {
+            Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
+
+            NtokenQueryDao ntokenQueryDao = new NtokenQueryDao(configuration);
+            List<NtokenQuery> ntokenQueries = ntokenQueryDao.fetch(Tables.NTOKEN_QUERY.NTOKEN, nToken);
+
+
+            if (ntokenQueries.isEmpty()) {
+                return;
+            }
+
+            Optional<NtokenQuery> latestNTokenQueryOptional =
+                    ntokenQueries.stream().max(Comparator.comparing(NtokenQuery::getWascreated));
+
+            //noinspection ConstantConditions
+            if (!latestNTokenQueryOptional.isPresent()) {
+                return;
+            }
+
+            NtokenQuery ntokenQuery = latestNTokenQueryOptional.get();
+            ntokenQuery.setActive(false);
+            ntokenQueryDao.update(ntokenQuery);
+        } catch (SQLException e) {
+            logger.error("SQL Exception caught", e);
+        }
     }
 }
