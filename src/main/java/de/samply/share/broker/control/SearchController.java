@@ -58,13 +58,13 @@ public class SearchController {
 
     private static NTokenHandler N_TOKEN_HANDLER = new NTokenHandler();
 
-    public static void releaseQuery(String simpleQueryDtoXml, String ntoken, User loggedUser) {
+    public static void releaseQuery(String simpleQueryDtoJson, String ntoken, User loggedUser) {
         N_TOKEN_HANDLER.deactivateNToken(ntoken);
 
         InquiryHandler inquiryHandler = new InquiryHandler();
-        int inquiryId = inquiryHandler.storeAndRelease(simpleQueryDtoXml, loggedUser.getId(), "", "", -1, -1, new ArrayList<>(), true);
+        int inquiryId = inquiryHandler.storeAndRelease(simpleQueryDtoJson, loggedUser.getId(), "", "", -1, -1, new ArrayList<>(), true);
         if (inquiryId > 0 && !StringUtils.isBlank(ntoken)) {
-            N_TOKEN_HANDLER.saveNToken(inquiryId, ntoken, simpleQueryDtoXml);
+            N_TOKEN_HANDLER.saveNToken(inquiryId, ntoken, simpleQueryDtoJson);
         }
 
         List<String> siteIds = new ArrayList<>();

@@ -24,6 +24,8 @@ public class NTokenHandler {
 
     private static final Logger logger = LogManager.getLogger(NTokenHandler.class);
 
+    public static final int INQUIRY_ID_FOR_ERROR = -1;
+
     public int saveNToken(int inquiryId, String nToken, String query) {
         try (Connection connection = ResourceManager.getConnection()) {
             NtokenQuery ntokenQuery = new NtokenQuery();
@@ -87,7 +89,7 @@ public class NTokenHandler {
 
 
             if (ntokenQueries.isEmpty()) {
-                return -1;
+                return INQUIRY_ID_FOR_ERROR;
             }
 
             Optional<NtokenQuery> latestNTokenQueryOptional =

@@ -255,17 +255,17 @@ public class Searchbroker {
     /**
      * Get query from UI
      *
-     * @param xml the query
+     * @param json the query
      * @return 202 or 500 code
      */
     @POST
     @Path("/sendQuery")
-    @Produces(MediaType.APPLICATION_XML)
-    @Consumes(MediaType.APPLICATION_XML)
-    public Response sendQuery(String xml, @HeaderParam("ntoken") String ntoken) {
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response sendQuery(String json, @HeaderParam("ntoken") String ntoken) {
         this.logger.info("sendQuery called");
 
-        SearchController.releaseQuery(xml, ntoken, authenticatedUser);
+        SearchController.releaseQuery(json, ntoken, authenticatedUser);
 
         this.logger.info("sendQuery with ntoken '" + ntoken + "'is sent");
         return Response.accepted()
@@ -280,14 +280,14 @@ public class Searchbroker {
     /**
      * Get query from UI
      *
-     * @param xml the query
+     * @param json the query
      * @return 200 or 500 code
      */
     @OPTIONS
     @Path("/sendQuery")
-    @Produces(MediaType.APPLICATION_XML)
-    @Consumes(MediaType.APPLICATION_XML)
-    public Response sendQueryOPTIONS(String xml, @HeaderParam("ntoken") String ntoken) {
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response sendQueryOPTIONS(String json, @HeaderParam("ntoken") String ntoken) {
         this.logger.info("sendQuery called (OPTIONS)");
         return Response.ok(new Gson().toJson(ProjectInfo.INSTANCE.getVersionString()))
                 .header("Access-Control-Allow-Origin", "*")
@@ -299,7 +299,7 @@ public class Searchbroker {
 
     @GET
     @Path("/getQuery")
-    @Produces(MediaType.APPLICATION_XML)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getQuery(@QueryParam("ntoken") @DefaultValue("") String nToken) {
         this.logger.info("getQuery called");
         String query = new NTokenHandler().findLatestQuery(nToken);
@@ -314,7 +314,7 @@ public class Searchbroker {
 
     @OPTIONS
     @Path("/getQuery")
-    @Produces(MediaType.APPLICATION_XML)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getQuery_OPTIONS(@QueryParam("ntoken") @DefaultValue("") String nToken) {
         this.logger.info("getQuery called (OPTIONS)");
         return Response.ok()
