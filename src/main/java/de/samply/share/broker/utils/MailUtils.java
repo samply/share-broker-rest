@@ -30,6 +30,7 @@ import de.samply.common.mailing.EmailBuilder;
 import de.samply.common.mailing.MailSender;
 import de.samply.common.mailing.MailSending;
 import de.samply.common.mailing.OutgoingEmail;
+import de.samply.config.util.FileFinderUtil;
 import de.samply.share.broker.model.db.tables.pojos.*;
 import de.samply.share.broker.thread.MailSenderThread;
 import de.samply.share.broker.utils.db.ActionUtil;
@@ -43,46 +44,53 @@ import org.apache.logging.log4j.Logger;
 
 import javax.faces.application.ProjectStage;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
+
+import static org.omnifaces.util.Faces.getServletContext;
 
 /**
  * An utility class holding methods to send emails.
- * 
+ * <p>
  * Templates stored in src/main/resources/mailTemplates
  */
 public class MailUtils {
     private static final Logger logger = LogManager.getLogger(MailUtils.class);
-    
+
     private static final char MAIL_DELIMITER_CHAR = ',';
-    
+
     private static final String CCP_OFFICE_MAIL = "mail.receiver.ccpoffice";
     private static final String ADMIN_MAIL = "mail.receiver.admin";
     private static final String MAIL_SWITCH = "mail.switch";
 
     private static final String MAIL_SUBJECT_EXPIRY_DE = "Eine Kollaborationsanfrage läuft ab";
     private static final String MAIL_SUBJECT_EXPIRY_EN = "Inquiry about to expire";
-    
+
     private static final String MAIL_SUBJECT_REGISTRATION_DE = "Ihre Registrierung am Samply.Share Suchbroker";
     private static final String MAIL_SUBJECT_REGISTRATION_EN = "Your registration with Samply.Share.Broker";
-    
+
     private static final String MAIL_SUBJECT_NEWPROPOSAL_DE = "[Dezentrale Suche] Neuer Projektvorschlag";
     private static final String MAIL_SUBJECT_NEWPROPOSAL_EN = "[Decentral Search] New Project Proposal";
-    
+
     private static final String MAIL_SUBJECT_MODIFIEDPROPOSAL_DE = "[Dezentrale Suche] Bearbeiteter Projektvorschlag";
     private static final String MAIL_SUBJECT_MODIFIEDPROPOSAL_EN = "[Decentral Search] Modified Project Proposal";
-    
+
     private static final String MAIL_SUBJECT_REMINDER_DE = "Erinnerung für Projekt (Antragsnummer: ";
     private static final String MAIL_SUBJECT_REMINDER_EN = "Reminder for project (Number: ";
 
     // TODO: translations needed
     private static final String MAIL_SUBJECT_REPORT_DE = "Zwischenbericht für Ihr Projekt";
     private static final String MAIL_SUBJECT_REPORT_EN = "Zwischenbericht für Ihr Projekt";
-    
+
     private static final String MAIL_SUBJECT_ENDING1_DE = "Ihr Projekt";
     private static final String MAIL_SUBJECT_ENDING1_EN = "Your Project";
-    
+
     private static final String MAIL_SUBJECT_ENDING2_DE = "Update erforderlich";
     private static final String MAIL_SUBJECT_ENDING2_EN = "Update required";
 
@@ -115,7 +123,7 @@ public class MailUtils {
 
     /**
      * Check and send time-based reminders to send reports
-     *
+     * <p>
      * TODO: Maybe this can be substituted with general external reminder
      */
     public static void checkAndSendReportReminders() {
@@ -127,13 +135,13 @@ public class MailUtils {
             logger.debug("Sent " + projects.size() + " project ending reminders.");
         }
     }
-    
+
     /**
      * Send activation mail.
      * Mail content can be changed in the soy templates
      *
      * @param receiverAddress the email address of the receiver
-     * @param token the token used to verify the mail address
+     * @param token           the token used to verify the mail address
      */
     public static void sendActivationmail(String receiverAddress, String token) {
         OutgoingEmail email = new OutgoingEmail();
@@ -262,7 +270,7 @@ public class MailUtils {
      * Mail content can be changed in the soy templates
      *
      * @param receiverAddress where to send the mail to
-     * @param action which action causes the mail to be sent
+     * @param action          which action causes the mail to be sent
      */
     private static void sendReminder(String receiverAddress, Action action) {
         if (Utils.getProjectStage().equals(ProjectStage.Development)) {
@@ -298,12 +306,12 @@ public class MailUtils {
     /**
      * Send report reminder mail.
      * Mail content can be changed in the soy templates
-     * 
+     * <p>
      * triggered by: 8 weeks before the report is due
      * sender: ccp office
      * receiver: inquirer
      *
-     * @param project the project that is afflicted
+     * @param project  the project that is afflicted
      * @param reminder the reminder that triggered this mail
      */
     private static void sendReportReminder(Project project, Action reminder) {
@@ -314,7 +322,7 @@ public class MailUtils {
         String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
         if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
             logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
-            return;            
+            return;
         }
         OutgoingEmail email = new OutgoingEmail();
         String projectName = ProjectInfo.INSTANCE.getProjectName();
@@ -357,11 +365,11 @@ public class MailUtils {
         Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
         mailSenderThread.start();
     }
-    
+
     /**
      * Send project ending information mail.
      * Mail content can be changed in the soy templates
-     * 
+     * <p>
      * triggered by: estimated end of project in 2 weeks
      * sender: ccp office
      * receiver: inquirer
@@ -376,7 +384,7 @@ public class MailUtils {
         String mailSwitch = ProjectInfo.INSTANCE.getConfig().getProperty(MAIL_SWITCH);
         if (mailSwitch == null || !mailSwitch.equalsIgnoreCase("on")) {
             logger.debug("Project mail switch is off. Skipping mail sending. You can change this in the config file. The parameter is called " + MAIL_SWITCH);
-            return;            
+            return;
         }
         OutgoingEmail email = new OutgoingEmail();
         String projectName = ProjectInfo.INSTANCE.getProjectName();
@@ -415,11 +423,11 @@ public class MailUtils {
         Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
         mailSenderThread.start();
     }
-    
+
     /**
      * Send user site assignment mail.
      * Mail content can be changed in the soy templates
-     * 
+     * <p>
      * triggered by: user sets a site for himself
      * sender: user
      * receiver: admin
@@ -464,12 +472,12 @@ public class MailUtils {
         Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
         mailSenderThread.start();
     }
-    
+
 
     /**
      * Send bank site assignment mail.
      * Mail content can be changed in the soy templates
-     * 
+     * <p>
      * triggered by: bank sets a site for itself
      * sender: bank
      * receiver: admin
@@ -513,16 +521,18 @@ public class MailUtils {
         Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
         mailSenderThread.start();
     }
-    
+
     /**
      * Initializes an EmailBuilder with the two default Soy-Templates: main.soy and footer.soy.
+     *
      * @param mailSending
      * @return an email builder instance
      */
     private static EmailBuilder initializeBuilder(MailSending mailSending) {
         String templateFolder = Utils.getRealPath(mailSending.getTemplateFolder());
-        
-        EmailBuilder builder = new EmailBuilder(templateFolder, false);        
+
+        EmailBuilder builder = new EmailBuilder(templateFolder, false);
+        String projectName = ProjectInfo.INSTANCE.getProjectName();
         builder.addTemplateFile("MainMailTemplate.soy", null);
         builder.addTemplateFile("Footer.soy", "Footer");
         return builder;
@@ -548,7 +558,7 @@ public class MailUtils {
 
     /**
      * Transform an SQL Date to String
-     *
+     * <p>
      * For German locale, date format will be "dd.MM.yyyy" (e.g. "15.11.2015")
      * For other locales, it will be "dd. MMMMM yyyy" (e.g. "15. November 2015")
      *
@@ -564,5 +574,31 @@ public class MailUtils {
             DateFormat df = new SimpleDateFormat("dd. MMMMM yyyy");
             return df.format(date);
         }
+    }
+
+    public static void sentStatistics() {
+        OutgoingEmail email = new OutgoingEmail();
+        String projectName = ProjectInfo.INSTANCE.getProjectName();
+        email.setSubject("Sample Locator Statistic");
+        List<String> addressees = new ArrayList<>();
+        try {
+            File addressFile = FileFinderUtil.findFile("statistic_notification.txt", projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
+            Scanner s = new Scanner(addressFile).useDelimiter(System.lineSeparator());
+            while (s.hasNext()) {
+                addressees.add(s.next());
+            }
+            s.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        for (String addressee : addressees) {
+            email.addAddressee(addressee);
+        }
+        DateFormat parseFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String statistics = System.getProperty("catalina.base") + File.separator + "logs" + File.separator + "statistics" + File.separator + "statistic_" + parseFormat.format(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24))+".xlsx";
+        email.getAttachments().add(statistics);
+        MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
+        Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
+        mailSenderThread.start();
     }
 }

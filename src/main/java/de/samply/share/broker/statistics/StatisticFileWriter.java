@@ -1,7 +1,6 @@
 package de.samply.share.broker.statistics;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import de.samply.share.essentialquery.EssentialSimpleFieldDto;
 import de.samply.share.essentialquery.EssentialSimpleQueryDto;
@@ -12,14 +11,14 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
 
 public class StatisticFileWriter {
     private HashMap<String, String> mdrMap = new HashMap<>();
     private DateFormat parseFormat = new SimpleDateFormat(
             "yyyy-MM-dd");
+    Gson gson = new Gson();
 
     public StatisticFileWriter() {
         init();
@@ -48,69 +47,101 @@ public class StatisticFileWriter {
     public void save(EssentialSimpleQueryDto queryDto, int inquiryId) {
         String file = "";
         try {
-            file = getFileAsString();
+            file = getFileAsString(false);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        JsonObject statisticObject = convertFileToJson(file);
-        JsonObject queryObject = new JsonObject();
-        queryObject.addProperty("id",inquiryId);
-        queryObject.addProperty("fields", readFields(queryDto).toString());
-        queryObject.addProperty("date", parseFormat.format(new Date(System.currentTimeMillis())));
-        if ((statisticObject.has("queries"))) {
-            statisticObject.getAsJsonArray("queries").add(queryObject);
+        StatisticDto statisticDto = convertFileToStatisticDto(file);
+        StatisticQueryDto statisticQueryDto = new StatisticQueryDto();
+        statisticQueryDto.setId(inquiryId);
+        statisticQueryDto.setStatisticFieldDtos(readFields(queryDto));
+        statisticQueryDto.setDate(parseFormat.format(new Date(System.currentTimeMillis())));
+        if (statisticDto.getQueryCount() > 0) {
+            statisticDto.getStatisticQueryDtos().add(statisticQueryDto);
+            statisticDto.setQueryCount(statisticDto.getQueryCount() + 1);
+            statisticDto.setMdrFields(countMdrFieldsByName(statisticDto.getMdrFields(), queryDto));
+            statisticDto.setMdrFieldsPerQuery(countMdrFields(statisticDto.getMdrFieldsPerQuery(), queryDto));
         } else {
-            JsonArray jsonArray = new JsonArray();
-            jsonArray.add(queryObject);
-            statisticObject.add("queries", jsonArray);
+            statisticDto.getStatisticQueryDtos().add(statisticQueryDto);
+            statisticDto.setQueryCount(1);
+            statisticDto.setMdrFields(countMdrFieldsByName(new HashMap<>(), queryDto));
+            statisticDto.setMdrFieldsPerQuery(countMdrFields(new HashMap<>(), queryDto));
         }
-        writeToFile(statisticObject);
+        writeToFile(statisticDto);
     }
 
-    private JsonObject convertFileToJson(String file){
-        JsonParser parser = new JsonParser();
-        return (file.equals("")) ? new JsonObject() : parser.parse(file).getAsJsonObject();
+    private HashMap<String, Integer> countMdrFields(HashMap<String, Integer> mdrFields, EssentialSimpleQueryDto queryDto) {
+        int selectedMdrFields = queryDto.getFieldDtos().size();
+        String propertyName = "queries with " + selectedMdrFields + " selected fields";
+        if (mdrFields.containsKey(propertyName)) {
+            mdrFields.put(propertyName, mdrFields.get(propertyName) + selectedMdrFields);
+        } else {
+            mdrFields.put(propertyName, selectedMdrFields);
+        }
+        return mdrFields;
     }
 
-
-    private JsonArray readFields(EssentialSimpleQueryDto queryDto) {
-        JsonArray fieldArray = new JsonArray();
+    private HashMap<String, Integer> countMdrFieldsByName(HashMap<String, Integer> mdrFields, EssentialSimpleQueryDto queryDto) {
         for (EssentialSimpleFieldDto essentialSimpleFieldDto : queryDto.getFieldDtos()) {
-            JsonObject fieldObject = new JsonObject();
-            fieldObject.addProperty("mdrField", mdrMap.get(essentialSimpleFieldDto.getUrn()));
-            fieldObject.addProperty("values", readValue(essentialSimpleFieldDto).toString());
-            fieldArray.add(fieldObject);
+            String urnAsString = mdrMap.get(essentialSimpleFieldDto.getUrn());
+            if (mdrFields.containsKey(urnAsString)) {
+                mdrFields.put(urnAsString, mdrFields.get(urnAsString) + 1);
+            } else {
+                mdrFields.put(urnAsString, 1);
+            }
         }
-        return fieldArray;
+        return mdrFields;
     }
 
-    private JsonArray readValue(EssentialSimpleFieldDto essentialSimpleFieldDto) {
-        JsonArray valueArray = new JsonArray();
+    protected StatisticDto convertFileToStatisticDto(String file) {
+        JsonParser parser = new JsonParser();
+        return (file.equals("")) ? new StatisticDto() : gson.fromJson(parser.parse(file).getAsJsonObject(), StatisticDto.class);
+    }
+
+
+    private List<StatisticFieldDto> readFields(EssentialSimpleQueryDto queryDto) {
+        List<StatisticFieldDto> statisticFieldDtos = new ArrayList<>();
+        for (EssentialSimpleFieldDto essentialSimpleFieldDto : queryDto.getFieldDtos()) {
+            StatisticFieldDto statisticFieldDto = new StatisticFieldDto();
+            statisticFieldDto.setMdrField(mdrMap.get(essentialSimpleFieldDto.getUrn()));
+            statisticFieldDto.setStatisticValueDtos(readValue(essentialSimpleFieldDto));
+            statisticFieldDtos.add(statisticFieldDto);
+        }
+        return statisticFieldDtos;
+    }
+
+    private List<StatisticValueDto> readValue(EssentialSimpleFieldDto essentialSimpleFieldDto) {
+        List<StatisticValueDto> statisticValueDtos = new ArrayList<>();
         for (EssentialSimpleValueDto essentialSimpleValueDto : essentialSimpleFieldDto.getValueDtos()) {
-            JsonObject valueObject = new JsonObject();
-            valueObject.addProperty("condition", essentialSimpleValueDto.getCondition().toString());
-            valueObject.addProperty("minValue", essentialSimpleValueDto.getValue());
-            valueObject.addProperty("maxValue", essentialSimpleValueDto.getMaxValue());
-            valueArray.add(valueObject);
+            statisticValueDtos.add(new StatisticValueDto(essentialSimpleValueDto));
         }
-        return valueArray;
+        return statisticValueDtos;
     }
 
-    private void writeToFile(JsonObject queryObject) {
+    private void writeToFile(StatisticDto statisticDto) {
         Writer out;
         try {
             out = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(Objects.requireNonNull(this.getClass().getClassLoader().getResource("")).getPath() + "statistic_"+ parseFormat.format(new Date(System.currentTimeMillis()))+".txt"), StandardCharsets.UTF_8));
-            out.write(queryObject.toString().replace("\\", "").replace(":\"[", ":[").replace("]\"", "]"));
+                    new FileOutputStream( getStatisticFileName(false) + ".txt"), StandardCharsets.UTF_8));
+            out.write(gson.toJson(statisticDto));
             out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private String getFileAsString() throws IOException {
-        String path = Objects.requireNonNull(this.getClass().getClassLoader().getResource("")).getPath() + "statistic_"+ parseFormat.format(new Date(System.currentTimeMillis()))+".txt";
+    protected String getFileAsString(boolean excel) throws IOException {
+        String path;
+        path = getStatisticFileName(excel) + ".txt";
         File file = new File(path);
-        return (file.exists())? IOUtils.toString(new FileInputStream(new File(path)),"UTF-8"): "";
+        return (file.exists()) ? IOUtils.toString(new FileInputStream(new File(path)), "UTF-8") : "";
+    }
+
+    protected String getStatisticFileName(boolean excel) {
+        String path = System.getProperty("catalina.base") + File.separator + "logs" + File.separator + "statistics" + File.separator + "statistic_";
+        if (excel) {
+            return path + parseFormat.format(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24));
+        }
+        return path + parseFormat.format(new Date(System.currentTimeMillis()));
     }
 }

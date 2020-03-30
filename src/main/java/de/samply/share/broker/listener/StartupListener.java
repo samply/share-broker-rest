@@ -32,6 +32,7 @@ package de.samply.share.broker.listener;
 import de.samply.common.http.HttpConnector;
 import de.samply.common.mdrclient.MdrClient;
 import de.samply.config.util.FileFinderUtil;
+import de.samply.share.broker.jobs.SpawnJob;
 import de.samply.share.broker.utils.Config;
 import de.samply.share.broker.utils.db.Migration;
 import de.samply.share.common.utils.ProjectInfo;
@@ -45,6 +46,9 @@ import org.quartz.impl.StdSchedulerFactory;
 import javax.servlet.ServletContextEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -62,11 +66,12 @@ import static org.quartz.TriggerBuilder.newTrigger;
  * component's <code>addStartupListener</code> method. When
  * the startup event occurs, that object's appropriate
  * method is invoked.
- *
  */
 public class StartupListener implements javax.servlet.ServletContextListener {
 
-    /** The Constant logger. */
+    /**
+     * The Constant logger.
+     */
     private static final Logger LOGGER = LogManager.getLogger(StartupListener.class);
     private SchedulerFactory sf = new StdSchedulerFactory();
 
@@ -82,9 +87,9 @@ public class StartupListener implements javax.servlet.ServletContextListener {
             try {
                 DriverManager.deregisterDriver(driver);
                 LOGGER.info("Deregistering jdbc driver: " + driver);
-                    for(Scheduler scheduler: sf.getAllSchedulers()) {
-                        scheduler.shutdown();
-                    }
+                for (Scheduler scheduler : sf.getAllSchedulers()) {
+                    scheduler.shutdown();
+                }
             } catch (SQLException e) {
                 LOGGER.fatal("Error deregistering driver:" + driver + "\n" + e.getMessage());
             } catch (SchedulerException e) {
@@ -108,7 +113,13 @@ public class StartupListener implements javax.servlet.ServletContextListener {
                     null,
                     FileFinderUtil.findFile(
                             "log4j2.xml", ProjectInfo.INSTANCE.getProjectName(), System.getProperty("catalina.base") + File.separator + "conf", sce.getServletContext().getRealPath("/WEB-INF")).getAbsolutePath());
+            File dir = new File(System.getProperty("catalina.base") + File.separator + "logs" + File.separator + "statistics");
+            if (!dir.exists()) {
+                Files.createDirectories(Paths.get(System.getProperty("catalina.base") + File.separator + "logs" + File.separator + "statistics"));
+            }
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
         Migration.doUpgrade();
@@ -116,6 +127,8 @@ public class StartupListener implements javax.servlet.ServletContextListener {
         HttpConnector httpConnector = Proxy.getHttpConnector();
         MdrClient mdrClient = new MdrClient(mdrUrl, httpConnector.getJerseyClient(mdrUrl));
         MdrContext.getMdrContext().init(mdrClient);
+        SpawnJob spawnJob = new SpawnJob();
+        spawnJob.spawnStatisticJob();
     }
 
 }
