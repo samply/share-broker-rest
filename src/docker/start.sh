@@ -14,6 +14,8 @@ sed -i "s%{mail-protocol}%${MAIL_PROTOCOL:-smtp}%"      /usr/local/tomcat/conf/m
 sed -i "s%{mail-from-address}%${MAIL_FROM_ADDRESS}%"    /usr/local/tomcat/conf/mailSending.xml
 sed -i "s%{mail-from-name}%${MAIL_FROM_NAME}%"          /usr/local/tomcat/conf/mailSending.xml
 
+sed -i "s%{statistics-mails}%${STATISTICS_MAILS}%"      /usr/local/tomcat/conf/statistic_notification.txt
+
 sed -i "s%{auth-host}%${AUTH_HOST}%"                    /usr/local/tomcat/conf/OAuth2Client.xml
 sed -i "s%{auth-public-key}%${AUTH_PUBLIC_KEY}%"        /usr/local/tomcat/conf/OAuth2Client.xml
 sed -i "s%{auth-client-id}%${AUTH_CLIENT_ID}%"          /usr/local/tomcat/conf/OAuth2Client.xml
