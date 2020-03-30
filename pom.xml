@@ -70,6 +70,8 @@
         <weld.version>2.4.8.Final</weld.version>
         <cdi.version>1.2</cdi.version>
         <version.gson>2.8.5</version.gson>
+        <microprofile-openapi-api.version>2.0-MR1</microprofile-openapi-api.version>
+        <geronimo-openapi-maven-plugin.version>1.0.12</geronimo-openapi-maven-plugin.version>
     </properties>
 
     <build>
@@ -185,6 +187,28 @@
                     </generator>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.geronimo</groupId>
+                <artifactId>geronimo-openapi-maven-plugin</artifactId>
+                <version>${geronimo-openapi-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-openapi.json</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>openapi.json</goal>
+                        </goals>
+                        <configuration>
+                            <output>target/searchbroker/openapi.json</output>
+                            <application>de.samply.share.broker.rest.SearchbrokerRestActivator</application>
+                            <endpointClasses>
+                                <endpointClass>de.samply.share.broker.rest.Searchbroker</endpointClass>
+                            </endpointClasses>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Skip tests because of jenkins error-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -418,6 +442,15 @@
             <artifactId>jersey-cdi1x-servlet</artifactId>
             <version>${version.jersey}</version>
             <scope>runtime</scope>
+        </dependency><dependency>
+            <groupId>org.eclipse.microprofile.openapi</groupId>
+            <artifactId>microprofile-openapi-api</artifactId>
+            <version>${microprofile-openapi-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>swagger-ui</artifactId>
+            <version>3.25.0</version>
         </dependency>
 
         <!-- Tests -->

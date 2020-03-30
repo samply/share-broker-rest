@@ -42,7 +42,15 @@ import de.samply.share.common.model.dto.SiteInfo;
 import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
+import de.samply.share.essentialquery.EssentialSimpleQueryDto;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.jooq.tools.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
@@ -90,6 +98,16 @@ public class Searchbroker {
     @Path("/version")
     @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
     @GET
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = String.class))),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Retrieve version of searchbroker (backend)")
     public Response getVersion() {
         return Response.ok(new Gson().toJson(ProjectInfo.INSTANCE.getVersionString()))
                 .header("Access-Control-Allow-Origin", "*")
@@ -102,7 +120,25 @@ public class Searchbroker {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/getDirectoryID")
     @POST
-    public Response getDirectoryID(List<String> biobankNameList) {
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = JSONObject[].class)
+                    )),
+            @APIResponse(responseCode = "401", description = "Unauthorized access"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Retrieve biobank- and collection-IDs for list of biobanks")
+    public Response getDirectoryID(
+            @Parameter(
+                    name = "biobankNameList",
+                    description = "The list of biobanks (by name) to get IDs (biobank-ID and collection-ID) for",
+                    example = "['Lübeck', 'Heidelberg']",
+                    schema = @Schema(type = SchemaType.ARRAY, implementation = String.class))
+                    List<String> biobankNameList) {
         try {
             JSONArray biobank = new JSONArray();
             for (String biobankName : biobankNameList) {
@@ -126,7 +162,14 @@ public class Searchbroker {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/getDirectoryID")
     @OPTIONS
-    public Response getDirectoryID_OPTIONS(List<String> biobankNameList) {
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "The list of biobanks (by name) to get IDs (biobank-ID and collection-ID) for (OPTIONS for CORS)")
+    public Response getDirectoryID_OPTIONS() {
         try {
             return Response.ok()
                     .header("Access-Control-Allow-Origin", "*")
@@ -142,6 +185,13 @@ public class Searchbroker {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/getInquiry")
     @POST
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "401", description = "Unauthorized access"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
     public Response getInquiry(int id) {
         try {
             Inquiry inquiry = InquiryUtil.fetchInquiryById(id);
@@ -163,6 +213,14 @@ public class Searchbroker {
     @Secured
     @Path("/getProject")
     @GET
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "401", description = "Unauthorized access"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Possibly unused")
     public Response getProject() {
         try {
             List<Project> projectList = ProjectUtil.fetchProjectByProjectLeaderId(authenticatedUser.getId());
@@ -190,6 +248,14 @@ public class Searchbroker {
     @Secured
     @Path("/addProject")
     @POST
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "401", description = "Unauthorized access"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Possibly unused")
     public Response addProject(String inquiryJson) {
         int projectId;
         try {
@@ -211,6 +277,14 @@ public class Searchbroker {
     @Secured
     @Path("/addInquiryToProject")
     @POST
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "401", description = "Unauthorized access"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Possibly unused")
     public Response addInquiryToProject(@QueryParam("projectId") int projectId, @QueryParam("projectId") int inquiryId) {
         Inquiry inquiry = InquiryUtil.fetchInquiryById(inquiryId);
         Project project = ProjectUtil.fetchProjectById(projectId);
@@ -227,6 +301,14 @@ public class Searchbroker {
     @Secured
     @Path("/checkProject")
     @GET
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "401", description = "Unauthorized access"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Possibly unused")
     public Response checkProject(@QueryParam("queryId") int queryId) {
         Project project = ProjectUtil.fetchProjectByInquiryId(queryId);
 
@@ -248,6 +330,14 @@ public class Searchbroker {
      */
     @Path("/name")
     @GET
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(mediaType = MediaType.TEXT_PLAIN)),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Retrieve name of project (e.g. DKTK)")
     public Response getName() {
         return Response.ok(ProjectInfo.INSTANCE.getConfig().getProperty(CONFIG_PROPERTY_BROKER_NAME)).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
     }
@@ -262,7 +352,28 @@ public class Searchbroker {
     @Path("/sendQuery")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response sendQuery(String json, @HeaderParam("ntoken") String ntoken) {
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = String.class))),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Save query in searchbroker database")
+    public Response sendQuery(
+            @Parameter(
+                    name = "json",
+                    description = "Query as a JSON object",
+                    schema = @Schema(implementation = EssentialSimpleQueryDto.class))
+                    String json,
+            @Parameter(
+                    name = "ntoken",
+                    description = "The nToken used by the searchbroker and negotiator to identify a query. (format: \"UUID(v4)__search_UUID(v4)\")",
+                    example = "4b30d418-d1a0-4915-9f3c-b6d83b75c68a__search_890536a1-7cd5-470f-960d-18afd47499da",
+                    schema = @Schema(implementation = String.class))
+            @HeaderParam("ntoken") String ntoken) {
         this.logger.info("sendQuery called");
 
         SearchController.releaseQuery(json, ntoken, authenticatedUser);
@@ -280,14 +391,20 @@ public class Searchbroker {
     /**
      * Get query from UI
      *
-     * @param json the query
      * @return 200 or 500 code
      */
     @OPTIONS
     @Path("/sendQuery")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response sendQueryOPTIONS(String json, @HeaderParam("ntoken") String ntoken) {
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Save query in searchbroker database (OPTIONS for CORS)")
+    public Response sendQueryOPTIONS() {
         this.logger.info("sendQuery called (OPTIONS)");
         return Response.ok(new Gson().toJson(ProjectInfo.INSTANCE.getVersionString()))
                 .header("Access-Control-Allow-Origin", "*")
@@ -300,7 +417,23 @@ public class Searchbroker {
     @GET
     @Path("/getQuery")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getQuery(@QueryParam("ntoken") @DefaultValue("") String nToken) {
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON)),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Retrieve query from searchbroker backend")
+    public Response getQuery(
+            @Parameter(
+                    name = "ntoken",
+                    description = "The nToken used by the searchbroker and negotiator to identify a query. (format: \"UUID(v4)__search_UUID(v4)\")",
+                    example = "4b30d418-d1a0-4915-9f3c-b6d83b75c68a__search_890536a1-7cd5-470f-960d-18afd47499da",
+                    schema = @Schema(implementation = String.class))
+            @QueryParam("ntoken")
+            @DefaultValue("") String nToken) {
         this.logger.info("getQuery called");
         String query = new NTokenHandler().findLatestQuery(nToken);
 
@@ -315,6 +448,13 @@ public class Searchbroker {
     @OPTIONS
     @Path("/getQuery")
     @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Retrieve query from searchbroker backend (OPTIONS for CORS)")
     public Response getQuery_OPTIONS(@QueryParam("ntoken") @DefaultValue("") String nToken) {
         this.logger.info("getQuery called (OPTIONS)");
         return Response.ok()
@@ -334,9 +474,33 @@ public class Searchbroker {
     @GET
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(
+                            mediaType = MediaType.TEXT_PLAIN,
+                            schema = @Schema(implementation = Reply[].class))),
+            @APIResponse(responseCode = "401", description = "Unauthorized access"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Retrieve detailed reply - data per biobank")
     public Response getReply(
-            @QueryParam("id") @DefaultValue("-1") int id,
-            @QueryParam("ntoken") @DefaultValue("") String nToken) {
+            @Parameter(
+                    name = "id",
+                    description = "The ID of the query",
+                    example = "4711",
+                    schema = @Schema(implementation = Integer.class))
+            @QueryParam("id")
+            @DefaultValue("-1") int id,
+            @Parameter(
+                    name = "ntoken",
+                    description = "The nToken used by the searchbroker and negotiator to identify a query. (format: \"UUID(v4)__search_UUID(v4)\")" +
+                            "If no ID is provided (or is less than 0) than the nToken is used to identify the query - otherwise the ID itself is used.",
+                    example = "4b30d418-d1a0-4915-9f3c-b6d83b75c68a__search_890536a1-7cd5-470f-960d-18afd47499da",
+                    schema = @Schema(implementation = String.class))
+            @QueryParam("ntoken")
+            @DefaultValue("") String nToken) {
         int usedId = id;
         if (id < 0 && !StringUtils.isEmpty(nToken)) {
             usedId = new NTokenHandler().findLatestInquiryId(nToken);
@@ -352,11 +516,12 @@ public class Searchbroker {
                 .build();
     }
 
+/*
     @OPTIONS
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response getReply_OPTIONS(@QueryParam("id") @DefaultValue("-1") int id,
-                                     @QueryParam("ntoken") @DefaultValue("") String nToken) {
+    @Operation(summary = "Retrieve detailed reply - data per biobank (OPTIONS for CORS)")
+    public Response getReply_OPTIONS() {
         return Response.ok()
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Methods", HttpMethod.GET)
@@ -364,6 +529,7 @@ public class Searchbroker {
                 .header("Access-Control-Expose-Headers", "reply")
                 .build();
     }
+*/
 
     /**
      * Get aggregated result of the bridgeheads (without login)
@@ -374,9 +540,32 @@ public class Searchbroker {
     @GET
     @Path("/getAnonymousReply")
     @Consumes(MediaType.TEXT_PLAIN)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(
+                            mediaType = MediaType.TEXT_PLAIN,
+                            schema = @Schema(implementation = Reply[].class))),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Retrieve anonymous reply - only aggregated numbers")
     public Response getAnonymousReply(
-            @QueryParam("id") @DefaultValue("-1") int id,
-            @QueryParam("ntoken") @DefaultValue("") String nToken) {
+            @Parameter(
+                    name = "id",
+                    description = "The ID of the query",
+                    example = "4711",
+                    schema = @Schema(implementation = Integer.class))
+            @QueryParam("id")
+            @DefaultValue("-1") int id,
+            @Parameter(
+                    name = "ntoken",
+                    description = "The nToken used by the searchbroker and negotiator to identify a query. (format: \"UUID(v4)__search_UUID(v4)\")" +
+                            "If no ID is provided (or is less than 0) than the nToken is used to identify the query - otherwise the ID itself is used.",
+                    example = "4b30d418-d1a0-4915-9f3c-b6d83b75c68a__search_890536a1-7cd5-470f-960d-18afd47499da",
+                    schema = @Schema(implementation = String.class))
+            @QueryParam("ntoken")
+            @DefaultValue("") String nToken) {
         int usedId = id;
         if (id < 0 && !StringUtils.isEmpty(nToken)) {
             usedId = new NTokenHandler().findLatestInquiryId(nToken);
@@ -410,6 +599,16 @@ public class Searchbroker {
     @GET
     @Path("/getSize")
     @Consumes(MediaType.TEXT_PLAIN)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(
+                            mediaType = MediaType.TEXT_PLAIN,
+                            schema = @Schema(implementation = Integer.class))),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Retrieve number of actively participating biobanks")
     public Response getSize() {
         long size = SiteUtil.fetchSites().stream().filter(Site::getActive).count();
 
@@ -434,6 +633,13 @@ public class Searchbroker {
      */
     @Path("/banks/{email}")
     @PUT
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Possibly unused")
     public Response handlePutBank(@PathParam("email") String email,
                                   @HeaderParam(HttpHeaders.AUTHORIZATION) String authCodeHeader,
                                   @HeaderParam("Accesstoken") String accessToken) {
@@ -486,6 +692,13 @@ public class Searchbroker {
      */
     @Path("/banks/{email}")
     @DELETE
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Possibly unused")
     public Response handleDeleteBank(@PathParam("email") String email,
                                      @HeaderParam(HttpHeaders.AUTHORIZATION) String authCodeHeader) {
         Response response;
@@ -510,6 +723,13 @@ public class Searchbroker {
     @Path("/banks/{email}/status")
     @GET
     @Produces
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Possibly unused")
     public Response getRegistrationstatus(@PathParam("email") String email,
                                           @HeaderParam(HttpHeaders.AUTHORIZATION) String authCodeHeader) {
         this.logger.debug("Get Status is called for " + email);
@@ -557,6 +777,13 @@ public class Searchbroker {
     @Path("/inquiries")
     @GET
     @Produces(MediaType.APPLICATION_XML)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(mediaType = MediaType.TEXT_PLAIN)),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
     public Response getInquiries(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                  @HeaderParam(HttpHeaders.USER_AGENT) String userAgent,
                                  @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader) {
@@ -609,6 +836,13 @@ public class Searchbroker {
     @Path("/inquiries/{inquiryid}")
     @GET
     @Produces(MediaType.APPLICATION_XML)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(mediaType = MediaType.TEXT_PLAIN)),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
     public Response getInquiry(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                @HeaderParam(HttpHeaders.USER_AGENT) String userAgentHeader,
                                @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
@@ -657,6 +891,13 @@ public class Searchbroker {
     @Path("/inquiries/{inquiryid}/query")
     @GET
     @Produces(MediaType.APPLICATION_XML)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(mediaType = MediaType.TEXT_PLAIN)),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
     public Response getQuery(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                              @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
                              @PathParam("inquiryid") int inquiryId) {
@@ -686,6 +927,13 @@ public class Searchbroker {
     @Path("/inquiries/{inquiryid}/viewfields")
     @GET
     @Produces(MediaType.APPLICATION_XML)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(mediaType = MediaType.APPLICATION_XML)),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
     public Response getViewFields(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                   @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
                                   @PathParam("inquiryid") int inquiryId) {
@@ -718,6 +966,13 @@ public class Searchbroker {
     @Path("/inquiries/{inquiryid}/contact")
     @GET
     @Produces(MediaType.APPLICATION_XML)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(mediaType = MediaType.APPLICATION_XML)),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
     public Response getContact(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
                                @PathParam("inquiryid") int inquiryId) {
@@ -754,6 +1009,13 @@ public class Searchbroker {
     @Path("/inquiries/{inquiryid}/info")
     @GET
     @Produces(MediaType.APPLICATION_XML)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(mediaType = MediaType.APPLICATION_XML)),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
     public Response getInfo(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                             @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
                             @PathParam("inquiryid") int inquiryId) {
@@ -785,6 +1047,13 @@ public class Searchbroker {
     @Path("/inquiries/{inquiryid}/hasexpose")
     @GET
     @Produces(MediaType.TEXT_PLAIN)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(mediaType = MediaType.TEXT_PLAIN)),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
     public Response isSynopsisAvailable(@PathParam("inquiryid") int inquiryId) {
         Document expose = DocumentUtil.fetchExposeByInquiryId(inquiryId);
 
@@ -811,6 +1080,12 @@ public class Searchbroker {
     @Path("/inquiries/{inquiryid}/replies/{bankemail}")
     @PUT
     @Consumes(MediaType.TEXT_PLAIN)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
     public Response putReply(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                              @PathParam("inquiryid") int inquiryId,
                              @PathParam("bankemail") String bankEmail,
@@ -850,6 +1125,12 @@ public class Searchbroker {
     @Path("/exposes/{inquiryid}")
     @GET
     @Produces(CONTENT_TYPE_PDF)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
     public Response getSynopsis(@HeaderParam(HttpHeaders.AUTHORIZATION) String authKeyHeader,
                                 @PathParam("inquiryid") int inquiryId) {
         Document expose = DocumentUtil.fetchExposeByInquiryId(inquiryId);
@@ -874,6 +1155,12 @@ public class Searchbroker {
     @Path("/inquiries/{inquiryid}/expose")
     @GET
     @Produces(CONTENT_TYPE_PDF)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
     public Response getSynopsisAlias(@HeaderParam(HttpHeaders.AUTHORIZATION) String authKeyHeader,
                                      @PathParam("inquiryid") int inquiryId) {
         return this.getSynopsis(authKeyHeader, inquiryId);
@@ -892,6 +1179,12 @@ public class Searchbroker {
     @Path("/sites")
     @GET
     @Produces(MediaType.APPLICATION_XML)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
     public Response getSites(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                              @HeaderParam(HttpHeaders.USER_AGENT) String userAgent,
                              @Context HttpServletRequest request) {
@@ -929,6 +1222,13 @@ public class Searchbroker {
      */
     @Path("/banks/{email}/site/{siteid}")
     @PUT
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok"),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(description = "Possibly unused")
     public Response setSite(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                             @HeaderParam(HttpHeaders.USER_AGENT) String userAgent,
                             @Context HttpServletRequest request,
