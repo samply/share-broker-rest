@@ -1,19 +1,16 @@
 package de.samply.share.broker.statistics;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonParser;
 import de.samply.share.broker.utils.MailUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ExcelWriter {
     private HashMap<String, List<String>> columns = new HashMap<>();

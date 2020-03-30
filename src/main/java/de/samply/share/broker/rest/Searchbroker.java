@@ -35,8 +35,6 @@ import de.samply.share.broker.filter.AuthenticatedUser;
 import de.samply.share.broker.filter.Secured;
 import de.samply.share.broker.model.db.tables.daos.InquiryDao;
 import de.samply.share.broker.model.db.tables.pojos.*;
-import de.samply.share.broker.statistics.Filter;
-import de.samply.share.broker.statistics.StatisticReader;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.model.dto.SiteInfo;
@@ -93,14 +91,6 @@ public class Searchbroker {
     @GET
     public Response getVersion(){
         return Response.ok(new Gson().toJson(ProjectInfo.INSTANCE.getVersionString())).build();
-    }
-
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/getStatistics")
-    @POST
-    public Response getStatistics(Filter filter) {
-        StatisticReader statisticReader = new StatisticReader();
-        return Response.ok(statisticReader.getStatistic(filter)).build();
     }
 
     @Secured

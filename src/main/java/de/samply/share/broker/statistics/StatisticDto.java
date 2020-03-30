@@ -1,7 +1,5 @@
 package de.samply.share.broker.statistics;
 
-import de.samply.share.query.common.MdrFieldDto;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
