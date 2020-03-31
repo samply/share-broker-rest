@@ -587,7 +587,7 @@ public class MailUtils {
         }
         DateFormat parseFormat = new SimpleDateFormat("yyyy-MM-dd");
         String statistics = System.getProperty("catalina.base") + File.separator + "logs" + File.separator + "statistics" + File.separator + "statistic_" + parseFormat.format(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24)) + ".xlsx";
-        email.getAttachments().add(statistics);
+        email.getAttachmentPaths().add(statistics);
         MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
         Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
         mailSenderThread.start();
