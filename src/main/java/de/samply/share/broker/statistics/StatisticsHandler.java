@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 public class StatisticsHandler {
 
    public void save(EssentialSimpleQueryDto queryDto, Integer inquiryId) {
-        int id = saveQuery(queryDto, inquiryId);
+        int id = saveQuery(inquiryId);
 
         for (EssentialSimpleFieldDto fieldDto : queryDto.getFieldDtos()) {
             int fieldId = saveField(fieldDto, id);
@@ -106,7 +106,7 @@ public class StatisticsHandler {
         }
     }
 
-    private int saveQuery(EssentialSimpleQueryDto queryDto, Integer inquiryId) {
+    private int saveQuery(Integer inquiryId) {
         try (Connection connection = ResourceManager.getConnection()) {
             StatisticsQuery statisticsQuery = new StatisticsQuery();
             statisticsQuery.setInquiryid(inquiryId);
