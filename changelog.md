@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [5.0.0 - 2020-03-30]
+### Added
+- Use Open API
+- Added nTokens for identifying queries (SampleLocator and Negotiator)
+### Changed
+- Use JSON instead of XML for Query exchange (EssentialSimpleQueryDto) 
+- Added CORS header
+
 ## [4.1.0 - 2020-02-17]
 ### Added
 - Save quieries for statistical purposes

@@ -4,9 +4,9 @@ import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
 import de.samply.share.broker.model.db.enums.EssentialValueType;
 import de.samply.share.broker.model.db.enums.SimpleValueCondition;
-import de.samply.share.broker.model.db.tables.pojos.StatisticsValue;
 import de.samply.share.broker.model.db.tables.pojos.StatisticsField;
 import de.samply.share.broker.model.db.tables.pojos.StatisticsQuery;
+import de.samply.share.broker.model.db.tables.pojos.StatisticsValue;
 import de.samply.share.essentialquery.EssentialSimpleFieldDto;
 import de.samply.share.essentialquery.EssentialSimpleQueryDto;
 import de.samply.share.essentialquery.EssentialSimpleValueDto;
@@ -19,21 +19,22 @@ import java.time.LocalDateTime;
 
 public class StatisticsHandler {
 
-    public void save(EssentialSimpleQueryDto queryDto, Integer inquiryId) {
-        saveQuery(queryDto, inquiryId);
+   public void save(EssentialSimpleQueryDto queryDto, Integer inquiryId) {
+        int id = saveQuery(inquiryId);
 
         for (EssentialSimpleFieldDto fieldDto : queryDto.getFieldDtos()) {
-            saveField(fieldDto);
+            int fieldId = saveField(fieldDto, id);
 
             for (EssentialSimpleValueDto valueDto : fieldDto.getValueDtos()) {
-                saveValue(valueDto);
+                saveValue(valueDto, fieldId);
             }
         }
     }
 
-    private void saveValue(EssentialSimpleValueDto valueDto) {
+    private int saveValue(EssentialSimpleValueDto valueDto, int fieldId) {
         try (Connection connection = ResourceManager.getConnection()) {
             StatisticsValue statisticsValue = new StatisticsValue();
+            statisticsValue.setFieldid(fieldId);
             statisticsValue.setValue(valueDto.getValue());
             statisticsValue.setMaxvalue(valueDto.getMaxValue());
             statisticsValue.setCondition(translate(valueDto.getCondition()));
@@ -42,13 +43,20 @@ public class StatisticsHandler {
 
             dslContext
                     .insertInto(Tables.STATISTICS_VALUE,
+                            Tables.STATISTICS_VALUE.FIELDID,
                             Tables.STATISTICS_VALUE.VALUE,
                             Tables.STATISTICS_VALUE.MAXVALUE,
                             Tables.STATISTICS_VALUE.CONDITION)
-                    .values(statisticsValue.getValue(), statisticsValue.getMaxvalue(), statisticsValue.getCondition())
+                    .values(statisticsValue.getFieldid(),
+                            statisticsValue.getValue(),
+                            statisticsValue.getMaxvalue(),
+                            statisticsValue.getCondition())
                     .execute();
+
+            return dslContext.lastID().intValue();
         } catch (SQLException e) {
             e.printStackTrace();
+            return -1;
         }
     }
 
@@ -66,9 +74,10 @@ public class StatisticsHandler {
         }
     }
 
-    private void saveField(EssentialSimpleFieldDto fieldDto) {
+    private int saveField(EssentialSimpleFieldDto fieldDto, int id) {
         try (Connection connection = ResourceManager.getConnection()) {
             StatisticsField statisticsField = new StatisticsField();
+            statisticsField.setQueryid(id);
             statisticsField.setUrn(fieldDto.getUrn());
             statisticsField.setValuetype(translate(fieldDto.getValueType()));
 
@@ -76,12 +85,18 @@ public class StatisticsHandler {
 
             dslContext
                     .insertInto(Tables.STATISTICS_FIELD,
+                            Tables.STATISTICS_FIELD.QUERYID,
                             Tables.STATISTICS_FIELD.URN,
                             Tables.STATISTICS_FIELD.VALUETYPE)
-                    .values(statisticsField.getUrn(), statisticsField.getValuetype())
+                    .values(statisticsField.getQueryid(),
+                            statisticsField.getUrn(),
+                            statisticsField.getValuetype())
                     .execute();
+
+            return dslContext.lastID().intValue();
         } catch (SQLException e) {
             e.printStackTrace();
+            return -1;
         }
     }
 
@@ -98,7 +113,7 @@ public class StatisticsHandler {
         }
     }
 
-    private void saveQuery(EssentialSimpleQueryDto queryDto, Integer inquiryId) {
+    private int saveQuery(Integer inquiryId) {
         try (Connection connection = ResourceManager.getConnection()) {
             StatisticsQuery statisticsQuery = new StatisticsQuery();
             statisticsQuery.setInquiryid(inquiryId);
@@ -110,10 +125,14 @@ public class StatisticsHandler {
                     .insertInto(Tables.STATISTICS_QUERY,
                             Tables.STATISTICS_QUERY.INQUIRYID,
                             Tables.STATISTICS_QUERY.CREATED)
-                    .values(statisticsQuery.getInquiryid(), statisticsQuery.getCreated())
+                    .values(statisticsQuery.getInquiryid(),
+                            statisticsQuery.getCreated())
                     .execute();
+
+            return dslContext.lastID().intValue();
         } catch (SQLException e) {
             e.printStackTrace();
+            return -1;
         }
     }
 }

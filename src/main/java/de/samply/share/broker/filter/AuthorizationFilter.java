@@ -55,8 +55,13 @@ public class AuthorizationFilter implements ContainerRequestFilter {
             }
 
         } catch (Exception e) {
-            requestContext.abortWith(
-                    Response.status(Response.Status.FORBIDDEN).build());
+            Response responseForbidden = Response
+                    .status(Response.Status.FORBIDDEN)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", requestContext.getMethod())
+                    .build();
+
+            requestContext.abortWith(responseForbidden);
         }
     }
 
