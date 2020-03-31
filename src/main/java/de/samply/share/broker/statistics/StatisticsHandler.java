@@ -43,10 +43,14 @@ public class StatisticsHandler {
 
             dslContext
                     .insertInto(Tables.STATISTICS_VALUE,
+                            Tables.STATISTICS_VALUE.FIELDID,
                             Tables.STATISTICS_VALUE.VALUE,
                             Tables.STATISTICS_VALUE.MAXVALUE,
                             Tables.STATISTICS_VALUE.CONDITION)
-                    .values(statisticsValue.getValue(), statisticsValue.getMaxvalue(), statisticsValue.getCondition())
+                    .values(statisticsValue.getFieldid(),
+                            statisticsValue.getValue(),
+                            statisticsValue.getMaxvalue(),
+                            statisticsValue.getCondition())
                     .execute();
 
             return dslContext.lastID().intValue();
@@ -81,9 +85,12 @@ public class StatisticsHandler {
 
             dslContext
                     .insertInto(Tables.STATISTICS_FIELD,
+                            Tables.STATISTICS_FIELD.QUERYID,
                             Tables.STATISTICS_FIELD.URN,
                             Tables.STATISTICS_FIELD.VALUETYPE)
-                    .values(statisticsField.getUrn(), statisticsField.getValuetype())
+                    .values(statisticsField.getQueryid(),
+                            statisticsField.getUrn(),
+                            statisticsField.getValuetype())
                     .execute();
 
             return dslContext.lastID().intValue();
@@ -118,7 +125,8 @@ public class StatisticsHandler {
                     .insertInto(Tables.STATISTICS_QUERY,
                             Tables.STATISTICS_QUERY.INQUIRYID,
                             Tables.STATISTICS_QUERY.CREATED)
-                    .values(statisticsQuery.getInquiryid(), statisticsQuery.getCreated())
+                    .values(statisticsQuery.getInquiryid(),
+                            statisticsQuery.getCreated())
                     .execute();
 
             return dslContext.lastID().intValue();

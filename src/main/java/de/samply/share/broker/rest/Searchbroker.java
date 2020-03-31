@@ -516,7 +516,6 @@ public class Searchbroker {
                 .build();
     }
 
-/*
     @OPTIONS
     @Path("/getReply")
     @Consumes(MediaType.TEXT_PLAIN)
@@ -529,7 +528,6 @@ public class Searchbroker {
                 .header("Access-Control-Expose-Headers", "reply")
                 .build();
     }
-*/
 
     /**
      * Get aggregated result of the bridgeheads (without login)

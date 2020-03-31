@@ -194,7 +194,7 @@
                 <executions>
                     <execution>
                         <id>generate-openapi.json</id>
-                        <phase>install</phase>
+                        <phase>compile</phase>
                         <goals>
                             <goal>openapi.json</goal>
                         </goals>
