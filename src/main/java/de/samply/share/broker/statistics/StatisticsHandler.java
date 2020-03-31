@@ -20,10 +20,10 @@ import java.time.LocalDateTime;
 public class StatisticsHandler {
 
     public void save(EssentialSimpleQueryDto queryDto, Integer inquiryId) {
-        int queryId = saveQuery(queryDto, inquiryId);
+        int id = saveQuery(inquiryId);
 
         for (EssentialSimpleFieldDto fieldDto : queryDto.getFieldDtos()) {
-            int fieldId = saveField(fieldDto, queryId);
+            int fieldId = saveField(fieldDto, id);
 
             for (EssentialSimpleValueDto valueDto : fieldDto.getValueDtos()) {
                 saveValue(valueDto, fieldId);
@@ -31,13 +31,13 @@ public class StatisticsHandler {
         }
     }
 
-    private void saveValue(EssentialSimpleValueDto valueDto, int fieldId) {
+    private int saveValue(EssentialSimpleValueDto valueDto, int fieldId) {
         try (Connection connection = ResourceManager.getConnection()) {
             StatisticsValue statisticsValue = new StatisticsValue();
+            statisticsValue.setFieldid(fieldId);
             statisticsValue.setValue(valueDto.getValue());
             statisticsValue.setMaxvalue(valueDto.getMaxValue());
             statisticsValue.setCondition(translate(valueDto.getCondition()));
-            statisticsValue.setStatisticsFieldId(fieldId);
 
             DSLContext dslContext = ResourceManager.getDSLContext(connection);
 
@@ -45,12 +45,14 @@ public class StatisticsHandler {
                     .insertInto(Tables.STATISTICS_VALUE,
                             Tables.STATISTICS_VALUE.VALUE,
                             Tables.STATISTICS_VALUE.MAXVALUE,
-                            Tables.STATISTICS_VALUE.CONDITION,
-                            Tables.STATISTICS_VALUE.STATISTICS_FIELD_ID)
-                    .values(statisticsValue.getValue(), statisticsValue.getMaxvalue(), statisticsValue.getCondition(), statisticsValue.getStatisticsFieldId())
+                            Tables.STATISTICS_VALUE.CONDITION)
+                    .values(statisticsValue.getValue(), statisticsValue.getMaxvalue(), statisticsValue.getCondition())
                     .execute();
+
+            return dslContext.lastID().intValue();
         } catch (SQLException e) {
             e.printStackTrace();
+            return -1;
         }
     }
 
@@ -68,26 +70,28 @@ public class StatisticsHandler {
         }
     }
 
-    private int saveField(EssentialSimpleFieldDto fieldDto , int queryId) {
+    private int saveField(EssentialSimpleFieldDto fieldDto, int id) {
         try (Connection connection = ResourceManager.getConnection()) {
             StatisticsField statisticsField = new StatisticsField();
+            statisticsField.setQueryid(id);
             statisticsField.setUrn(fieldDto.getUrn());
             statisticsField.setValuetype(translate(fieldDto.getValueType()));
-            statisticsField.setStatisticQueryId(queryId);
 
             DSLContext dslContext = ResourceManager.getDSLContext(connection);
 
-            return dslContext
+            dslContext
                     .insertInto(Tables.STATISTICS_FIELD,
                             Tables.STATISTICS_FIELD.URN,
                             Tables.STATISTICS_FIELD.VALUETYPE,
-                            Tables.STATISTICS_FIELD.STATISTIC_QUERY_ID)
-                    .values(statisticsField.getUrn(), statisticsField.getValuetype(), statisticsField.getStatisticQueryId())
-                    .returning(Tables.STATISTICS_FIELD.ID).fetchOne().getId();
+                    Tables.STATISTICS_FIELD.QUERYID)
+                    .values(statisticsField.getUrn(), statisticsField.getValuetype(),statisticsField.getQueryid())
+                    .execute();
+
+            return dslContext.lastID().intValue();
         } catch (SQLException e) {
             e.printStackTrace();
+            return -1;
         }
-        return 0;
     }
 
     private EssentialValueType translate(de.samply.share.essentialquery.EssentialValueType valueType) {
@@ -103,7 +107,7 @@ public class StatisticsHandler {
         }
     }
 
-    private int saveQuery(EssentialSimpleQueryDto queryDto, Integer inquiryId) {
+    private int saveQuery(Integer inquiryId) {
         try (Connection connection = ResourceManager.getConnection()) {
             StatisticsQuery statisticsQuery = new StatisticsQuery();
             statisticsQuery.setInquiryid(inquiryId);
@@ -111,14 +115,17 @@ public class StatisticsHandler {
 
             DSLContext dslContext = ResourceManager.getDSLContext(connection);
 
-            return dslContext
+            dslContext
                     .insertInto(Tables.STATISTICS_QUERY,
                             Tables.STATISTICS_QUERY.INQUIRYID,
                             Tables.STATISTICS_QUERY.CREATED)
-                    .values(statisticsQuery.getInquiryid(), statisticsQuery.getCreated()).returning(Tables.STATISTICS_QUERY.ID).fetchOne().getId();
+                    .values(statisticsQuery.getInquiryid(), statisticsQuery.getCreated())
+                    .execute();
+
+            return dslContext.lastID().intValue();
         } catch (SQLException e) {
             e.printStackTrace();
+            return -1;
         }
-        return 0;
     }
 }

@@ -1,10 +1,14 @@
 package de.samply.share.broker.statistics;
 
 import com.google.gson.Gson;
+import de.samply.share.broker.model.db.tables.pojos.StatisticsField;
 import de.samply.share.broker.utils.MailUtils;
+import de.samply.share.broker.utils.db.StatisticsFieldUtil;
+import de.samply.share.broker.utils.db.StatisticsQueryUtil;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -16,7 +20,6 @@ public class ExcelWriter {
     private HashMap<String, List<String>> columns = new HashMap<>();
     private static DateFormat parseFormat = new SimpleDateFormat(
             "yyyy-MM-dd");
-    static Gson gson = new Gson();
     private int rowCount = 1;
 
     public ExcelWriter() {
@@ -28,22 +31,55 @@ public class ExcelWriter {
     }
 
     public void createExcel() throws IOException {
-        StatisticFileWriter statisticFileWriter = new StatisticFileWriter();
-        StatisticDto statisticDto = statisticFileWriter.convertFileToStatisticDto(statisticFileWriter.getFileAsString(true));
+
         Workbook workbook = new XSSFWorkbook();
-        setStatistic(statisticDto, workbook);
-        try {
-            FileOutputStream fileOut = new FileOutputStream(statisticFileWriter.getStatisticFileName(true) +".xlsx");
-            workbook.write(fileOut);
-            fileOut.close();
-            workbook.close();
-            MailUtils.sentStatistics();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        setStatistic(getStatisticsData(), workbook);
+        FileOutputStream fileOut = new FileOutputStream(getPath() + ".xlsx");
+        workbook.write(fileOut);
+        fileOut.close();
+        workbook.close();
+        MailUtils.sendStatistics();
     }
 
-    private void setStatistic(StatisticDto statisticDto, Workbook workbook) {
+    private StatisticsCollector getStatisticsData() {
+        StatisticsCollector statisticsCollector = new StatisticsCollector();
+        List<Integer> queryIds = StatisticsQueryUtil.getLastDayQueryIds();
+        List<StatisticsField> statisticsFields = StatisticsFieldUtil.getFieldsByQueryIds(queryIds);
+        statisticsCollector.setQueryCount(queryIds.size());
+        int mdrCountPerQuery = 0;
+        int queryId = 0;
+        int queriesWithFields = 0;
+        for (int i = 0; i < statisticsFields.size(); i++) {
+            StatisticsField statisticsField = statisticsFields.get(i);
+            if (queryId == 0 || queryId == statisticsField.getQueryid()) {
+                if (queriesWithFields == 0) {
+                    queryId = statisticsField.getQueryid();
+                    queriesWithFields++;
+                }
+                mdrCountPerQuery++;
+            } else {
+                statisticsCollector.checkMdrCountPerQuery(mdrCountPerQuery);
+                queryId = statisticsField.getQueryid();
+                mdrCountPerQuery = 1;
+                queriesWithFields++;
+            }
+            statisticsCollector.checkMdrCount(statisticsField.getUrn());
+            if (i + 1 == statisticsFields.size()) {
+                statisticsCollector.checkMdrCountPerQuery(mdrCountPerQuery);
+            }
+        }
+        int queriesWithZeroFields = queryIds.size() - queriesWithFields;
+        statisticsCollector.getMdrFieldPerQueryCount().put(0, queriesWithZeroFields);
+        return statisticsCollector;
+    }
+
+    protected String getPath() {
+        return System.getProperty("catalina.base") + File.separator + "logs"
+                + File.separator + "statistics" + File.separator + "statistic_"
+                + parseFormat.format(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24));
+    }
+
+    private void setStatistic(StatisticsCollector statisticDto, Workbook workbook) {
         for (String sheetName : columns.keySet()) {
             Sheet sheet = createSheet(workbook, sheetName);
             totalQueryCount(statisticDto, sheet, workbook);
@@ -56,13 +92,13 @@ public class ExcelWriter {
         }
     }
 
-    private void totalQueryCount(StatisticDto statisticDto, Sheet sheet, Workbook workbook) {
+    private void totalQueryCount(StatisticsCollector statisticsCollector, Sheet sheet, Workbook workbook) {
         Row row = sheet.createRow(rowCount++);
         row.createCell(0)
                 .setCellValue("Total Query Count");
 
         row.createCell(1)
-                .setCellValue(statisticDto.getQueryCount());
+                .setCellValue(statisticsCollector.getQueryCount());
         sheet.createRow(rowCount++);
     }
 
@@ -89,14 +125,14 @@ public class ExcelWriter {
         return sheet;
     }
 
-    private void mdrFieldCount(StatisticDto statisticDto, Sheet sheet, Workbook workbook) {
+    private void mdrFieldCount(StatisticsCollector statisticsCollector, Sheet sheet, Workbook workbook) {
         boldHeader(sheet, workbook, "Queries");
         Row row;
-        HashMap<String, Integer> result = statisticDto.getMdrFieldsPerQuery().entrySet().stream()
+        HashMap<Integer, Integer> result = statisticsCollector.getMdrFieldPerQueryCount().entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-        for (Map.Entry<String, Integer> entry : result.entrySet()) {
+        for (Map.Entry<Integer, Integer> entry : result.entrySet()) {
             row = sheet.createRow(rowCount++);
 
             row.createCell(0)
@@ -122,10 +158,10 @@ public class ExcelWriter {
         cell.setCellValue("Count");
     }
 
-    private void mdrFieldByName(StatisticDto statisticDto, Sheet sheet, Workbook workbook) {
+    private void mdrFieldByName(StatisticsCollector statisticsCollector, Sheet sheet, Workbook workbook) {
         boldHeader(sheet, workbook, "MdrFields");
         Row row;
-        HashMap<String, Integer> result = statisticDto.getMdrFields().entrySet().stream()
+        HashMap<String, Integer> result = statisticsCollector.getMdrCount().entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (oldValue, newValue) -> oldValue, LinkedHashMap::new));

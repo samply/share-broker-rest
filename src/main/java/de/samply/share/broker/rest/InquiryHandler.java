@@ -31,6 +31,7 @@ package de.samply.share.broker.rest;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.gson.Gson;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
 import de.samply.share.broker.model.db.enums.*;
@@ -38,9 +39,8 @@ import de.samply.share.broker.model.db.tables.daos.ContactDao;
 import de.samply.share.broker.model.db.tables.daos.InquiryDao;
 import de.samply.share.broker.model.db.tables.daos.ReplyDao;
 import de.samply.share.broker.model.db.tables.daos.UserDao;
-import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.model.db.tables.pojos.*;
-import de.samply.share.broker.statistics.StatisticFileWriter;
+import de.samply.share.broker.model.db.tables.pojos.Inquiry;
 import de.samply.share.broker.statistics.StatisticsHandler;
 import de.samply.share.broker.utils.EssentialSimpleQueryDto2ShareXmlTransformer;
 import de.samply.share.broker.utils.cql.EssentialSimpleQueryDto2CqlTransformer;
@@ -48,14 +48,16 @@ import de.samply.share.broker.utils.db.*;
 import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
+import de.samply.share.essentialquery.EssentialSimpleFieldDto;
 import de.samply.share.essentialquery.EssentialSimpleQueryDto;
-import de.samply.share.model.common.Contact;
+import de.samply.share.essentialquery.EssentialSimpleValueDto;
 import de.samply.share.model.common.*;
+import de.samply.share.model.common.Contact;
 import de.samply.share.model.common.inquiry.InquiriesIdList;
 import de.samply.share.model.cql.CqlQuery;
 import de.samply.share.model.cql.CqlQueryList;
-import de.samply.share.query.entity.SimpleQueryDto;
-import de.samply.share.utils.QueryConverter;
+import de.samply.share.query.enums.SimpleValueCondition;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -85,6 +87,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The Class InquiryHandler.
@@ -106,7 +109,7 @@ public class InquiryHandler {
     /**
      * Store an inquiry and release it (or wait for ccp office authorization first)
      *
-     * @param simpleQueryDtoXml  the query criteria of the inquiry as EssentialSimpleQueryDto represented as XML
+     * @param simpleQueryDtoJson the query criteria of the inquiry as EssentialSimpleQueryDto represented as XML
      * @param userid             the id of the user that releases the inquiry
      * @param inquiryName        the label of the inquiry
      * @param inquiryDescription the description of the inquiry
@@ -116,26 +119,52 @@ public class InquiryHandler {
      * @param bypassExamination  if true, no check by the ccp office is required
      * @return the id of the inquiry
      */
-    public int storeAndRelease(String simpleQueryDtoXml, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes, boolean bypassExamination) {
-        int inquiryId = store(simpleQueryDtoXml, userid, inquiryName, inquiryDescription, exposeId, voteId, resultTypes);
+    public int storeAndRelease(String simpleQueryDtoJson, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes, boolean bypassExamination) {
+        EssentialSimpleQueryDto essentialSimpleQueryDto = jsonString2EssentialDto(simpleQueryDtoJson);
+
+        int inquiryId = store(essentialSimpleQueryDto, userid, inquiryName, inquiryDescription, exposeId, voteId, resultTypes);
         Inquiry inquiry = InquiryUtil.fetchInquiryById(inquiryId);
         release(inquiry, bypassExamination);
         return inquiryId;
     }
 
+    private EssentialSimpleQueryDto jsonString2EssentialDto(String simpleQueryDtoJson) {
+        EssentialSimpleQueryDto queryDto = new EssentialSimpleQueryDto();
+
+        try {
+            Gson gson = new Gson();
+            queryDto = gson.fromJson(simpleQueryDtoJson, EssentialSimpleQueryDto.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        for (EssentialSimpleFieldDto field : queryDto.getFieldDtos()) {
+            field.setValueDtos(
+                    field.getValueDtos().stream()
+                            .filter(valueDto -> !isEmpty(valueDto))
+                            .collect(Collectors.toList()));
+        }
+
+        queryDto.setFieldDtos(queryDto.getFieldDtos().stream()
+                .filter(fieldDto -> !isEmpty(fieldDto))
+                .collect(Collectors.toList()));
+
+        return queryDto;
+    }
+
     /**
      * Store a new inquiry draft
      *
-     * @param simpleQueryDtoXml  the query criteria of the inquiry as EssentialSimpleQueryDto represented as XML
-     * @param userid             the id of the user that releases the inquiry
-     * @param inquiryName        the label of the inquiry
-     * @param inquiryDescription the description of the inquiry
-     * @param exposeId           the id of the expose linked with this inquiry
-     * @param voteId             the id of the vote linked with this inquiry
-     * @param resultTypes        list of the entities that are searched for
+     * @param essentialSimpleQueryDto the query criteria of the inquiry as EssentialSimpleQueryDto represented as XML
+     * @param userid                  the id of the user that releases the inquiry
+     * @param inquiryName             the label of the inquiry
+     * @param inquiryDescription      the description of the inquiry
+     * @param exposeId                the id of the expose linked with this inquiry
+     * @param voteId                  the id of the vote linked with this inquiry
+     * @param resultTypes             list of the entities that are searched for
      * @return the id of the inquiry draft
      */
-    private int store(String simpleQueryDtoXml, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes) {
+    private int store(EssentialSimpleQueryDto essentialSimpleQueryDto, int userid, String inquiryName, String inquiryDescription, int exposeId, int voteId, List<String> resultTypes) {
         int returnValue = 0;
         UserDao userDao;
         User user;
@@ -173,9 +202,9 @@ public class InquiryHandler {
             inquiry.setCreated(inquiryRecord.getValue(Tables.INQUIRY.CREATED));
             inquiry.setId(inquiryRecord.getValue(Tables.INQUIRY.ID));
 
-            createAndSaveInquiryCriteria(simpleQueryDtoXml, inquiry, connection);
+            createAndSaveInquiryCriteria(essentialSimpleQueryDto, inquiry, connection);
 
-            createAndSaveStatistics(simpleQueryDtoXml, inquiry.getId());
+            createAndSaveStatistics(essentialSimpleQueryDto, inquiry.getId());
 
             if (exposeId > 0) {
                 Document expose = DocumentUtil.getDocumentById(exposeId);
@@ -191,9 +220,6 @@ public class InquiryHandler {
             }
 
             returnValue = inquiry.getId();
-        } catch (JAXBException e1) {
-            e1.printStackTrace();
-            return 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -201,17 +227,9 @@ public class InquiryHandler {
         return returnValue;
     }
 
-    private void createAndSaveStatistics(String simpleQueryDtoXml, Integer inquiryId) {
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(EssentialSimpleQueryDto.class);
-            EssentialSimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, EssentialSimpleQueryDto.class);
-            StatisticsHandler statisticsHandler = new StatisticsHandler();
-            statisticsHandler.save(simpleQueryDto, inquiryId);
-            StatisticFileWriter statisticFileWriter = new StatisticFileWriter();
-            statisticFileWriter.save(simpleQueryDto, inquiryId);
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
+    private void createAndSaveStatistics(EssentialSimpleQueryDto essentialSimpleQueryDto, Integer inquiryId) {
+        StatisticsHandler statisticsHandler = new StatisticsHandler();
+        statisticsHandler.save(essentialSimpleQueryDto, inquiryId);
     }
 
     /**
@@ -859,45 +877,38 @@ public class InquiryHandler {
         return ret;
     }
 
-    private void createAndSaveInquiryCriteria(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
-        createAndSaveInquiryCriteriaTypeCql(simpleQueryDtoXml, inquiry, connection);
-        createAndSaveInquiryCriteriaTypeQuery(simpleQueryDtoXml, inquiry, connection);
+    private void createAndSaveInquiryCriteria(EssentialSimpleQueryDto essentialSimpleQueryDto, Inquiry inquiry, Connection connection) {
+        createAndSaveInquiryCriteriaTypeCql(essentialSimpleQueryDto, inquiry, connection);
+        createAndSaveInquiryCriteriaTypeQuery(essentialSimpleQueryDto, inquiry, connection);
     }
 
-    private void createAndSaveInquiryCriteriaTypeCql(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
-        createAndSaveInquiryCriteriaTypeCqlPatient(simpleQueryDtoXml, inquiry, connection);
-        createAndSaveInquiryCriteriaTypeCqlSpecimen(simpleQueryDtoXml, inquiry, connection);
+    private void createAndSaveInquiryCriteriaTypeCql(EssentialSimpleQueryDto essentialSimpleQueryDto, Inquiry inquiry, Connection connection) {
+        createAndSaveInquiryCriteriaTypeCqlPatient(essentialSimpleQueryDto, inquiry, connection);
+        createAndSaveInquiryCriteriaTypeCqlSpecimen(essentialSimpleQueryDto, inquiry, connection);
     }
 
-    private void createAndSaveInquiryCriteriaTypeCqlPatient(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
-        String cql = createCqlPatient(simpleQueryDtoXml);
+    private void createAndSaveInquiryCriteriaTypeCqlPatient(EssentialSimpleQueryDto essentialSimpleQueryDto, Inquiry inquiry, Connection connection) {
+        String cql = createCqlPatient(essentialSimpleQueryDto);
 
         createAndSaveInquiryCriteriaTypeCql(cql, inquiry, connection, ENTITY_TYPE_FOR_CQL_PATIENT);
     }
 
-    private void createAndSaveInquiryCriteriaTypeCqlSpecimen(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
-        String cql = createCqlSpecimen(simpleQueryDtoXml);
+    private void createAndSaveInquiryCriteriaTypeCqlSpecimen(EssentialSimpleQueryDto essentialSimpleQueryDto, Inquiry inquiry, Connection connection) {
+        String cql = createCqlSpecimen(essentialSimpleQueryDto);
 
         createAndSaveInquiryCriteriaTypeCql(cql, inquiry, connection, ENTITY_TYPE_FOR_CQL_SPECIMEN);
     }
 
-    private String createCqlPatient(String simpleQueryDtoXml) throws JAXBException {
-        return createCql(simpleQueryDtoXml, ENTITY_TYPE_FOR_CQL_PATIENT);
+    private String createCqlPatient(EssentialSimpleQueryDto essentialSimpleQueryDto) {
+        return createCql(essentialSimpleQueryDto, ENTITY_TYPE_FOR_CQL_PATIENT);
     }
 
-    private String createCqlSpecimen(String simpleQueryDtoXml) throws JAXBException {
-        return createCql(simpleQueryDtoXml, ENTITY_TYPE_FOR_CQL_SPECIMEN);
+    private String createCqlSpecimen(EssentialSimpleQueryDto essentialSimpleQueryDto) {
+        return createCql(essentialSimpleQueryDto, ENTITY_TYPE_FOR_CQL_SPECIMEN);
     }
 
-    private String createCql(String simpleQueryDtoXml, String entityType) throws JAXBException {
-        if (!StringUtils.isEmpty(simpleQueryDtoXml)) {
-            JAXBContext jaxbContext = JAXBContext.newInstance(EssentialSimpleQueryDto.class);
-            EssentialSimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, EssentialSimpleQueryDto.class);
-
-            return new EssentialSimpleQueryDto2CqlTransformer().toQuery(simpleQueryDto, entityType);
-        }
-
-        return "false";
+    private String createCql(EssentialSimpleQueryDto essentialSimpleQueryDto, String entityType) {
+        return new EssentialSimpleQueryDto2CqlTransformer().toQuery(essentialSimpleQueryDto, entityType);
     }
 
     private void createAndSaveInquiryCriteriaTypeCql(String cql, Inquiry inquiry, Connection connection, String entityType) {
@@ -910,13 +921,11 @@ public class InquiryHandler {
         saveInquiryCriteria(inquiryCriteria, connection);
     }
 
-    private void createAndSaveInquiryCriteriaTypeQuery(String simpleQueryDtoXml, Inquiry inquiry, Connection connection) throws JAXBException {
+    private void createAndSaveInquiryCriteriaTypeQuery(EssentialSimpleQueryDto essentialSimpleQueryDto, Inquiry inquiry, Connection connection) {
         Query query;
 
-        if (!StringUtils.isEmpty(simpleQueryDtoXml)) {
-            JAXBContext jaxbContext = JAXBContext.newInstance(EssentialSimpleQueryDto.class);
-            EssentialSimpleQueryDto simpleQueryDto = QueryConverter.unmarshal(simpleQueryDtoXml, jaxbContext, EssentialSimpleQueryDto.class);
-            query = new EssentialSimpleQueryDto2ShareXmlTransformer().toQuery(simpleQueryDto);
+        if (CollectionUtils.isEmpty(essentialSimpleQueryDto.getFieldDtos())) {
+            query = new EssentialSimpleQueryDto2ShareXmlTransformer().toQuery(essentialSimpleQueryDto);
         } else {
             query = new Query();
             Where where = new Where();
@@ -925,7 +934,11 @@ public class InquiryHandler {
             query.setWhere(where);
         }
 
-        createAndSaveInquiryCriteriaTypeQuery(query, inquiry, connection);
+        try {
+            createAndSaveInquiryCriteriaTypeQuery(query, inquiry, connection);
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        }
     }
 
     private void createAndSaveInquiryCriteriaTypeQuery(Query query, Inquiry inquiry, Connection connection) throws JAXBException {
@@ -1046,5 +1059,18 @@ public class InquiryHandler {
         }
 
         return returnValue;
+    }
+
+    private boolean isEmpty(EssentialSimpleValueDto valueDto) {
+        return isEmptyValue(valueDto.getValue()) ||
+                (valueDto.getCondition() == SimpleValueCondition.BETWEEN && isEmptyValue(valueDto.getMaxValue()));
+    }
+
+    private boolean isEmptyValue(String value) {
+        return StringUtils.isEmpty(value) || "null".equalsIgnoreCase(value);
+    }
+
+    private boolean isEmpty(EssentialSimpleFieldDto fieldDto) {
+        return CollectionUtils.isEmpty(fieldDto.getValueDtos());
     }
 }

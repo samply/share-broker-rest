@@ -44,16 +44,15 @@ import org.apache.logging.log4j.Logger;
 
 import javax.faces.application.ProjectStage;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Scanner;
-
-import static org.omnifaces.util.Faces.getServletContext;
+import java.util.stream.Stream;
 
 /**
  * An utility class holding methods to send emails.
@@ -532,7 +531,6 @@ public class MailUtils {
         String templateFolder = Utils.getRealPath(mailSending.getTemplateFolder());
 
         EmailBuilder builder = new EmailBuilder(templateFolder, false);
-        String projectName = ProjectInfo.INSTANCE.getProjectName();
         builder.addTemplateFile("MainMailTemplate.soy", null);
         builder.addTemplateFile("Footer.soy", "Footer");
         return builder;
@@ -576,26 +574,19 @@ public class MailUtils {
         }
     }
 
-    public static void sentStatistics() {
+    public static void sendStatistics() throws IOException {
         OutgoingEmail email = new OutgoingEmail();
         String projectName = ProjectInfo.INSTANCE.getProjectName();
         email.setSubject("Sample Locator Statistic");
         List<String> addressees = new ArrayList<>();
-        try {
-            File addressFile = FileFinderUtil.findFile("statistic_notification.txt", projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
-            Scanner s = new Scanner(addressFile).useDelimiter(System.lineSeparator());
-            while (s.hasNext()) {
-                addressees.add(s.next());
-            }
-            s.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        File addressFile = FileFinderUtil.findFile("statistic_notification.txt", projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
+        Stream<String> streams = Files.lines(addressFile.toPath(), StandardCharsets.UTF_8);
+        streams.forEach(addressees::add);
         for (String addressee : addressees) {
             email.addAddressee(addressee);
         }
         DateFormat parseFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String statistics = System.getProperty("catalina.base") + File.separator + "logs" + File.separator + "statistics" + File.separator + "statistic_" + parseFormat.format(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24))+".xlsx";
+        String statistics = System.getProperty("catalina.base") + File.separator + "logs" + File.separator + "statistics" + File.separator + "statistic_" + parseFormat.format(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24)) + ".xlsx";
         email.getAttachments().add(statistics);
         MailSending mailSending = MailSender.loadMailSendingConfig(projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
         Thread mailSenderThread = new Thread(new MailSenderThread(mailSending, email));
