@@ -578,13 +578,9 @@ public class MailUtils {
         OutgoingEmail email = new OutgoingEmail();
         String projectName = ProjectInfo.INSTANCE.getProjectName();
         email.setSubject("Sample Locator Statistic");
-        List<String> addressees = new ArrayList<>();
         File addressFile = FileFinderUtil.findFile("statistic_notification.txt", projectName, System.getProperty("catalina.base") + File.separator + "conf", ProjectInfo.INSTANCE.getServletContext().getRealPath("/WEB-INF"));
         Stream<String> streams = Files.lines(addressFile.toPath(), StandardCharsets.UTF_8);
-        streams.forEach(addressees::add);
-        for (String addressee : addressees) {
-            email.addAddressee(addressee);
-        }
+        streams.forEach(email::addAddressee);
         DateFormat parseFormat = new SimpleDateFormat("yyyy-MM-dd");
         String statistics = System.getProperty("catalina.base") + File.separator + "logs" + File.separator + "statistics" + File.separator + "statistic_" + parseFormat.format(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24)) + ".xlsx";
         email.getAttachmentPaths().add(statistics);
