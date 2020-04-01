@@ -111,13 +111,7 @@ public class StartupListener implements javax.servlet.ServletContextListener {
                     null,
                     FileFinderUtil.findFile(
                             "log4j2.xml", ProjectInfo.INSTANCE.getProjectName(), System.getProperty("catalina.base") + File.separator + "conf", sce.getServletContext().getRealPath("/WEB-INF")).getAbsolutePath());
-            File dir = new File(System.getProperty("catalina.base") + File.separator + "logs" + File.separator + "statistics");
-            if (!dir.exists()) {
-                Files.createDirectories(Paths.get(System.getProperty("catalina.base") + File.separator + "logs" + File.separator + "statistics"));
-            }
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             e.printStackTrace();
         }
         Migration.doUpgrade();

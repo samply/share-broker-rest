@@ -25,7 +25,7 @@ public final class StatisticsQueryUtil {
             DSLContext dslContext = ResourceManager.getDSLContext(conn);
             queryList = dslContext.select(Tables.STATISTICS_QUERY.ID)
                     .from(Tables.STATISTICS_QUERY)
-                    .where(Tables.STATISTICS_QUERY.CREATED.between(currentTimestamp().subtract(2),currentTimestamp())).fetchInto(Integer.class);
+                    .where(Tables.STATISTICS_QUERY.CREATED.between(currentTimestamp().sub(2),currentTimestamp())).fetchInto(Integer.class);
         } catch (SQLException e) {
             logger.error("SQL Exception caught", e);
         }

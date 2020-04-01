@@ -10,10 +10,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class ExcelWriter {
     private HashMap<String, List<String>> columns = new HashMap<>();
@@ -43,35 +47,39 @@ public class ExcelWriter {
     private StatisticsResult getStatisticsData() {
         StatisticsResult statisticsResult = new StatisticsResult();
         List<Integer> queryIds = StatisticsQueryUtil.getLastDayQueryIds();
+        List<QueryField> queryFields = queryIds.stream()
+                .map(QueryField::new)
+                .collect(toList());
         List<StatisticsField> statisticsFields = StatisticsFieldUtil.getFieldsByQueryIds(queryIds);
+        queryFields = addFieldsToQuery(statisticsFields, queryFields);
         statisticsResult.setQueryCount(queryIds.size());
-        int mdrCountPerQuery = 0;
-        int queryId = 0;
-        int queriesWithFields = 0;
-        for (StatisticsField statisticsField : statisticsFields) {
-            if (queryId == 0 || queryId == statisticsField.getQueryid()) {
-                if (queriesWithFields == 0) {
-                    queryId = statisticsField.getQueryid();
-                    queriesWithFields++;
-                }
-                mdrCountPerQuery++;
-            } else {
-                statisticsResult.countSelectedFieldsPerQuery(mdrCountPerQuery);
-                queryId = statisticsField.getQueryid();
-                mdrCountPerQuery = 1;
-                queriesWithFields++;
+        for (QueryField queryField : queryFields) {
+            for (StatisticsField statisticsField : queryField.getStatisticsFields()) {
+                statisticsResult.countFields(statisticsField.getUrn());
             }
-            statisticsResult.countFields(statisticsField.getUrn());
+            statisticsResult.countSelectedFieldsPerQuery(queryField.getStatisticsFields().size());
         }
-        statisticsResult.countSelectedFieldsPerQuery(mdrCountPerQuery);
-        int queriesWithZeroFields = queryIds.size() - queriesWithFields;
-        statisticsResult.getSelectedFieldsPerQuery().put(0, queriesWithZeroFields);
         return statisticsResult;
     }
 
-    protected String getPath() {
-        return System.getProperty("catalina.base") + File.separator + "logs"
-                + File.separator + "statistics" + File.separator + "statistic_"
+    private List<QueryField> addFieldsToQuery(List<StatisticsField> statisticsFields, List<QueryField> queryFields) {
+        for (StatisticsField statisticsField : statisticsFields) {
+            for (QueryField queryField : queryFields) {
+                if (queryField.getId() == statisticsField.getQueryid()) {
+                    queryField.getStatisticsFields().add(statisticsField);
+                }
+            }
+        }
+        return queryFields;
+    }
+
+    protected String getPath() throws IOException {
+        String path = System.getProperty("catalina.base") + File.separator + "logs" + File.separator + "statistics";
+        File dir = new File(path);
+        if (!dir.exists()) {
+            Files.createDirectories(Paths.get(path));
+        }
+        return path + File.separator + "statistic_"
                 + parseFormat.format(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24));
     }
 
@@ -123,13 +131,12 @@ public class ExcelWriter {
 
     private void mdrFieldCount(StatisticsResult statisticsResult, Sheet sheet, Workbook workbook) {
         boldHeader(sheet, workbook, "Queries");
-        Row row;
         HashMap<Integer, Integer> result = statisticsResult.getSelectedFieldsPerQuery().entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (oldValue, newValue) -> oldValue, LinkedHashMap::new));
         for (Map.Entry<Integer, Integer> entry : result.entrySet()) {
-            row = sheet.createRow(rowCount++);
+            Row row = sheet.createRow(rowCount++);
 
             row.createCell(0)
                     .setCellValue(entry.getKey());
@@ -156,13 +163,12 @@ public class ExcelWriter {
 
     private void mdrFieldByName(StatisticsResult statisticsResult, Sheet sheet, Workbook workbook) {
         boldHeader(sheet, workbook, "MdrFields");
-        Row row;
         HashMap<String, Integer> result = statisticsResult.getFieldCount().entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (oldValue, newValue) -> oldValue, LinkedHashMap::new));
         for (Map.Entry<String, Integer> entry : result.entrySet()) {
-            row = sheet.createRow(rowCount++);
+            Row row = sheet.createRow(rowCount++);
 
             row.createCell(0)
                     .setCellValue(entry.getKey());
