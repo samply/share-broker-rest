@@ -14,7 +14,7 @@ public class StatisticJob implements Job {
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         ExcelWriter excelWriter = new ExcelWriter();
         try {
-            excelWriter.createExcel();
+            excelWriter.sendExcel();
         } catch (IOException e) {
             throw new JobExecutionException(e);
         }

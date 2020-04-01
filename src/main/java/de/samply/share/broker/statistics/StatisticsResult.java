@@ -2,18 +2,18 @@ package de.samply.share.broker.statistics;
 
 import java.util.HashMap;
 
-public class StatisticsCollector {
+public class StatisticsResult {
 
     private int queryCount;
-    private HashMap<String,Integer> mdrCount;
-    private HashMap<Integer,Integer> mdrFieldPerQueryCount;
+    private HashMap<String, Integer> fieldCount;
+    private HashMap<Integer, Integer> selectedFieldsPerQuery;
     private HashMap<String, String> mdrMap = new HashMap<>();
 
 
-    public StatisticsCollector(){
+    public StatisticsResult() {
         queryCount = 0;
-        mdrCount = new HashMap<>();
-        mdrFieldPerQueryCount = new HashMap<>();
+        fieldCount = new HashMap<>();
+        selectedFieldsPerQuery = new HashMap<>();
         initMap();
     }
 
@@ -37,37 +37,37 @@ public class StatisticsCollector {
         mdrMap.put("urn:mdr16:dataelement:24:1", "Todesdat.");
     }
 
-    public HashMap<Integer, Integer> getMdrFieldPerQueryCount() {
-        return mdrFieldPerQueryCount;
+    public HashMap<Integer, Integer> getSelectedFieldsPerQuery() {
+        return selectedFieldsPerQuery;
     }
 
-    public void setMdrFieldPerQueryCount(HashMap<Integer, Integer> mdrFieldPerQueryCount) {
-        this.mdrFieldPerQueryCount = mdrFieldPerQueryCount;
+    public void setSelectedFieldsPerQuery(HashMap<Integer, Integer> selectedFieldsPerQuery) {
+        this.selectedFieldsPerQuery = selectedFieldsPerQuery;
     }
 
-    public void checkMdrCountPerQuery(int mdrCount){
-        if(mdrFieldPerQueryCount.containsKey(mdrCount)){
-            mdrFieldPerQueryCount.put(mdrCount, mdrFieldPerQueryCount.get(mdrCount)+1);
-        }else{
-            mdrFieldPerQueryCount.put(mdrCount,1);
+    public void countSelectedFieldsPerQuery(int count) {
+        if (selectedFieldsPerQuery.containsKey(count)) {
+            selectedFieldsPerQuery.put(count, selectedFieldsPerQuery.get(count) + 1);
+        } else {
+            selectedFieldsPerQuery.put(count, 1);
         }
     }
 
-    public void checkMdrCount(String urn){
+    public void countFields(String urn) {
         String readableMdr = mdrMap.get(urn);
-        if(mdrCount.containsKey(readableMdr)){
-            mdrCount.put(readableMdr, mdrCount.get(readableMdr)+1);
-        }else{
-            mdrCount.put(readableMdr,1);
+        if (fieldCount.containsKey(readableMdr)) {
+            fieldCount.put(readableMdr, fieldCount.get(readableMdr) + 1);
+        } else {
+            fieldCount.put(readableMdr, 1);
         }
     }
 
-    public HashMap<String, Integer> getMdrCount() {
-        return mdrCount;
+    public HashMap<String, Integer> getFieldCount() {
+        return fieldCount;
     }
 
-    public void setMdrCount(HashMap<String, Integer> mdrCount) {
-        this.mdrCount = mdrCount;
+    public void setFieldCount(HashMap<String, Integer> fieldCount) {
+        this.fieldCount = fieldCount;
     }
 
     public int getQueryCount() {

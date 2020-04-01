@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Use Open API
 - Added nTokens for identifying queries (SampleLocator and Negotiator)
+- Send statistics per e-mail
 ### Changed
 - Use JSON instead of XML for Query exchange (EssentialSimpleQueryDto) 
 - Added CORS header
