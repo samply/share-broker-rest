@@ -2,30 +2,35 @@ package de.samply.share.broker.utils.db;
 
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
-import de.samply.share.broker.model.db.tables.pojos.StatisticsQuery;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.DSLContext;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-
-import static org.jooq.impl.DSL.currentTimestamp;
 
 public final class StatisticsQueryUtil {
     private static final Logger logger = LogManager.getLogger(StatisticsQueryUtil.class);
-    private StatisticsQueryUtil(){
+
+    private StatisticsQueryUtil() {
     }
 
     public static List<Integer> getLastDayQueryIds() {
         List<Integer> queryList = new ArrayList<>();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = new Date();
+        String dateOfToday = dateFormat.format(date);
+        String dateOfYesterday = dateFormat.format(new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000));
         try (Connection conn = ResourceManager.getConnection()) {
             DSLContext dslContext = ResourceManager.getDSLContext(conn);
-            queryList = dslContext.select(Tables.STATISTICS_QUERY.ID)
-                    .from(Tables.STATISTICS_QUERY)
-                    .where(Tables.STATISTICS_QUERY.CREATED.between(currentTimestamp().sub(2),currentTimestamp())).fetchInto(Integer.class);
+            queryList = dslContext.fetch("SELECT " + Tables.STATISTICS_QUERY.ID + " FROM " + Tables.STATISTICS_QUERY
+                    + " WHERE " + Tables.STATISTICS_QUERY.CREATED + " BETWEEN '" + dateOfYesterday + " 00:00:00'::timestamp "
+                    + " AND '" + dateOfToday + " 00:00:00'::timestamp;").into(Integer.class);
         } catch (SQLException e) {
             logger.error("SQL Exception caught", e);
         }
