@@ -23,8 +23,7 @@ public final class StatisticsQueryUtil {
     public static List<Integer> getLastDayQueryIds() {
         List<Integer> queryList = new ArrayList<>();
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date date = new Date();
-        String dateOfToday = dateFormat.format(date);
+        String dateOfToday = dateFormat.format(new Date());
         String dateOfYesterday = dateFormat.format(new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000));
         try (Connection conn = ResourceManager.getConnection()) {
             DSLContext dslContext = ResourceManager.getDSLContext(conn);
