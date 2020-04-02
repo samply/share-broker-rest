@@ -39,7 +39,9 @@ import de.samply.web.mdrFaces.MdrContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.quartz.*;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SchedulerFactory;
 import org.quartz.impl.StdSchedulerFactory;
 
 import javax.servlet.ServletContextEvent;
@@ -49,10 +51,6 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
-
-import static org.quartz.CronScheduleBuilder.cronSchedule;
-import static org.quartz.JobBuilder.newJob;
-import static org.quartz.TriggerBuilder.newTrigger;
 
 /**
  * The listener interface for receiving startup events.
