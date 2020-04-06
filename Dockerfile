@@ -9,6 +9,7 @@ ADD src/docker/OAuth2Client.xml                 /usr/local/tomcat/conf/
 ADD src/docker/samply_common_config.xml         /usr/local/tomcat/conf/
 ADD src/docker/mailSending.xml                  /usr/local/tomcat/conf/
 ADD src/docker/log4j2.xml                       /usr/local/tomcat/conf/
+ADD src/docker/statistic_notification.txt       /usr/local/tomcat/conf/statistic_notification.txt
 
 # JMX Exporter
 ENV JMX_EXPORTER_VERSION 0.3.1
