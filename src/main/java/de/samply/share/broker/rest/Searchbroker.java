@@ -109,10 +109,25 @@ public class Searchbroker {
     })
     @Operation(summary = "Retrieve version of searchbroker (backend)")
     public Response getVersion() {
-        return Response.ok(new Gson().toJson(ProjectInfo.INSTANCE.getVersionString()))
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", HttpMethod.GET)
-                .build();
+        Response.ResponseBuilder responseBuilder = Response.ok(new Gson().toJson(ProjectInfo.INSTANCE.getVersionString()));
+        return addCorsHeaders(HttpMethod.GET, responseBuilder);
+    }
+
+    @Path("/version")
+    @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
+    @OPTIONS
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = String.class))),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Retrieve version of searchbroker (backend) (OPTIONS for CORS)")
+    public Response getVersion_OPTIONS() {
+        return addCorsHeaders(HttpMethod.GET, Response.ok());
     }
 
     @Secured
@@ -148,11 +163,8 @@ public class Searchbroker {
                 jsonObject.put("collectionId", site.getCollectionid());
                 biobank.add(jsonObject);
             }
-            return Response.ok(biobank)
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Methods", HttpMethod.POST)
-                    .header("Access-Control-Allow-Headers", "origin, Content-Type, Accept, Authorization")
-                    .build();
+            Response.ResponseBuilder responseBuilder = Response.ok(biobank);
+            return addCorsHeaders(HttpMethod.POST, responseBuilder, "origin", "Content-Type", "Accept", "Authorization");
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -171,11 +183,7 @@ public class Searchbroker {
     @Operation(summary = "The list of biobanks (by name) to get IDs (biobank-ID and collection-ID) for (OPTIONS for CORS)")
     public Response getDirectoryID_OPTIONS() {
         try {
-            return Response.ok()
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Methods", HttpMethod.POST)
-                    .header("Access-Control-Allow-Headers", "origin, Content-Type, Accept, Authorization")
-                    .build();
+            return addCorsHeaders(HttpMethod.POST, Response.ok(), "origin", "Content-Type", "Accept", "Authorization");
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -379,13 +387,11 @@ public class Searchbroker {
         SearchController.releaseQuery(json, ntoken, authenticatedUser);
 
         this.logger.info("sendQuery with ntoken '" + ntoken + "'is sent");
-        return Response.accepted()
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", HttpMethod.POST)
-                .header("Access-Control-Allow-Headers", "origin, content-type, accept, ntoken")
+        Response.ResponseBuilder responseBuilder = Response.accepted()
                 .header("Access-Control-Expose-Headers", "ntoken")
-                .header("ntoken", ntoken)
-                .build();
+                .header("ntoken", ntoken);
+        return addCorsHeaders(
+                HttpMethod.POST, responseBuilder, "origin", "content-type", "accept", "ntoken");
     }
 
     /**
@@ -404,14 +410,12 @@ public class Searchbroker {
             @APIResponse(responseCode = "500", description = "Internal Server Error")
     })
     @Operation(summary = "Save query in searchbroker database (OPTIONS for CORS)")
-    public Response sendQueryOPTIONS() {
+    public Response sendQuery_OPTIONS() {
         this.logger.info("sendQuery called (OPTIONS)");
-        return Response.ok(new Gson().toJson(ProjectInfo.INSTANCE.getVersionString()))
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", HttpMethod.POST)
-                .header("Access-Control-Allow-Headers", "origin, content-type, accept, ntoken")
-                .header("Access-Control-Expose-Headers", "ntoken")
-                .build();
+        Response.ResponseBuilder responseBuilder = Response.accepted()
+                .header("Access-Control-Expose-Headers", "ntoken");
+        return addCorsHeaders(
+                HttpMethod.POST, responseBuilder, "origin", "content-type", "accept", "ntoken");
     }
 
     @GET
@@ -437,12 +441,8 @@ public class Searchbroker {
         this.logger.info("getQuery called");
         String query = new NTokenHandler().findLatestQuery(nToken);
 
-        return Response.ok()
-                .entity(query)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", HttpMethod.GET)
-                .header("Access-Control-Allow-Headers", "origin, content-type, accept")
-                .build();
+        Response.ResponseBuilder responseBuilder = Response.ok(query);
+        return addCorsHeaders(HttpMethod.GET, responseBuilder, "origin", "content-type", "accept");
     }
 
     @OPTIONS
@@ -457,11 +457,7 @@ public class Searchbroker {
     @Operation(summary = "Retrieve query from searchbroker backend (OPTIONS for CORS)")
     public Response getQuery_OPTIONS(@QueryParam("ntoken") @DefaultValue("") String nToken) {
         this.logger.info("getQuery called (OPTIONS)");
-        return Response.ok()
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", HttpMethod.GET)
-                .header("Access-Control-Allow-Headers", "origin, content-type, accept")
-                .build();
+        return addCorsHeaders(HttpMethod.GET, Response.ok(), "origin", "content-type", "accept");
     }
 
     /**
@@ -507,13 +503,10 @@ public class Searchbroker {
         }
 
         String reply = SearchController.getReplysFromQuery(usedId);
-        return Response.ok()
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", HttpMethod.GET)
-                .header("Access-Control-Allow-Headers", "origin, content-type, authorization, reply")
+        Response.ResponseBuilder responseBuilder = Response.ok()
                 .header("Access-Control-Expose-Headers", "reply")
-                .header("reply", reply)
-                .build();
+                .header("reply", reply);
+        return addCorsHeaders(HttpMethod.GET, responseBuilder, "origin", "content-type", "authorization", "reply");
     }
 
     @OPTIONS
@@ -521,12 +514,9 @@ public class Searchbroker {
     @Consumes(MediaType.TEXT_PLAIN)
     @Operation(summary = "Retrieve detailed reply - data per biobank (OPTIONS for CORS)")
     public Response getReply_OPTIONS() {
-        return Response.ok()
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", HttpMethod.GET)
-                .header("Access-Control-Allow-Headers", "origin, content-type, authorization, reply")
-                .header("Access-Control-Expose-Headers", "reply")
-                .build();
+        Response.ResponseBuilder responseBuilder = Response.ok()
+                .header("Access-Control-Expose-Headers", "reply");
+        return addCorsHeaders(HttpMethod.GET, responseBuilder, "origin", "content-type", "authorization", "reply");
     }
 
     /**
@@ -580,13 +570,44 @@ public class Searchbroker {
             jsonObj.addProperty("site", "anonymous");
         }
 
-        return Response.ok()
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", HttpMethod.GET)
-                .header("Access-Control-Allow-Headers", "origin, content-type, accept, reply")
+        Response.ResponseBuilder responseBuilder = Response.ok()
                 .header("Access-Control-Expose-Headers", "reply")
-                .header("reply", jsonReply.toString())
-                .build();
+                .header("reply", jsonReply.toString());
+        return addCorsHeaders(HttpMethod.GET, responseBuilder, "origin", "content-type", "accept", "reply");
+    }
+
+    @OPTIONS
+    @Path("/getAnonymousReply")
+    @Consumes(MediaType.TEXT_PLAIN)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(
+                            mediaType = MediaType.TEXT_PLAIN,
+                            schema = @Schema(implementation = Reply[].class))),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Retrieve anonymous reply - only aggregated numbers (OPTIONS for CORS")
+    public Response getAnonymousReply_OPTIONS(
+            @Parameter(
+                    name = "id",
+                    description = "The ID of the query",
+                    example = "4711",
+                    schema = @Schema(implementation = Integer.class))
+            @QueryParam("id")
+            @DefaultValue("-1") int id,
+            @Parameter(
+                    name = "ntoken",
+                    description = "The nToken used by the searchbroker and negotiator to identify a query. (format: \"UUID(v4)__search_UUID(v4)\")" +
+                            "If no ID is provided (or is less than 0) than the nToken is used to identify the query - otherwise the ID itself is used.",
+                    example = "4b30d418-d1a0-4915-9f3c-b6d83b75c68a__search_890536a1-7cd5-470f-960d-18afd47499da",
+                    schema = @Schema(implementation = String.class))
+            @QueryParam("ntoken")
+            @DefaultValue("") String nToken) {
+        Response.ResponseBuilder responseBuilder = Response.ok()
+                .header("Access-Control-Expose-Headers", "reply");
+        return addCorsHeaders(HttpMethod.GET, responseBuilder, "origin", "content-type", "accept", "reply");
     }
 
     /**
@@ -610,15 +631,30 @@ public class Searchbroker {
     public Response getSize() {
         long size = SiteUtil.fetchSites().stream().filter(Site::getActive).count();
 
-        return Response.ok()
-                .header("Access-Control-Allow-Methods", HttpMethod.GET)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Headers", "size")
+        Response.ResponseBuilder responseBuilder = Response.ok()
                 .header("Access-Control-Expose-Headers", "size")
-                .header("size", size)
-                .build();
+                .header("size", size);
+        return addCorsHeaders(HttpMethod.GET, responseBuilder, "size");
     }
 
+    @OPTIONS
+    @Path("/getSize")
+    @Consumes(MediaType.TEXT_PLAIN)
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "ok",
+                    content = @Content(
+                            mediaType = MediaType.TEXT_PLAIN,
+                            schema = @Schema(implementation = Integer.class))),
+            @APIResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @Operation(summary = "Retrieve number of actively participating biobanks")
+    public Response getSize_OPTIONS() {
+        Response.ResponseBuilder responseBuilder = Response.ok()
+                .header("Access-Control-Expose-Headers", "size");
+        return addCorsHeaders(HttpMethod.GET, responseBuilder, "size");
+    }
 
     /**
      * Handle registration and activation of a new bank.
@@ -1269,4 +1305,16 @@ public class Searchbroker {
         return bankId < 0;
     }
 
+    private Response addCorsHeaders(String httpMethod, Response.ResponseBuilder builder, String... additionalHeaders) {
+        String allowedHeaders = "";
+        if (additionalHeaders.length > 0) {
+            allowedHeaders = StringUtils.join(additionalHeaders, ",") + ",";
+        }
+        allowedHeaders += "Cache-Control,Pragma,Expires";
+        return builder
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", httpMethod)
+                .header("Access-Control-Allow-Headers", allowedHeaders)
+                .build();
+    }
 }
