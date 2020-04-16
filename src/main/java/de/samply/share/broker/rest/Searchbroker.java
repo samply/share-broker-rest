@@ -96,7 +96,8 @@ public class Searchbroker {
     User authenticatedUser;
 
     @Path("/version")
-    @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @GET
     @APIResponses({
             @APIResponse(
@@ -109,12 +110,13 @@ public class Searchbroker {
     })
     @Operation(summary = "Retrieve version of searchbroker (backend)")
     public Response getVersion() {
-        Response.ResponseBuilder responseBuilder = Response.ok(new Gson().toJson(ProjectInfo.INSTANCE.getVersionString()));
-        return addCorsHeaders(HttpMethod.GET, responseBuilder);
+        String version = new Gson().toJson(ProjectInfo.INSTANCE.getVersionString());
+        return addCorsHeaders(Response.ok(version));
     }
 
     @Path("/version")
-    @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @OPTIONS
     @APIResponses({
             @APIResponse(
@@ -127,12 +129,12 @@ public class Searchbroker {
     })
     @Operation(summary = "Retrieve version of searchbroker (backend) (OPTIONS for CORS)")
     public Response getVersion_OPTIONS() {
-        return addCorsHeaders(HttpMethod.GET, Response.ok());
+        return addPreflightCorsHeaders(HttpMethod.GET, "");
     }
 
     @Secured
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @Path("/getDirectoryID")
     @POST
     @APIResponses({
@@ -163,15 +165,14 @@ public class Searchbroker {
                 jsonObject.put("collectionId", site.getCollectionid());
                 biobank.add(jsonObject);
             }
-            Response.ResponseBuilder responseBuilder = Response.ok(biobank);
-            return addCorsHeaders(HttpMethod.POST, responseBuilder, "origin", "Content-Type", "Accept", "Authorization");
+            return addCorsHeaders(Response.ok(biobank));
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @Path("/getDirectoryID")
     @OPTIONS
     @APIResponses({
@@ -183,7 +184,7 @@ public class Searchbroker {
     @Operation(summary = "The list of biobanks (by name) to get IDs (biobank-ID and collection-ID) for (OPTIONS for CORS)")
     public Response getDirectoryID_OPTIONS() {
         try {
-            return addCorsHeaders(HttpMethod.POST, Response.ok(), "origin", "Content-Type", "Accept", "Authorization");
+            return addPreflightCorsHeaders(HttpMethod.POST, "origin, Accept, Content-type, Authorization");
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -358,8 +359,8 @@ public class Searchbroker {
      */
     @POST
     @Path("/sendQuery")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
             @APIResponse(
                     responseCode = "200",
@@ -381,17 +382,14 @@ public class Searchbroker {
                     description = "The nToken used by the searchbroker and negotiator to identify a query. (format: \"UUID(v4)__search_UUID(v4)\")",
                     example = "4b30d418-d1a0-4915-9f3c-b6d83b75c68a__search_890536a1-7cd5-470f-960d-18afd47499da",
                     schema = @Schema(implementation = String.class))
-            @HeaderParam("ntoken") String ntoken) {
+            @QueryParam("ntoken") String ntoken) {
         this.logger.info("sendQuery called");
 
         SearchController.releaseQuery(json, ntoken, authenticatedUser);
 
         this.logger.info("sendQuery with ntoken '" + ntoken + "'is sent");
-        Response.ResponseBuilder responseBuilder = Response.accepted()
-                .header("Access-Control-Expose-Headers", "ntoken")
-                .header("ntoken", ntoken);
-        return addCorsHeaders(
-                HttpMethod.POST, responseBuilder, "origin", "content-type", "accept", "ntoken");
+        Response.ResponseBuilder responseBuilder = Response.accepted(ntoken);
+        return addCorsHeaders(responseBuilder);
     }
 
     /**
@@ -401,8 +399,8 @@ public class Searchbroker {
      */
     @OPTIONS
     @Path("/sendQuery")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
             @APIResponse(
                     responseCode = "200",
@@ -412,15 +410,14 @@ public class Searchbroker {
     @Operation(summary = "Save query in searchbroker database (OPTIONS for CORS)")
     public Response sendQuery_OPTIONS() {
         this.logger.info("sendQuery called (OPTIONS)");
-        Response.ResponseBuilder responseBuilder = Response.accepted()
-                .header("Access-Control-Expose-Headers", "ntoken");
-        return addCorsHeaders(
-                HttpMethod.POST, responseBuilder, "origin", "content-type", "accept", "ntoken");
+        return addPreflightCorsHeaders(
+                HttpMethod.POST, "origin, accept");
     }
 
     @GET
     @Path("/getQuery")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
             @APIResponse(
                     responseCode = "200",
@@ -441,13 +438,13 @@ public class Searchbroker {
         this.logger.info("getQuery called");
         String query = new NTokenHandler().findLatestQuery(nToken);
 
-        Response.ResponseBuilder responseBuilder = Response.ok(query);
-        return addCorsHeaders(HttpMethod.GET, responseBuilder, "origin", "content-type", "accept");
+        return addCorsHeaders(Response.ok(query));
     }
 
     @OPTIONS
     @Path("/getQuery")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
             @APIResponse(
                     responseCode = "200",
@@ -457,7 +454,7 @@ public class Searchbroker {
     @Operation(summary = "Retrieve query from searchbroker backend (OPTIONS for CORS)")
     public Response getQuery_OPTIONS(@QueryParam("ntoken") @DefaultValue("") String nToken) {
         this.logger.info("getQuery called (OPTIONS)");
-        return addCorsHeaders(HttpMethod.GET, Response.ok(), "origin", "content-type", "accept");
+        return addPreflightCorsHeaders(HttpMethod.GET, "origin, accept");
     }
 
     /**
@@ -469,7 +466,8 @@ public class Searchbroker {
     @Secured
     @GET
     @Path("/getReply")
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
             @APIResponse(
                     responseCode = "200",
@@ -503,20 +501,17 @@ public class Searchbroker {
         }
 
         String reply = SearchController.getReplysFromQuery(usedId);
-        Response.ResponseBuilder responseBuilder = Response.ok()
-                .header("Access-Control-Expose-Headers", "reply")
-                .header("reply", reply);
-        return addCorsHeaders(HttpMethod.GET, responseBuilder, "origin", "content-type", "authorization", "reply");
+        Response.ResponseBuilder responseBuilder = Response.ok(reply);
+        return addCorsHeaders(responseBuilder);
     }
 
     @OPTIONS
     @Path("/getReply")
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @Operation(summary = "Retrieve detailed reply - data per biobank (OPTIONS for CORS)")
     public Response getReply_OPTIONS() {
-        Response.ResponseBuilder responseBuilder = Response.ok()
-                .header("Access-Control-Expose-Headers", "reply");
-        return addCorsHeaders(HttpMethod.GET, responseBuilder, "origin", "content-type", "authorization", "reply");
+        return addPreflightCorsHeaders(HttpMethod.GET, "origin, accept, authorization");
     }
 
     /**
@@ -527,13 +522,14 @@ public class Searchbroker {
      */
     @GET
     @Path("/getAnonymousReply")
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
             @APIResponse(
                     responseCode = "200",
                     description = "ok",
                     content = @Content(
-                            mediaType = MediaType.TEXT_PLAIN,
+                            mediaType = MediaType.APPLICATION_JSON,
                             schema = @Schema(implementation = Reply[].class))),
             @APIResponse(responseCode = "500", description = "Internal Server Error")
     })
@@ -570,21 +566,20 @@ public class Searchbroker {
             jsonObj.addProperty("site", "anonymous");
         }
 
-        Response.ResponseBuilder responseBuilder = Response.ok()
-                .header("Access-Control-Expose-Headers", "reply")
-                .header("reply", jsonReply.toString());
-        return addCorsHeaders(HttpMethod.GET, responseBuilder, "origin", "content-type", "accept", "reply");
+        Response.ResponseBuilder responseBuilder = Response.ok(jsonReply.toString());
+        return addCorsHeaders(responseBuilder);
     }
 
     @OPTIONS
     @Path("/getAnonymousReply")
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
             @APIResponse(
                     responseCode = "200",
                     description = "ok",
                     content = @Content(
-                            mediaType = MediaType.TEXT_PLAIN,
+                            mediaType = MediaType.APPLICATION_JSON,
                             schema = @Schema(implementation = Reply[].class))),
             @APIResponse(responseCode = "500", description = "Internal Server Error")
     })
@@ -605,9 +600,7 @@ public class Searchbroker {
                     schema = @Schema(implementation = String.class))
             @QueryParam("ntoken")
             @DefaultValue("") String nToken) {
-        Response.ResponseBuilder responseBuilder = Response.ok()
-                .header("Access-Control-Expose-Headers", "reply");
-        return addCorsHeaders(HttpMethod.GET, responseBuilder, "origin", "content-type", "accept", "reply");
+        return addPreflightCorsHeaders(HttpMethod.GET, "origin, accept");
     }
 
     /**
@@ -617,7 +610,8 @@ public class Searchbroker {
      */
     @GET
     @Path("/getSize")
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
             @APIResponse(
                     responseCode = "200",
@@ -631,15 +625,14 @@ public class Searchbroker {
     public Response getSize() {
         long size = SiteUtil.fetchSites().stream().filter(Site::getActive).count();
 
-        Response.ResponseBuilder responseBuilder = Response.ok()
-                .header("Access-Control-Expose-Headers", "size")
-                .header("size", size);
-        return addCorsHeaders(HttpMethod.GET, responseBuilder, "size");
+        Response.ResponseBuilder responseBuilder = Response.ok(size);
+        return addCorsHeaders(responseBuilder);
     }
 
     @OPTIONS
     @Path("/getSize")
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
             @APIResponse(
                     responseCode = "200",
@@ -651,9 +644,7 @@ public class Searchbroker {
     })
     @Operation(summary = "Retrieve number of actively participating biobanks")
     public Response getSize_OPTIONS() {
-        Response.ResponseBuilder responseBuilder = Response.ok()
-                .header("Access-Control-Expose-Headers", "size");
-        return addCorsHeaders(HttpMethod.GET, responseBuilder, "size");
+        return addPreflightCorsHeaders(HttpMethod.GET, "");
     }
 
     /**
@@ -1305,13 +1296,15 @@ public class Searchbroker {
         return bankId < 0;
     }
 
-    private Response addCorsHeaders(String httpMethod, Response.ResponseBuilder builder, String... additionalHeaders) {
-        String allowedHeaders = "";
-        if (additionalHeaders.length > 0) {
-            allowedHeaders = StringUtils.join(additionalHeaders, ",") + ",";
-        }
-        allowedHeaders += "Cache-Control,Pragma,Expires";
+    private Response addCorsHeaders(Response.ResponseBuilder builder) {
         return builder
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Cache-Control", "no-cache")
+                .build();
+    }
+
+    private Response addPreflightCorsHeaders(String httpMethod, String allowedHeaders) {
+        return Response.ok()
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Methods", httpMethod)
                 .header("Access-Control-Allow-Headers", allowedHeaders)
