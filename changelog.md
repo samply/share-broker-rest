@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [5.1.1 - 2020-04-15]
+### Changed
+- no cache control for requests
+- avoid using header parameters
+
 ## [5.1.0 - 2020-03-31]
 ### Added
 - Send statistics per e-mail
