@@ -97,7 +97,6 @@ public class Searchbroker {
 
     @Path("/version")
     @Produces(MediaType.TEXT_PLAIN)
-    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @GET
     @APIResponses({
             @APIResponse(
@@ -112,24 +111,6 @@ public class Searchbroker {
     public Response getVersion() {
         String version = new Gson().toJson(ProjectInfo.INSTANCE.getVersionString());
         return addCorsHeaders(Response.ok(version));
-    }
-
-    @Path("/version")
-    @Produces(MediaType.TEXT_PLAIN)
-    @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
-    @OPTIONS
-    @APIResponses({
-            @APIResponse(
-                    responseCode = "200",
-                    description = "ok",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON,
-                            schema = @Schema(implementation = String.class))),
-            @APIResponse(responseCode = "500", description = "Internal Server Error")
-    })
-    @Operation(summary = "Retrieve version of searchbroker (backend) (OPTIONS for CORS)")
-    public Response getVersion_OPTIONS() {
-        return addPreflightCorsHeaders(HttpMethod.GET, "");
     }
 
     @Secured
@@ -176,15 +157,12 @@ public class Searchbroker {
     @Path("/getDirectoryID")
     @OPTIONS
     @APIResponses({
-            @APIResponse(
-                    responseCode = "200",
-                    description = "ok"),
-            @APIResponse(responseCode = "500", description = "Internal Server Error")
+            @APIResponse(responseCode = "204", description = "no-content")
     })
     @Operation(summary = "The list of biobanks (by name) to get IDs (biobank-ID and collection-ID) for (OPTIONS for CORS)")
     public Response getDirectoryID_OPTIONS() {
         try {
-            return addPreflightCorsHeaders(HttpMethod.POST, "origin, Accept, Content-type, Authorization");
+            return createPreflightCorsResponse(HttpMethod.POST, "origin, Accept, Content-type, Authorization");
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -402,16 +380,12 @@ public class Searchbroker {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
-            @APIResponse(
-                    responseCode = "200",
-                    description = "ok"),
-            @APIResponse(responseCode = "500", description = "Internal Server Error")
+            @APIResponse(responseCode = "204", description = "no-content")
     })
     @Operation(summary = "Save query in searchbroker database (OPTIONS for CORS)")
     public Response sendQuery_OPTIONS() {
         this.logger.info("sendQuery called (OPTIONS)");
-        return addPreflightCorsHeaders(
-                HttpMethod.POST, "origin, accept");
+        return createPreflightCorsResponse(HttpMethod.POST, "origin, accept, content-type");
     }
 
     @GET
@@ -446,15 +420,12 @@ public class Searchbroker {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
-            @APIResponse(
-                    responseCode = "200",
-                    description = "ok"),
-            @APIResponse(responseCode = "500", description = "Internal Server Error")
+            @APIResponse(responseCode = "204", description = "no-content")
     })
     @Operation(summary = "Retrieve query from searchbroker backend (OPTIONS for CORS)")
     public Response getQuery_OPTIONS(@QueryParam("ntoken") @DefaultValue("") String nToken) {
         this.logger.info("getQuery called (OPTIONS)");
-        return addPreflightCorsHeaders(HttpMethod.GET, "origin, accept");
+        return createPreflightCorsResponse(HttpMethod.GET, "origin, accept");
     }
 
     /**
@@ -509,9 +480,12 @@ public class Searchbroker {
     @Path("/getReply")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+    @APIResponses({
+            @APIResponse(responseCode = "204", description = "no-content")
+    })
     @Operation(summary = "Retrieve detailed reply - data per biobank (OPTIONS for CORS)")
     public Response getReply_OPTIONS() {
-        return addPreflightCorsHeaders(HttpMethod.GET, "origin, accept, authorization");
+        return createPreflightCorsResponse(HttpMethod.GET, "origin, accept, authorization");
     }
 
     /**
@@ -575,13 +549,7 @@ public class Searchbroker {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
-            @APIResponse(
-                    responseCode = "200",
-                    description = "ok",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON,
-                            schema = @Schema(implementation = Reply[].class))),
-            @APIResponse(responseCode = "500", description = "Internal Server Error")
+            @APIResponse(responseCode = "204", description = "no-content")
     })
     @Operation(summary = "Retrieve anonymous reply - only aggregated numbers (OPTIONS for CORS")
     public Response getAnonymousReply_OPTIONS(
@@ -600,7 +568,7 @@ public class Searchbroker {
                     schema = @Schema(implementation = String.class))
             @QueryParam("ntoken")
             @DefaultValue("") String nToken) {
-        return addPreflightCorsHeaders(HttpMethod.GET, "origin, accept");
+        return createPreflightCorsResponse(HttpMethod.GET, "origin, accept");
     }
 
     /**
@@ -634,17 +602,11 @@ public class Searchbroker {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @APIResponses({
-            @APIResponse(
-                    responseCode = "200",
-                    description = "ok",
-                    content = @Content(
-                            mediaType = MediaType.TEXT_PLAIN,
-                            schema = @Schema(implementation = Integer.class))),
-            @APIResponse(responseCode = "500", description = "Internal Server Error")
+            @APIResponse(responseCode = "204", description = "no-content")
     })
     @Operation(summary = "Retrieve number of actively participating biobanks")
     public Response getSize_OPTIONS() {
-        return addPreflightCorsHeaders(HttpMethod.GET, "");
+        return createPreflightCorsResponse(HttpMethod.GET, "");
     }
 
     /**
@@ -1303,10 +1265,10 @@ public class Searchbroker {
                 .build();
     }
 
-    private Response addPreflightCorsHeaders(String httpMethod, String allowedHeaders) {
-        return Response.ok()
+    private Response createPreflightCorsResponse(String allowedMethod, String allowedHeaders) {
+        return Response.noContent()
                 .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", httpMethod)
+                .header("Access-Control-Allow-Methods", allowedMethod)
                 .header("Access-Control-Allow-Headers", allowedHeaders)
                 .build();
     }
