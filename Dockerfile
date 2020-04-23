@@ -18,4 +18,8 @@ ADD https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/$J
 
 ADD src/docker/start.sh                         /samply/
 RUN chmod +x                                    /samply/start.sh
+
+RUN apk add --no-cache ttf-dejavu \
+    && rm -rf /var/cache/apk/*
+
 CMD ["/samply/start.sh"]
