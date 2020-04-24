@@ -1,29 +1,10 @@
-[![CircleCI](https://circleci.com/gh/bbmride/searchbroker/tree/master.svg?style=svg)](https://circleci.com/gh/bbmride/searchbroker/tree/master)
-
-[![Docker Pulls](https://img.shields.io/docker/pulls/bbmride/searchbroker.svg)](https://hub.docker.com/r/bbmride/searchbroker/)
-
 # Searchbroker
 
 To make samples easily accessible for researcher to help [making new treatments possible.](http://www.bbmri-eric.eu/)
 
-The Searchbroker connects [Searchbroker-UI](https://github.com/bbmride/searchbroker-ui) and [Connector](https://github.com/bbmride/connector) as part of the [GBA-Central](https://github.com/bbmride/gba-central), accessible under http://localhost:8083.
+The Searchbroker connects [Searchbroker-UI](https://code.mitro.dkfz.de/projects/SHAR/repos/samply.sample-locator.ui) and [Connector](https://code.mitro.dkfz.de/projects/SHAR/repos/samply.share.client.v2) as part of the [sample-locator-deployment](https://github.com/samply/sample-locator-deployment) or [open-telekom-cloud](https://github.com/samply/open-telekom-cloud).
 
-
-
-------
-
-|          Thanks to the commits of these developers:          |
-| :----------------------------------------------------------: |
-|                         Martin Breu                          |
-|                          Deniz Tas                           |
-|                        Saher Maqsood                         |
-|                        Alexander Kiel                        |
-|                       Christoph Dolch                        |
-| **To contribute, see our [Manifest](https://github.com/bbmride/MANIFEST.md) and open a [PR](https://help.github.com/en/articles/creating-a-pull-request)** |
-
-------
-
-If you have any problem or suggestion, [create an issue](https://github.com/bbmride/connector/issues/new)
+For APIs see the instance https://samplelocator.test.bbmri.de/broker
 
 ## Build
 
@@ -34,7 +15,7 @@ Requirements:
 - Maven
 
 ```
-git clone https://github.com/bbmride/searchbroker
+git clone https://code.mitro.dkfz.de/projects/SHAR/repos/samply.share.broker.rest
 cd searchbroker
 mvn install -Psamply
 ```
@@ -76,7 +57,7 @@ mvn install -Psamply
         -e MAIL_HOST='DUMMY' \
         -e MAIL_FROM_ADDRESS='DUMMY' \
         -e MAIL_FROM_NAME='DUMMY' \
-        -e STATISTICS_MAILS='itc@germanbiobanknode.de\nitb@germanbiobanknode.de' \
+        -e STATISTICS_MAILS='itc@germanbiobanknode.de\\nitb@germanbiobanknode.de' \
         -e AUTH_HOST='https://auth.germanbiobanknode.de' \
         -e AUTH_PUBLIC_KEY='MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA/D51sGPXYNn/2cYYxCB5bP0JMRrWXhn3qmCIwrJCO8VgmsT9DiRJz/EmiP6qOrC3NMYSaELBGgaQeb690mqIMxY/5qkfIbNJYuV7F2gcPQFWxY2neO24XnFXQqsA0PcdlF5lB0HPCYKoqjV1hVtBl9IS8/v8mJ1FMa4oifGD8AqrLEQkItkEK+yg53rbs0sxlEFYp1U4gogmW6MdQ1ZDfCLiL6eWBFWRpHZAzXxfkauoxcccReH6hv7DPkI3ngxxARx8ivcLS+psJOe8RL2LrlS49flbazOWBmG/f3DFdoEcXYcraSnFc9lx7SJK4xsL6mBv6Tc1Qtf0nuAG+3bLICe9M0pE62z9wSVebe4F7htfElSr7MS2EMXX5iW0whe1RrsPojPY12ZEKOL7WGvJTyDOnA2Nzp22p5Ii/wru1uNaD/7xsw4OcMxHaYFi87dJSbsfx1OEXP3Co+zWZ2B1WdV83bvlx7NNHsATYeQuKG7IeBco+oYoXAjOk7IBlc0M6WqOpuXuBNXOGpvPR4aRd0COYXIZd+DqoK3ZLCr7gEYHHeCUx6Y8cKLK4sxbhHjGqusjVEPYdM46txSawNNIhp0LtfDilWWwecYX3N0WIPFElfKL43tIrjVrzsfL7nECsapVByhqBGFZX+mY2gEprBnqDCrVeUELmKiwm+ioQtkCAwEAAQ==' \
         -e AUTH_CLIENT_ID='productive-searchbroker-ui' \
@@ -215,58 +196,7 @@ According to the predefinded log4j2.xml, all logs can be found in ${tomcat.base}
 
 **IntelliJ** creates a *tomcat.base* directory for every startup of the application. So save your configuration files to *tomcat.home* and it will copy these files and logs every time to *tomcat.base*. You will see the paths at startup in the first lines of the console output.
 
-
-
-### Connections
-
 To use a **proxy**, set your url in file **samply_common_config.xml**.
-
-
-
-Ingoing (secured with APIkey or OAuth2):
-
-```
-GET    /searchbroker/name
-POST   /searchbroker/sendQuery
-GET    /searchbroker/getReply
-GET    /searchbroker/getSize
-GET    /searchbroker/
-PUT    /searchbroker/banks/{email}
-DELETE /searchbroker/banks/{email}
-GET    /searchbroker/banks/{email}/status
-GET    /searchbroker/inquiries
-GET    /searchbroker/inquiries/{inquiryid}
-GET    /searchbroker/inquiries/{inquiryid}/query
-GET    /searchbroker/inquiries/{inquiryid}/viewfields
-GET    /searchbroker/inquiries/{inquiryid}/contact
-GET    /searchbroker/inquiries/{inquiryid}/info
-GET    /searchbroker/inquiries/{inquiryid}/hasexpose
-GET    /searchbroker/inquiries/{inquiryid}/replies/{bankemail}
-GET    /searchbroker/exposes/{inquiryid}
-GET    /searchbroker/inquiries/{inquiryid}/expose
-GET    /searchbroker/sites
-GET    /searchbroker/banks/{email}/site/{siteid}
-
-PUT    /monitoring
-GET    /monitoring/check
-GET    /monitoring/referencequery
-
-GET    /health
-
-POST   /documentUpload/user/{userid}/{doctype}
-
-GET    /test/inquiries/{inquiryid}
-```
-
-
-
-Outgoing:
-
-```
-Icinga
-
-```
-
 
 
 ### Productive Settings
