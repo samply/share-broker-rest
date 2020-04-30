@@ -471,7 +471,7 @@ public class Searchbroker {
             usedId = new NTokenHandler().findLatestInquiryId(nToken);
         }
 
-        String reply = SearchController.getReplysFromQuery(usedId);
+        JSONObject reply = SearchController.getReplysFromQuery(usedId, false);
         Response.ResponseBuilder responseBuilder = Response.ok(reply);
         return addCorsHeaders(responseBuilder);
     }
@@ -529,18 +529,8 @@ public class Searchbroker {
             usedId = new NTokenHandler().findLatestInquiryId(nToken);
         }
 
-        String reply = SearchController.getReplysFromQuery(usedId);
-
-        JsonParser parser = new JsonParser();
-        JsonElement tradeElement = parser.parse(reply);
-        JsonArray jsonReply = tradeElement.getAsJsonArray();
-        for (int i = 0; i < jsonReply.size(); i++) {
-            JsonObject jsonObj = jsonReply.get(i).getAsJsonObject();
-            jsonObj.remove("site");
-            jsonObj.addProperty("site", "anonymous");
-        }
-
-        Response.ResponseBuilder responseBuilder = Response.ok(jsonReply.toString());
+        JSONObject reply = SearchController.getReplysFromQuery(usedId, true);
+        Response.ResponseBuilder responseBuilder = Response.ok(reply);
         return addCorsHeaders(responseBuilder);
     }
 
