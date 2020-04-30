@@ -56,6 +56,7 @@ public class SearchController {
      * release query from UI for bridgeheads
      *
      * @param simpleQueryDtoJson the query
+     * @param ntoken             the ntoken of the query
      * @param loggedUser         the logged User
      */
     public static void releaseQuery(String simpleQueryDtoJson, String ntoken, User loggedUser) {
