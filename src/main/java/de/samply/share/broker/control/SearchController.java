@@ -34,8 +34,9 @@ import de.samply.share.broker.statistics.NTokenHandler;
 import de.samply.share.broker.utils.db.BankSiteUtil;
 import de.samply.share.broker.utils.db.ReplyUtil;
 import de.samply.share.broker.utils.db.SiteUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jettison.json.JSONArray;
+import org.jooq.tools.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
 import org.jooq.tools.json.JSONParser;
 import org.jooq.tools.json.ParseException;
@@ -48,16 +49,16 @@ import java.util.List;
  */
 public class SearchController {
 
-    /**
-     * release query from UI for bridgeheads
-     *
-     * @param simpleQueryDtoXml the query
-     * @param loggedUser        the logged User
-     * @return the query ID
-     */
 
     private static NTokenHandler N_TOKEN_HANDLER = new NTokenHandler();
 
+    /**
+     * release query from UI for bridgeheads
+     *
+     * @param simpleQueryDtoJson the query
+     * @param ntoken             the ntoken of the query
+     * @param loggedUser         the logged User
+     */
     public static void releaseQuery(String simpleQueryDtoJson, String ntoken, User loggedUser) {
         N_TOKEN_HANDLER.deactivateNToken(ntoken);
 
@@ -78,27 +79,35 @@ public class SearchController {
      * get replys from the bridgeheads of the query
      *
      * @param id the id of the query
-     * @return all results as JSON String
+     * @return all results as JSONObject
      */
-    public static String getReplysFromQuery(int id) {
+    @SuppressWarnings("unchecked")
+    public static JSONObject getReplysFromQuery(int id, boolean anonymous) {
+        JSONObject replyAllSites = new JSONObject();
+        JSONArray jsonArray = new JSONArray();
+        replyAllSites.put("replySites", jsonArray);
+
         List<Reply> replyList = ReplyUtil.getReplyforInquriy(id);
-        if (replyList == null) {
-            return new JSONArray().toString();
+        if (CollectionUtils.isEmpty(replyList)) {
+            return replyAllSites;
         }
 
-        JSONArray jsonArray = new JSONArray();
         JSONParser parser = new JSONParser();
         for (Reply reply : replyList) {
             if (isActiveSite(reply)) {
                 try {
                     JSONObject json = (JSONObject) parser.parse(reply.getContent());
-                    jsonArray.put(json);
+                    if (anonymous) {
+                        json.put("site", "anonymous");
+                    }
+                    jsonArray.add(json);
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
             }
         }
-        return jsonArray.toString();
+
+        return replyAllSites;
     }
 
     private static boolean isActiveSite(Reply reply) {

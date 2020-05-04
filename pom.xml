@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>war</packaging>
     <artifactId>share.broker.rest</artifactId>
-    <version>5.1.1-SNAPSHOT</version>
+    <version>6.0.0-SNAPSHOT</version>
     <name>Searchbroker</name>
 
     <parent>
@@ -41,11 +41,11 @@
     <properties>
         <!-- Samply dependencies -->
         <version.samply.common.config>3.1.0</version.samply.common.config>
-        <common-mailing.version>2.3.1</common-mailing.version>
+        <common-mailing.version>2.3.0</common-mailing.version>
         <common-http.version>5.0.0</common-http.version>
         <jsf-renderer.version>2.0.0</jsf-renderer.version>
         <share-common.version>3.4.0</share-common.version>
-        <share-dto.version>4.7.0</share-dto.version>
+        <share-dto.version>4.8.0</share-dto.version>
         <bbmri-auth-dto.version>1.2.0</bbmri-auth-dto.version>
         <!-- general dependencies -->
         <!-- We must keep the older mojarra version as the opening of elements
@@ -72,6 +72,7 @@
         <version.gson>2.8.5</version.gson>
         <microprofile-openapi-api.version>2.0-MR1</microprofile-openapi-api.version>
         <geronimo-openapi-maven-plugin.version>1.0.12</geronimo-openapi-maven-plugin.version>
+        <commons-lang3.version>3.7</commons-lang3.version>
     </properties>
 
     <build>
@@ -363,6 +364,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
             <version>${commons-collections4.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
         </dependency>
         <dependency>
             <groupId>jcifs</groupId>

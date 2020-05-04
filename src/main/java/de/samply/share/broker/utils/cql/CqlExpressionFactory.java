@@ -3,7 +3,6 @@ package de.samply.share.broker.utils.cql;
 import de.samply.share.essentialquery.EssentialSimpleValueDto;
 import de.samply.share.essentialquery.EssentialValueType;
 import de.samply.share.query.enums.SimpleValueCondition;
-import de.samply.share.query.value.AbstractQueryValueDto;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.StringUtils;
