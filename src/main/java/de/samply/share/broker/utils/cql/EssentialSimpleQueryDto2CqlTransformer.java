@@ -1,7 +1,6 @@
 package de.samply.share.broker.utils.cql;
 
 import de.samply.share.essentialquery.EssentialSimpleQueryDto;
-import org.apache.commons.collections.CollectionUtils;
 
 public class EssentialSimpleQueryDto2CqlTransformer {
 
@@ -12,10 +11,6 @@ public class EssentialSimpleQueryDto2CqlTransformer {
     }
 
     public String toQuery(EssentialSimpleQueryDto essentialSimpleQueryDto, String entityType) {
-        if (CollectionUtils.isEmpty(essentialSimpleQueryDto.getFieldDtos())) {
-            return "false";
-        }
-
         CqlCodesytemDefinitionsFactory codesytemDefinitionsFactory = new CqlCodesytemDefinitionsFactory(cqlExpressionFactory);
         CqlSingletonStatementsFactory singletonsFactory = new CqlSingletonStatementsFactory(cqlExpressionFactory);
         CqlFieldExpressionFactory fieldExpressionFactory = new CqlFieldExpressionFactory(cqlExpressionFactory);
