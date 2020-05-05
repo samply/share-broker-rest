@@ -9,10 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Change interface for replies to frontend (Reply)
 - Update share-dto
 
-## [5.1.1 - 2020-04-15]
+## [5.1.2 - 2020-05-04]
+### Bugfix
+- Creating empty CQL queries
+
+## [5.1.1 - 2020-04-23]
 ### Changed
 - no cache control for requests
 - avoid using header parameters
+### Fixed
+- email sending
 
 ## [5.1.0 - 2020-03-31]
 ### Added
