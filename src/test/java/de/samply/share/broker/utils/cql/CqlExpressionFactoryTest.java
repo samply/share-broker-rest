@@ -16,16 +16,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 class CqlExpressionFactoryTest {
 
-    private static final String URN_GENDER = "urn:mdr16:dataelement:23:1";
-    private static final String URN_TEMPERATURE = "urn:mdr16:dataelement:17:1";
-    private static final String URN_NOT_EXISTING = "urn:mdr16:dataelement:47:11";
-    private static final String URN_TWO_CODESYSTEMS = "urn:mdr16:dataelement:08:15";
+    private static final String MDR_URN_SIMPLE = "urn:mdr16:dataelement:08:15";
+    private static final String MDR_URN_WITH_VALUE_MAPPING = "urn:mdr16:dataelement:08:16";
+    private static final String MDR_URN_NOT_EXISTING = "urn:mdr16:dataelement:47:11";
+    private static final String MDR_URN_TWO_CODESYSTEMS = "urn:mdr16:dataelement:08:17";
 
-    private static final String MDR_URN_PATIENT = "urn:mdr16:dataelement:08:16";
-    private static final String MDR_URN_PATIENT_OBSERVATION = "urn:mdr16:dataelement:08:17";
-    private static final String MDR_URN_PATIENT_PATIENT = "urn:mdr16:dataelement:08:18";
+    private static final String MDR_URN_PATIENT = "urn:mdr16:dataelement:08:18";
+    private static final String MDR_URN_PATIENT_OBSERVATION = "urn:mdr16:dataelement:08:19";
+    private static final String MDR_URN_PATIENT_PATIENT = "urn:mdr16:dataelement:08:20";
 
-    private static final String MDR_URN_TWO_CQL_VALUES = "urn:mdr16:dataelement:08:19";
+    private static final String MDR_URN_TWO_CQL_VALUES = "urn:mdr16:dataelement:08:21";
 
     private static final String ENTITY_TYPE_PATIENT = "Patient";
     private static final String ENTITY_TYPE_SPECIMEN = "Specimen";
@@ -59,57 +59,57 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getPathExpression_existing_shortPath() {
-        String pathExpression = factory.getPathExpression(URN_GENDER, ENTITY_TYPE_PATIENT, "values-expression");
+        String pathExpression = factory.getPathExpression(MDR_URN_SIMPLE, ENTITY_TYPE_PATIENT, "values-expression");
         assertThat("Error reading path expression with path '{0}'.", StringUtils.trim(pathExpression), is("values-expression"));
     }
 
     @Test
     void test_getPathExpression_existing_longPath() {
-        String pathExpression = factory.getPathExpression(URN_GENDER, ENTITY_TYPE_SPECIMEN, "values-expression");
+        String pathExpression = factory.getPathExpression(MDR_URN_SIMPLE, ENTITY_TYPE_SPECIMEN, "values-expression");
         assertThat("Error reading path expression with path including text.", StringUtils.trim(pathExpression), is("exists(from [Patient] P where values-expression)"));
     }
 
     @Test
     void test_getPathExpression_notExistingEntityType() {
-        String pathExpression = factory.getPathExpression(URN_GENDER, ENTITY_TYPE_NOT_EXISTING, "values-expression");
+        String pathExpression = factory.getPathExpression(MDR_URN_SIMPLE, ENTITY_TYPE_NOT_EXISTING, "values-expression");
         assertThat("Error getting path expression for non-existing entity type.", StringUtils.trim(pathExpression), is(""));
     }
 
     @Test
     void test_getPathExpression_notExistingMdrUrn() {
-        String pathExpression = factory.getPathExpression(URN_NOT_EXISTING, ENTITY_TYPE_PATIENT, "values-expression");
+        String pathExpression = factory.getPathExpression(MDR_URN_NOT_EXISTING, ENTITY_TYPE_PATIENT, "values-expression");
         assertThat("Error getting path expression for non-existing MDR-urn.", StringUtils.trim(pathExpression), is(""));
     }
 
     @Test
     void test_getAtomicExpression_operatorNotSpecifiedUseDefault() {
         EssentialSimpleValueDto valueDto = createValueDto(SimpleValueCondition.EQUALS);
-        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_GENDER, ENTITY_TYPE_SPECIMEN, EssentialValueType.DECIMAL, valueDto);
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(MDR_URN_SIMPLE, ENTITY_TYPE_SPECIMEN, EssentialValueType.DECIMAL, valueDto);
         assertThat("Expected is a list with only one parameter", atomicExpressionParameterList.size(), is(1));
 
         String atomicExpression = factory.getAtomicExpression(atomicExpressionParameterList.get(0));
         assertThat("Error reading atomic expression for unspecified operator using default expression.",
                 StringUtils.trim(atomicExpression),
-                is("P.gender = '13'"));
+                is("some-cql-expression = '13'"));
     }
 
     @Test
     void test_getAtomicExpression_operatorSpecified() {
         EssentialSimpleValueDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
-        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_GENDER, ENTITY_TYPE_SPECIMEN, EssentialValueType.DECIMAL, valueDto);
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(MDR_URN_SIMPLE, ENTITY_TYPE_SPECIMEN, EssentialValueType.DECIMAL, valueDto);
 
         assertThat("Expected is a list with only one parameter", atomicExpressionParameterList.size(), is(1));
 
         String atomicExpression = factory.getAtomicExpression(atomicExpressionParameterList.get(0));
         assertThat("Error reading atomic expression for specified operator.",
                 StringUtils.trim(atomicExpression),
-                is("(P.gender < '17' and P.gender > '13')"));
+                is("(other-cql-expression < '17' and other-cql-expression > '13')"));
     }
 
     @Test
     void test_getAtomicExpression_notExistingMdrUrn() {
         EssentialSimpleValueDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
-        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_NOT_EXISTING, ENTITY_TYPE_SPECIMEN, EssentialValueType.DECIMAL, valueDto);
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(MDR_URN_NOT_EXISTING, ENTITY_TYPE_SPECIMEN, EssentialValueType.DECIMAL, valueDto);
 
         assertThat("Expected is a list with only one parameter", atomicExpressionParameterList.size(), is(1));
 
@@ -122,7 +122,7 @@ class CqlExpressionFactoryTest {
     @Test
     void test_getAtomicExpression_notExistingEntityType() {
         EssentialSimpleValueDto valueDto = createValueDto(SimpleValueCondition.BETWEEN);
-        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(URN_GENDER, ENTITY_TYPE_NOT_EXISTING, EssentialValueType.DECIMAL, valueDto);
+        List<CqlExpressionFactory.AtomicExpressionParameter> atomicExpressionParameterList = factory.createAtomicExpressionParameterList(MDR_URN_SIMPLE, ENTITY_TYPE_NOT_EXISTING, EssentialValueType.DECIMAL, valueDto);
 
         assertThat("Expected is a list with only one parameter", atomicExpressionParameterList.size(), is(1));
 
@@ -134,43 +134,43 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getExtensionUrl_blank() {
-        String extensionUrl = factory.getExtensionUrl(URN_GENDER);
+        String extensionUrl = factory.getExtensionUrl(MDR_URN_SIMPLE);
         assertThat("Error getting empty extension name.", StringUtils.trim(extensionUrl), is(""));
     }
 
     @Test
     void test_getExtensionUrl_filled() {
-        String extensionUrl = factory.getExtensionUrl(URN_TEMPERATURE);
-        assertThat("Error getting extension name.", StringUtils.trim(extensionUrl), is("https://fhir.bbmri.de/StructureDefinition/StorageTemperature"));
+        String extensionUrl = factory.getExtensionUrl(MDR_URN_WITH_VALUE_MAPPING);
+        assertThat("Error getting extension name.", StringUtils.trim(extensionUrl), is("https://fhir.bbmri.de/StructureDefinition/url"));
     }
 
     @Test
     void test_getCodesystems_empty() {
-        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_GENDER);
+        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(MDR_URN_SIMPLE);
         assertThat("Error getting empty list of codesystems.", codesystems, is(Collections.emptySet()));
     }
 
     @Test
     void test_getCodesystems_filled_name() {
-        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TEMPERATURE);
+        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(MDR_URN_WITH_VALUE_MAPPING);
         assertThat("Error getting filled list of codesystems.", codesystems.size(), is(1));
 
         String codesystemName = codesystems.iterator().next().getName();
-        assertThat("Error getting name of code system.", StringUtils.trim(codesystemName), is("StorageTemperature"));
+        assertThat("Error getting name of code system.", StringUtils.trim(codesystemName), is("SomeCodeSystem"));
     }
 
     @Test
     void test_getCodesystems_filled_url() {
-        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TEMPERATURE);
+        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(MDR_URN_WITH_VALUE_MAPPING);
         assertThat("Error getting filled list of codesystems.", codesystems.size(), is(1));
 
         String codesystemUrl = codesystems.iterator().next().getUrl();
-        assertThat("Error getting url of code system.", StringUtils.trim(codesystemUrl), is("https://fhir.bbmri.de/CodeSystem/StorageTemperature"));
+        assertThat("Error getting url of code system.", StringUtils.trim(codesystemUrl), is("https://fhir.bbmri.de/CodeSystem/url"));
     }
 
     @Test
     void test_getCodesystems_filled_twoCodesystems_names() {
-        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TWO_CODESYSTEMS);
+        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(MDR_URN_TWO_CODESYSTEMS);
         assertThat("Error getting filled list with 2 codesystems.", codesystems.size(), is(2));
 
         Set<String> expectedNames = new HashSet<>();
@@ -183,7 +183,7 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getCodesystems_filled_twoCodesystems_urls() {
-        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(URN_TWO_CODESYSTEMS);
+        Set<CqlConfig.Codesystem> codesystems = factory.getCodesystems(MDR_URN_TWO_CODESYSTEMS);
         assertThat("Error getting filled list with 2 codesystems.", codesystems.size(), is(2));
 
         Set<String> expectedUrls = new HashSet<>();
@@ -234,17 +234,17 @@ class CqlExpressionFactoryTest {
 
     @Test
     void test_getCqlValueList_configured() {
-        List<String> cqlValueList = factory.getCqlValueList(URN_TEMPERATURE, "RT");
+        List<String> cqlValueList = factory.getCqlValueList(MDR_URN_WITH_VALUE_MAPPING, "mdrKey2");
         assertThat("Expected is only one cqlValue", cqlValueList.size(), is(1));
 
         String cqlValue = cqlValueList.get(0);
-        assertThat("Error getting cql value for permitted value in config file.", StringUtils.trim(cqlValue), is("temperatureRoom"));
+        assertThat("Error getting cql value for permitted value in config file.", StringUtils.trim(cqlValue), is("cqlCoding2"));
     }
 
     @Test
     void test_getCqlValueList_notConfigured() {
         final String not_configured = "NOT CONFIGURED";
-        List<String> cqlValueList = factory.getCqlValueList(URN_TEMPERATURE, not_configured);
+        List<String> cqlValueList = factory.getCqlValueList(MDR_URN_WITH_VALUE_MAPPING, not_configured);
         assertThat("Expected is only one cqlValue", cqlValueList.size(), is(1));
 
         String cqlValue = cqlValueList.get(0);
