@@ -2,12 +2,22 @@
 <!--
 	This config file defines snippets for CQL queries.
 
-	The <preamble> must contain information about FHIR libraries and a variable {0} where the context (Specimen, Patient) will be inserted as well as a variable {1] where codesystems are inserted.
-    For fields (depending on entity type) which need a singleton statement the variable {2} definie the place where all singleton statements are inserted.
+	The <template> must contain information about FHIR libraries and a variable {0} where the context (Specimen, Patient) will be inserted as well as a variable {1} where codesystems are inserted.
+    For fields (depending on entity type) which need a singleton statement the variable {2} defines the place where all singleton statements are inserted.
+    The predicate {3} is the actual predicate expression for the expression named "InInitialPopulation". That expression defines the inclusion criteria for the population of interest.
+    The stratifier statements {4} have to be one or multiple statements which define named expressions. The syntax is:
+
+    define <name>:
+      <expression>
+
+    The expression name has to be referenced in the Measure resource in order to be used as stratifier.
+
     Variable binding:
         {0}     context (Specimen, Patient)
         {1}     codesystem definitions
         {2}     singleton statements
+        {3}     predicate
+        {4}     stratifier statements
 
 	The <pathCqlExpression> represents the path starting at the resource corresponding to the context ending with the field in the FHIR resource corresponding to the UI field.
     Variable binding:
@@ -27,7 +37,7 @@
 		Additionally characters such as > < ... must be encoded as &lt; &gt; ... according to XML (see https://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references)
 -->
 <cqlConfig>
-    <preamble>library Retrieve
+    <template>library Retrieve
 using FHIR version ''4.0.0''
 include FHIRHelpers version ''4.0.0''
 
@@ -38,7 +48,10 @@ context {0}
 {2}
 
 define InInitialPopulation:
-    </preamble>
+  {3}
+
+{4}
+    </template>
 
     <!-- Sampling date -->
     <uiField>

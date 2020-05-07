@@ -26,7 +26,7 @@ class CqlExpressionFactory {
     private final Map<String, Set<CqlConfig.Codesystem>> mapCodesystems = new HashMap<>();
     private final Map<String, String> mapExtensions = new HashMap<>();
 
-    private String preambleTemplate = "";
+    private String libraryTemplate = "";
 
     private static final Logger logger = LogManager.getLogger(CqlExpressionFactory.class);
 
@@ -48,12 +48,11 @@ class CqlExpressionFactory {
             logger.warn("Config resource 'samply_cql_config.xml' could not be unmarshalled: ", e);
             return;
         }
-
         initMaps(mapping);
     }
 
     private void initMaps(CqlConfig mapping) {
-        this.preambleTemplate = mapping.getPreamble();
+        this.libraryTemplate = mapping.getTemplate();
 
         for (CqlConfig.CqlMdrFieldEntry mdrFieldEntry : mapping.getMdrFieldEntryList()) {
             for (CqlConfig.Codesystem codesystem : mdrFieldEntry.getCodesystemList()) {
@@ -137,8 +136,10 @@ class CqlExpressionFactory {
         return MessageFormat.format(cqlEntityTypeEntry1.getPathCqlExpression(), valuesExpression);
     }
 
-    String getPreamble(String entityType, String codesystems, String singletons) {
-        return MessageFormat.format(preambleTemplate, entityType, codesystems, singletons);
+    String createLibrary(String entityType, String codesystems, String singletons, String predicate,
+                         String stratifierStatements) {
+        return MessageFormat.format(libraryTemplate, entityType, codesystems, singletons, predicate,
+                stratifierStatements);
     }
 
     String getExtensionUrl(String mdrUrn) {

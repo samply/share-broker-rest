@@ -59,7 +59,7 @@ class CqlTestHelper {
 
         return valueDto;
     }
-    
+
     static String trim(String input) {
         String resultWithNormalizedBlankSpace = input
                 .replaceAll("\\s+", " ")
@@ -70,5 +70,4 @@ class CqlTestHelper {
 
         return StringUtils.trim(resultWithNormalizedBlankSpace);
     }
-
 }

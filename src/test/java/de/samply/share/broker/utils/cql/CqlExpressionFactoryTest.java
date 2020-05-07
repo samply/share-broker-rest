@@ -31,7 +31,7 @@ class CqlExpressionFactoryTest {
     private static final String ENTITY_TYPE_SPECIMEN = "Specimen";
     private static final String ENTITY_TYPE_NOT_EXISTING = "Scientist";
 
-    private static final String ECPECTED_PREAMBLE_TEMPLATE =
+    private static final String EXPECTED_LIBRARY =
             "library Retrieve\n" +
                     "using FHIR version '4.0.0'\n" +
                     "include FHIRHelpers version '4.0.0'\n" +
@@ -42,7 +42,10 @@ class CqlExpressionFactoryTest {
                     "\n" +
                     "singleton-statements\n" +
                     "\n" +
-                    "define InInitialPopulation:";
+                    "define InInitialPopulation:\n" +
+                    "  predicate\n" +
+                    "\n" +
+                    "stratifier-statements";
 
     private CqlExpressionFactory factory;
 
@@ -52,9 +55,10 @@ class CqlExpressionFactoryTest {
     }
 
     @Test
-    void test_getPreamble() {
-        String preamble = factory.getPreamble(ENTITY_TYPE_NOT_EXISTING, "codesystem-definitions", "singleton-statements");
-        assertThat("Error reading preamble.", StringUtils.trim(preamble), is(ECPECTED_PREAMBLE_TEMPLATE));
+    void test_createLibrary() {
+        String library = factory.createLibrary(ENTITY_TYPE_NOT_EXISTING, "codesystem-definitions",
+                "singleton-statements", "predicate", "stratifier-statements");
+        assertThat(StringUtils.trim(library), is(EXPECTED_LIBRARY));
     }
 
     @Test
