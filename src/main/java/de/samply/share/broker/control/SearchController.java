@@ -87,7 +87,7 @@ public class SearchController {
         JSONArray jsonArray = new JSONArray();
         replyAllSites.put("replySites", jsonArray);
 
-        List<Reply> replyList = ReplyUtil.getReplyforInquriy(id);
+        List<Reply> replyList = new ReplyUtil().getReplyforInquriy(id);
         if (CollectionUtils.isEmpty(replyList)) {
             return replyAllSites;
         }
