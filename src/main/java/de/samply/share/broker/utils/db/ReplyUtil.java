@@ -20,15 +20,15 @@ public class ReplyUtil {
     public List<Reply> getReplyforInquriy(int inquiryID) {
         List<Reply> reply = fetchReplies(inquiryID);
 
-        reply.sort(Comparator.comparingInt(this::extractCount));
+        reply.sort(Comparator.comparingInt(this::extractDonorCount));
         Collections.reverse(reply);
 
         return reply;
     }
 
-    private int extractCount(Reply reply) {
+    private int extractDonorCount(Reply reply) {
         JsonResult countResult = new Gson().fromJson(reply.getContent(), JsonResult.class);
-        return countResult.getSample();
+        return countResult.getDonor();
     }
 
     List<Reply> fetchReplies(int inquiryID) {
@@ -44,10 +44,10 @@ public class ReplyUtil {
 
     private static class JsonResult {
         @SuppressWarnings("unused")
-        private int sample;
+        private int donor;
 
-        int getSample() {
-            return sample;
+        int getDonor() {
+            return donor;
         }
     }
 }

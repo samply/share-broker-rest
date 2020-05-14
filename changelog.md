@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [6.0.1 - 2020-05-13]
 ### Changed
-- Reverse order of reply (biobanks with most samples first)
+- Reverse order of reply (biobanks with most donors first)
 
 ## [6.0.0 - 2020-04-17]
 ### Changed

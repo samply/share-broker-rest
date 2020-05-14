@@ -48,7 +48,7 @@ class ReplyUtilTest {
     private Reply createReply(int count) {
         Reply reply = new Reply();
 
-        reply.setContent("{ sample: " + count + "}");
+        reply.setContent("{ donor: " + count + "}");
         reply.setId(10 * count);
 
         return reply;
@@ -57,7 +57,7 @@ class ReplyUtilTest {
     private Reply createInvalidReply() {
         Reply reply = new Reply();
 
-        reply.setContent(" { XYZsample: " + 2 + " }");
+        reply.setContent(" { XYZdonor: " + 2 + " }");
         reply.setId(20);
 
         return reply;
