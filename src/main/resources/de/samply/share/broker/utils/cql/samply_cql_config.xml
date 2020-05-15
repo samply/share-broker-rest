@@ -162,11 +162,11 @@ define InInitialPopulation:
         </permittedValue>
         <permittedValue>
             <mdrKey>plasma-EDTA</mdrKey>
-            <cqlValue>blood-plasma</cqlValue>
+            <cqlValue>blood-edta</cqlValue>
         </permittedValue>
         <permittedValue>
             <mdrKey>plasma-citrate</mdrKey>
-            <cqlValue>blood-plasma</cqlValue>
+            <cqlValue>blood-citrate</cqlValue>
         </permittedValue>
         <permittedValue>
             <mdrKey>plasma_stabilised</mdrKey>
@@ -213,6 +213,10 @@ define InInitialPopulation:
             <cqlValue>dna</cqlValue>
         </permittedValue>
         <permittedValue>
+            <mdrKey>DNA</mdrKey>
+            <cqlValue>g-dna</cqlValue>
+        </permittedValue>
+        <permittedValue>
             <mdrKey>cfDNA</mdrKey>
             <cqlValue>cf-dna</cqlValue>
         </permittedValue>
@@ -237,8 +241,32 @@ define InInitialPopulation:
             <cqlValue>tissue-formalin</cqlValue>
         </permittedValue>
         <permittedValue>
+            <mdrKey>tissue_formalin</mdrKey>
+            <cqlValue>tumor-tissue-ffpe</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_formalin</mdrKey>
+            <cqlValue>normal-tissue-ffpe</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_formalin</mdrKey>
+            <cqlValue>other-tissue-ffpe</cqlValue>
+        </permittedValue>
+        <permittedValue>
             <mdrKey>tissue_frozen</mdrKey>
             <cqlValue>tissue-frozen</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_frozen</mdrKey>
+            <cqlValue>tumor-tissue-frozen</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_frozen</mdrKey>
+            <cqlValue>normal-tissue-frozen</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_frozen</mdrKey>
+            <cqlValue>other-tissue-frozen</cqlValue>
         </permittedValue>
         <permittedValue>
             <mdrKey>tissue_PAX_or_similar</mdrKey>
@@ -251,6 +279,26 @@ define InInitialPopulation:
         <permittedValue>
             <mdrKey>tissue_other</mdrKey>
             <cqlValue>derivative-other</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>dried-whole-blood</mdrKey>
+            <cqlValue>liquid_biosamples_other</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma-heparin</mdrKey>
+            <cqlValue>plasma_stabilised</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma-cell-free</mdrKey>
+            <cqlValue>plasma_stabilised</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma-other</mdrKey>
+            <cqlValue>plasma_stabilised</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>swab</mdrKey>
+            <cqlValue>liquid_biosamples_other</cqlValue>
         </permittedValue>
     </uiField>
 
@@ -292,11 +340,11 @@ define InInitialPopulation:
         </permittedValue>
         <permittedValue>
             <mdrKey>plasma-EDTA</mdrKey>
-            <cqlValue>blood-plasma</cqlValue>
+            <cqlValue>blood-edta</cqlValue>
         </permittedValue>
         <permittedValue>
             <mdrKey>plasma-citrate</mdrKey>
-            <cqlValue>blood-plasma</cqlValue>
+            <cqlValue>blood-citrate</cqlValue>
         </permittedValue>
         <permittedValue>
             <mdrKey>plasma_stabilised</mdrKey>
@@ -343,6 +391,10 @@ define InInitialPopulation:
             <cqlValue>dna</cqlValue>
         </permittedValue>
         <permittedValue>
+            <mdrKey>DNA</mdrKey>
+            <cqlValue>g-dna</cqlValue>
+        </permittedValue>
+        <permittedValue>
             <mdrKey>cfDNA</mdrKey>
             <cqlValue>cf-dna</cqlValue>
         </permittedValue>
@@ -367,8 +419,32 @@ define InInitialPopulation:
             <cqlValue>tissue-formalin</cqlValue>
         </permittedValue>
         <permittedValue>
+            <mdrKey>tissue_formalin</mdrKey>
+            <cqlValue>tumor-tissue-ffpe</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_formalin</mdrKey>
+            <cqlValue>normal-tissue-ffpe</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_formalin</mdrKey>
+            <cqlValue>other-tissue-ffpe</cqlValue>
+        </permittedValue>
+        <permittedValue>
             <mdrKey>tissue_frozen</mdrKey>
             <cqlValue>tissue-frozen</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_frozen</mdrKey>
+            <cqlValue>tumor-tissue-frozen</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_frozen</mdrKey>
+            <cqlValue>normal-tissue-frozen</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>tissue_frozen</mdrKey>
+            <cqlValue>other-tissue-frozen</cqlValue>
         </permittedValue>
         <permittedValue>
             <mdrKey>tissue_PAX_or_similar</mdrKey>
@@ -381,6 +457,26 @@ define InInitialPopulation:
         <permittedValue>
             <mdrKey>tissue_other</mdrKey>
             <cqlValue>derivative-other</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>dried-whole-blood</mdrKey>
+            <cqlValue>liquid_biosamples_other</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma-heparin</mdrKey>
+            <cqlValue>plasma_stabilised</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma-cell-free</mdrKey>
+            <cqlValue>plasma_stabilised</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>plasma-other</mdrKey>
+            <cqlValue>plasma_stabilised</cqlValue>
+        </permittedValue>
+        <permittedValue>
+            <mdrKey>swab</mdrKey>
+            <cqlValue>liquid_biosamples_other</cqlValue>
         </permittedValue>
     </uiField>
 
