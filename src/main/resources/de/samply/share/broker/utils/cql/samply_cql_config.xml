@@ -935,7 +935,7 @@ define InInitialPopulation:
             <cqlValue>LA18978-9</cqlValue>
         </permittedValue>
         <permittedValue>
-            <mdrKey>smoking_habit_uncharted</mdrKey>
+            <mdrKey>smoker_yes</mdrKey>
             <cqlValue>LA18979-7</cqlValue>
         </permittedValue>
         <permittedValue>
