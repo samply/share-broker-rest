@@ -14,7 +14,9 @@ class ReplyUtilTest {
     private final Reply reply1 = createReply(1);
     private final Reply reply2 = createReply(2);
     private final Reply reply3 = createReply(3);
-    private final Reply replyInvalid = createInvalidReply();
+    private final Reply legacyReply1 = createLegacyReply(1);
+    private final Reply legacyReply2 = createLegacyReply(2);
+    private final Reply legacyReply3 = createLegacyReply(3);
 
     @Test
     void testGetReplyforInquriy_simpleCase() {
@@ -22,6 +24,14 @@ class ReplyUtilTest {
         List<Reply> result = replyUtil.getReplyforInquriy(0);
 
         assertOrder(result, reply3, reply2, reply1);
+    }
+
+    @Test
+    void testGetReplyforInquriy_simpleCaseLegacy() {
+        ReplyUtil replyUtil = new ReplyUtilMock(legacyReply1, legacyReply2, legacyReply3);
+        List<Reply> result = replyUtil.getReplyforInquriy(0);
+
+        assertOrder(result, legacyReply3, legacyReply2, legacyReply1);
     }
 
     @Test
@@ -33,7 +43,43 @@ class ReplyUtilTest {
     }
 
     @Test
-    void testGetReplyforInquriy_invalidReply() {
+    void testGetReplyforInquriy_permutatedOrderLegacy() {
+        ReplyUtil replyUtil = new ReplyUtilMock(legacyReply2, legacyReply3, legacyReply1);
+        List<Reply> result = replyUtil.getReplyforInquriy(0);
+
+        assertOrder(result, legacyReply3, legacyReply2, legacyReply1);
+    }
+
+    @Test
+    void testGetReplyforInquriy_invalidReply1() {
+        Reply replyInvalid = createReplyWithoutDonorKey();
+        ReplyUtil replyUtil = new ReplyUtilMock(legacyReply1, replyInvalid, legacyReply3);
+        List<Reply> result = replyUtil.getReplyforInquriy(0);
+
+        assertOrder(result, legacyReply3, legacyReply1, replyInvalid);
+    }
+
+    @Test
+    void testGetReplyforInquriy_invalidReply2() {
+        Reply replyInvalid = createReplyWithoutDonorKey();
+        ReplyUtil replyUtil = new ReplyUtilMock(reply1, replyInvalid, reply3);
+        List<Reply> result = replyUtil.getReplyforInquriy(0);
+
+        assertOrder(result, reply3, reply1, replyInvalid);
+    }
+
+    @Test
+    void testGetReplyforInquriy_invalidReply3() {
+        Reply replyInvalid = createReplyWithoutDonorCountKey();
+        ReplyUtil replyUtil = new ReplyUtilMock(legacyReply1, replyInvalid, legacyReply3);
+        List<Reply> result = replyUtil.getReplyforInquriy(0);
+
+        assertOrder(result, legacyReply3, legacyReply1, replyInvalid);
+    }
+
+    @Test
+    void testGetReplyforInquriy_invalidReply4() {
+        Reply replyInvalid = createReplyWithoutDonorCountKey();
         ReplyUtil replyUtil = new ReplyUtilMock(reply1, replyInvalid, reply3);
         List<Reply> result = replyUtil.getReplyforInquriy(0);
 
@@ -48,18 +94,27 @@ class ReplyUtilTest {
     private Reply createReply(int count) {
         Reply reply = new Reply();
 
-        reply.setContent("{ donor: " + count + "}");
+        reply.setContent("{ donor: { count: " + count + "}}");
         reply.setId(10 * count);
 
         return reply;
     }
 
-    private Reply createInvalidReply() {
+    private Reply createLegacyReply(int count) {
         Reply reply = new Reply();
+        reply.setContent("{ donor: " + count + "}");
+        return reply;
+    }
 
-        reply.setContent(" { XYZdonor: " + 2 + " }");
-        reply.setId(20);
+    private Reply createReplyWithoutDonorKey() {
+        Reply reply = new Reply();
+        reply.setContent("{ other: 1 }");
+        return reply;
+    }
 
+    private Reply createReplyWithoutDonorCountKey() {
+        Reply reply = new Reply();
+        reply.setContent("{donor: { other: 1 }}");
         return reply;
     }
 }

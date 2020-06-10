@@ -30,7 +30,8 @@ public class ReplyUtil {
     private int extractDonorCount(Reply reply) {
         try {
             JsonResult result = new Gson().fromJson(reply.getContent(), JsonResult.class);
-            return result.getDonor().getCount();
+            JsonResultEntity donor = result.getDonor();
+            return donor == null ? 0 : donor.getCount();
         } catch (JsonSyntaxException exception) {
             return extractDonorCountLegacyFormat(reply);
         }
