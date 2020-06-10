@@ -28,13 +28,20 @@ public class ReplyUtil {
     }
 
     private int extractDonorCount(Reply reply) {
-        String content = reply.getContent();
         try {
-            JsonResult countResult = new Gson().fromJson(content, JsonResult.class);
+            JsonResult countResult = new Gson().fromJson(reply.getContent(), JsonResult.class);
             return countResult.getDonor().getCount();
         } catch (JsonSyntaxException exception) {
-            JsonResultLegacy countResult = new Gson().fromJson(content, JsonResultLegacy.class);
+            return extractDonorCountLegacyFormat(reply);
+        }
+    }
+
+    private int extractDonorCountLegacyFormat(Reply reply) {
+        try {
+            JsonResultLegacy countResult = new Gson().fromJson(reply.getContent(), JsonResultLegacy.class);
             return countResult.getDonor();
+        } catch (JsonSyntaxException exception) {
+            return 0;
         }
     }
 
