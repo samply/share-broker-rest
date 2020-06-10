@@ -1,53 +1,85 @@
 package de.samply.share.broker.utils.db;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.tables.daos.ReplyDao;
 import de.samply.share.broker.model.db.tables.pojos.Reply;
 import org.jooq.Configuration;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultConfiguration;
-import org.jooq.tools.json.JSONObject;
-import org.jooq.tools.json.JSONParser;
-import org.jooq.tools.json.ParseException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 public class ReplyUtil {
 
+    public List<Reply> getReplyforInquriy(int inquiryID) {
+        List<Reply> reply = fetchReplies(inquiryID);
 
-    public static List<Reply> getReplyforInquriy(int inquiryID) {
+        reply.sort(Comparator.comparingInt(this::extractDonorCount));
+        Collections.reverse(reply);
+
+        return reply;
+    }
+
+    private int extractDonorCount(Reply reply) {
+        try {
+            JsonResult result = new Gson().fromJson(reply.getContent(), JsonResult.class);
+            return result.getDonor().getCount();
+        } catch (JsonSyntaxException exception) {
+            return extractDonorCountLegacyFormat(reply);
+        }
+    }
+
+    private int extractDonorCountLegacyFormat(Reply reply) {
+        try {
+            JsonResultLegacy result = new Gson().fromJson(reply.getContent(), JsonResultLegacy.class);
+            return result.getDonor();
+        } catch (JsonSyntaxException exception) {
+            return 0;
+        }
+    }
+
+    List<Reply> fetchReplies(int inquiryID) {
         try (Connection conn = ResourceManager.getConnection()) {
             Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
             ReplyDao replyDao = new ReplyDao(configuration);
-            List<Reply> reply = replyDao.fetchByInquiryId(inquiryID);
-            Collections.sort(reply, new SampleOperator());
-            return reply;
+            return replyDao.fetchByInquiryId(inquiryID);
         } catch (SQLException e) {
             e.printStackTrace();
+            return new ArrayList<>();
         }
-        return null;
     }
 
-    static class SampleOperator implements Comparator<Reply> {
+    private static class JsonResult {
+        @SuppressWarnings("unused")
+        private JsonResultEntity donor;
 
-        @Override
-        public int compare(Reply reply1, Reply reply2) {
-            int size = 0;
-            int size2 = 0;
-            try {
-                JSONParser parser = new JSONParser();
-                JSONObject jsonObject = (JSONObject) parser.parse(reply1.getContent());
-                size = Integer.parseInt(jsonObject.get("sample").toString());
-                JSONObject jsonObject2 = (JSONObject) parser.parse(reply2.getContent());
-                size2 = Integer.parseInt(jsonObject2.get("sample").toString());
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            return size > size2 ? 1 : size == size2 ? 0 : -1;
+        JsonResultEntity getDonor() {
+            return donor;
+        }
+    }
+
+    private static class JsonResultEntity {
+        @SuppressWarnings("unused")
+        private int count;
+
+        int getCount() {
+            return count;
+        }
+    }
+
+    private static class JsonResultLegacy {
+        @SuppressWarnings("unused")
+        private int donor;
+
+        int getDonor() {
+            return donor;
         }
     }
 }
