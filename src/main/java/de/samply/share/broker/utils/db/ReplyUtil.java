@@ -1,6 +1,7 @@
 package de.samply.share.broker.utils.db;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.tables.daos.ReplyDao;
 import de.samply.share.broker.model.db.tables.pojos.Reply;
@@ -27,8 +28,21 @@ public class ReplyUtil {
     }
 
     private int extractDonorCount(Reply reply) {
-        JsonResult countResult = new Gson().fromJson(reply.getContent(), JsonResult.class);
-        return countResult.getDonor();
+        try {
+            JsonResult result = new Gson().fromJson(reply.getContent(), JsonResult.class);
+            return result.getDonor().getCount();
+        } catch (JsonSyntaxException exception) {
+            return extractDonorCountLegacyFormat(reply);
+        }
+    }
+
+    private int extractDonorCountLegacyFormat(Reply reply) {
+        try {
+            JsonResultLegacy result = new Gson().fromJson(reply.getContent(), JsonResultLegacy.class);
+            return result.getDonor();
+        } catch (JsonSyntaxException exception) {
+            return 0;
+        }
     }
 
     List<Reply> fetchReplies(int inquiryID) {
@@ -43,6 +57,24 @@ public class ReplyUtil {
     }
 
     private static class JsonResult {
+        @SuppressWarnings("unused")
+        private JsonResultEntity donor;
+
+        JsonResultEntity getDonor() {
+            return donor;
+        }
+    }
+
+    private static class JsonResultEntity {
+        @SuppressWarnings("unused")
+        private int count;
+
+        int getCount() {
+            return count;
+        }
+    }
+
+    private static class JsonResultLegacy {
         @SuppressWarnings("unused")
         private int donor;
 
