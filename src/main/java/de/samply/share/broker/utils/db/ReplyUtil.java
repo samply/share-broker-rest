@@ -29,8 +29,8 @@ public class ReplyUtil {
 
     private int extractDonorCount(Reply reply) {
         try {
-            JsonResult countResult = new Gson().fromJson(reply.getContent(), JsonResult.class);
-            return countResult.getDonor().getCount();
+            JsonResult result = new Gson().fromJson(reply.getContent(), JsonResult.class);
+            return result.getDonor().getCount();
         } catch (JsonSyntaxException exception) {
             return extractDonorCountLegacyFormat(reply);
         }
@@ -38,8 +38,8 @@ public class ReplyUtil {
 
     private int extractDonorCountLegacyFormat(Reply reply) {
         try {
-            JsonResultLegacy countResult = new Gson().fromJson(reply.getContent(), JsonResultLegacy.class);
-            return countResult.getDonor();
+            JsonResultLegacy result = new Gson().fromJson(reply.getContent(), JsonResultLegacy.class);
+            return result.getDonor();
         } catch (JsonSyntaxException exception) {
             return 0;
         }
