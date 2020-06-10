@@ -34,5 +34,4 @@ class CqlPredicateFactory {
             return StringUtils.join(pathExpressionList, " and ");
         }
     }
-
 }

@@ -14,17 +14,17 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.FIELD)
 class CqlConfig {
 
-    private String preamble;
+    private String template;
 
     @XmlElement(name = "uiField")
     private List<CqlMdrFieldEntry> mdrFieldEntryList = new ArrayList<>();
 
-    String getPreamble() {
-        return preamble;
+    String getTemplate() {
+        return template;
     }
 
-    void setPreamble(String preamble) {
-        this.preamble = preamble;
+    void setTemplate(String template) {
+        this.template = template;
     }
 
     List<CqlMdrFieldEntry> getMdrFieldEntryList() {
@@ -93,8 +93,17 @@ class CqlConfig {
 
     @XmlAccessorType(XmlAccessType.FIELD)
     static class Codesystem {
+
         private String name;
         private String url;
+
+        public Codesystem() {
+        }
+
+        public Codesystem(String name, String url) {
+            this.name = name;
+            this.url = url;
+        }
 
         public String getName() {
             return name;
@@ -110,6 +119,28 @@ class CqlConfig {
 
         public void setUrl(String url) {
             this.url = url;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Codesystem)) {
+                return false;
+            }
+
+            Codesystem compare = (Codesystem) obj;
+
+            EqualsBuilder builder = new EqualsBuilder();
+            builder.append(this.name, compare.name);
+            builder.append(this.url, compare.url);
+            return builder.build();
+        }
+
+        @Override
+        public int hashCode() {
+            HashCodeBuilder builder = new HashCodeBuilder();
+            builder.append(name);
+            builder.append(url);
+            return builder.build();
         }
     }
 
