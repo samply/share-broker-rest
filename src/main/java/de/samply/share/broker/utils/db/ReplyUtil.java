@@ -21,13 +21,13 @@ public class ReplyUtil {
     public List<Reply> getReplyforInquriy(int inquiryID) {
         List<Reply> reply = fetchReplies(inquiryID);
 
-        reply.sort(Comparator.comparingInt(this::extractDonorCount));
+        reply.sort(Comparator.comparingInt(ReplyUtil::extractDonorCount));
         Collections.reverse(reply);
 
         return reply;
     }
 
-    private int extractDonorCount(Reply reply) {
+    static int extractDonorCount(Reply reply) {
         try {
             JsonResult result = new Gson().fromJson(reply.getContent(), JsonResult.class);
             JsonResultEntity donor = result.getDonor();
@@ -37,7 +37,7 @@ public class ReplyUtil {
         }
     }
 
-    private int extractDonorCountLegacyFormat(Reply reply) {
+    private static int extractDonorCountLegacyFormat(Reply reply) {
         try {
             JsonResultLegacy result = new Gson().fromJson(reply.getContent(), JsonResultLegacy.class);
             return result.getDonor();

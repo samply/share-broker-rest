@@ -6,17 +6,15 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static de.samply.share.broker.utils.db.ReplyUtil.extractDonorCount;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
 class ReplyUtilTest {
 
-    private final Reply reply1 = createReply(1);
-    private final Reply reply2 = createReply(2);
-    private final Reply reply3 = createReply(3);
-    private final Reply legacyReply1 = createLegacyReply(1);
-    private final Reply legacyReply2 = createLegacyReply(2);
-    private final Reply legacyReply3 = createLegacyReply(3);
+    private final Reply reply1 = currentReply(1);
+    private final Reply reply2 = currentReply(2);
+    private final Reply reply3 = currentReply(3);
 
     @Test
     void testGetReplyforInquriy_simpleCase() {
@@ -24,14 +22,6 @@ class ReplyUtilTest {
         List<Reply> result = replyUtil.getReplyforInquriy(0);
 
         assertOrder(result, reply3, reply2, reply1);
-    }
-
-    @Test
-    void testGetReplyforInquriy_simpleCaseLegacy() {
-        ReplyUtil replyUtil = new ReplyUtilMock(legacyReply1, legacyReply2, legacyReply3);
-        List<Reply> result = replyUtil.getReplyforInquriy(0);
-
-        assertOrder(result, legacyReply3, legacyReply2, legacyReply1);
     }
 
     @Test
@@ -43,47 +33,23 @@ class ReplyUtilTest {
     }
 
     @Test
-    void testGetReplyforInquriy_permutatedOrderLegacy() {
-        ReplyUtil replyUtil = new ReplyUtilMock(legacyReply2, legacyReply3, legacyReply1);
-        List<Reply> result = replyUtil.getReplyforInquriy(0);
-
-        assertOrder(result, legacyReply3, legacyReply2, legacyReply1);
+    void testExtractDonorCount_currentReply() {
+        assertThat(extractDonorCount(currentReply(173055)), is(173055));
     }
 
     @Test
-    void testGetReplyforInquriy_invalidReply1() {
-        Reply replyInvalid = createReplyWithoutDonorKey();
-        ReplyUtil replyUtil = new ReplyUtilMock(legacyReply1, replyInvalid, legacyReply3);
-        List<Reply> result = replyUtil.getReplyforInquriy(0);
-
-        assertOrder(result, legacyReply3, legacyReply1, replyInvalid);
+    void testExtractDonorCount_legacyReply() {
+        assertThat(extractDonorCount(reply("{ donor: " + 173631 + "}")), is(173631));
     }
 
     @Test
-    void testGetReplyforInquriy_invalidReply2() {
-        Reply replyInvalid = createReplyWithoutDonorKey();
-        ReplyUtil replyUtil = new ReplyUtilMock(reply1, replyInvalid, reply3);
-        List<Reply> result = replyUtil.getReplyforInquriy(0);
-
-        assertOrder(result, reply3, reply1, replyInvalid);
+    void testExtractDonorCount_missingDonorKey() {
+        assertThat(extractDonorCount(reply("{ other: 1 }")), is(0));
     }
 
     @Test
-    void testGetReplyforInquriy_invalidReply3() {
-        Reply replyInvalid = createReplyWithoutDonorCountKey();
-        ReplyUtil replyUtil = new ReplyUtilMock(legacyReply1, replyInvalid, legacyReply3);
-        List<Reply> result = replyUtil.getReplyforInquriy(0);
-
-        assertOrder(result, legacyReply3, legacyReply1, replyInvalid);
-    }
-
-    @Test
-    void testGetReplyforInquriy_invalidReply4() {
-        Reply replyInvalid = createReplyWithoutDonorCountKey();
-        ReplyUtil replyUtil = new ReplyUtilMock(reply1, replyInvalid, reply3);
-        List<Reply> result = replyUtil.getReplyforInquriy(0);
-
-        assertOrder(result, reply3, reply1, replyInvalid);
+    void testExtractDonorCount_missingDonorCount() {
+        assertThat(extractDonorCount(reply("{ donor: { other: 1 } }")), is(0));
     }
 
     private void assertOrder(List<Reply> result, Reply... expectedResults) {
@@ -91,30 +57,13 @@ class ReplyUtilTest {
         assertThat(result, is(expectedOrder));
     }
 
-    private Reply createReply(int count) {
-        Reply reply = new Reply();
-
-        reply.setContent("{ donor: { count: " + count + "}}");
-        reply.setId(10 * count);
-
-        return reply;
+    private static Reply currentReply(int count) {
+        return reply("{ donor: { count: " + count + "}}");
     }
 
-    private Reply createLegacyReply(int count) {
+    private static Reply reply(String content) {
         Reply reply = new Reply();
-        reply.setContent("{ donor: " + count + "}");
-        return reply;
-    }
-
-    private Reply createReplyWithoutDonorKey() {
-        Reply reply = new Reply();
-        reply.setContent("{ other: 1 }");
-        return reply;
-    }
-
-    private Reply createReplyWithoutDonorCountKey() {
-        Reply reply = new Reply();
-        reply.setContent("{donor: { other: 1 }}");
+        reply.setContent(content);
         return reply;
     }
 }
