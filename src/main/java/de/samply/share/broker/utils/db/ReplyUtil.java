@@ -1,7 +1,5 @@
 package de.samply.share.broker.utils.db;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.tables.daos.ReplyDao;
 import de.samply.share.broker.model.db.tables.pojos.Reply;
@@ -18,32 +16,23 @@ import java.util.List;
 
 public class ReplyUtil {
 
+    private final DonorCountExtractor countExtractor;
+
+    public ReplyUtil() {
+        this(new DonorCountExtractor());
+    }
+
+    public ReplyUtil(DonorCountExtractor countExtractor) {
+        this.countExtractor = countExtractor;
+    }
+
     public List<Reply> getReplyforInquriy(int inquiryID) {
         List<Reply> reply = fetchReplies(inquiryID);
 
-        reply.sort(Comparator.comparingInt(ReplyUtil::extractDonorCount));
+        reply.sort(Comparator.comparingInt(countExtractor::extractDonorCount));
         Collections.reverse(reply);
 
         return reply;
-    }
-
-    static int extractDonorCount(Reply reply) {
-        try {
-            JsonResult result = new Gson().fromJson(reply.getContent(), JsonResult.class);
-            JsonResultEntity donor = result.getDonor();
-            return donor == null ? 0 : donor.getCount();
-        } catch (JsonSyntaxException exception) {
-            return extractDonorCountLegacyFormat(reply);
-        }
-    }
-
-    private static int extractDonorCountLegacyFormat(Reply reply) {
-        try {
-            JsonResultLegacy result = new Gson().fromJson(reply.getContent(), JsonResultLegacy.class);
-            return result.getDonor();
-        } catch (JsonSyntaxException exception) {
-            return 0;
-        }
     }
 
     List<Reply> fetchReplies(int inquiryID) {
@@ -54,33 +43,6 @@ public class ReplyUtil {
         } catch (SQLException e) {
             e.printStackTrace();
             return new ArrayList<>();
-        }
-    }
-
-    private static class JsonResult {
-        @SuppressWarnings("unused")
-        private JsonResultEntity donor;
-
-        JsonResultEntity getDonor() {
-            return donor;
-        }
-    }
-
-    private static class JsonResultEntity {
-        @SuppressWarnings("unused")
-        private int count;
-
-        int getCount() {
-            return count;
-        }
-    }
-
-    private static class JsonResultLegacy {
-        @SuppressWarnings("unused")
-        private int donor;
-
-        int getDonor() {
-            return donor;
         }
     }
 }

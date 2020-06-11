@@ -9,7 +9,9 @@ class ReplyUtilMock extends ReplyUtil {
 
     private final List<Reply> replies;
 
-    ReplyUtilMock(Reply... replies) {
+    ReplyUtilMock(DonorCountExtractor countExtractor, Reply... replies) {
+        super(countExtractor);
+
         this.replies = Arrays.asList(replies);
     }
 
