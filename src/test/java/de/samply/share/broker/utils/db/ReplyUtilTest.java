@@ -1,24 +1,39 @@
 package de.samply.share.broker.utils.db;
 
 import de.samply.share.broker.model.db.tables.pojos.Reply;
+import org.easymock.EasyMock;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static de.samply.share.broker.utils.db.ReplyUtil.extractDonorCount;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.CoreMatchers.is;
 
 class ReplyUtilTest {
 
-    private final Reply reply1 = currentReply(1);
-    private final Reply reply2 = currentReply(2);
-    private final Reply reply3 = currentReply(3);
+    private final Reply reply1 = reply(1);
+    private final Reply reply2 = reply(2);
+    private final Reply reply3 = reply(3);
+
+    private DonorCountExtractor countExtractor;
+
+    @BeforeEach
+    void setUp() {
+        countExtractor = EasyMock.createNiceMock(DonorCountExtractor.class);
+
+        EasyMock.expect(countExtractor.extractDonorCount(reply1)).andStubReturn(1);
+        EasyMock.expect(countExtractor.extractDonorCount(reply2)).andStubReturn(2);
+        EasyMock.expect(countExtractor.extractDonorCount(reply3)).andStubReturn(3);
+
+        EasyMock.replay(countExtractor);
+    }
 
     @Test
     void testGetReplyforInquriy_simpleCase() {
-        ReplyUtil replyUtil = new ReplyUtilMock(reply1, reply2, reply3);
+        ReplyUtil replyUtil = new ReplyUtilMock(countExtractor, reply1, reply2, reply3);
         List<Reply> result = replyUtil.getReplyforInquriy(0);
 
         assertOrder(result, reply3, reply2, reply1);
@@ -26,30 +41,10 @@ class ReplyUtilTest {
 
     @Test
     void testGetReplyforInquriy_permutatedOrder() {
-        ReplyUtil replyUtil = new ReplyUtilMock(reply2, reply3, reply1);
+        ReplyUtil replyUtil = new ReplyUtilMock(countExtractor, reply2, reply3, reply1);
         List<Reply> result = replyUtil.getReplyforInquriy(0);
 
         assertOrder(result, reply3, reply2, reply1);
-    }
-
-    @Test
-    void testExtractDonorCount_currentReply() {
-        assertThat(extractDonorCount(currentReply(173055)), is(173055));
-    }
-
-    @Test
-    void testExtractDonorCount_legacyReply() {
-        assertThat(extractDonorCount(reply("{ donor: " + 173631 + "}")), is(173631));
-    }
-
-    @Test
-    void testExtractDonorCount_missingDonorKey() {
-        assertThat(extractDonorCount(reply("{ other: 1 }")), is(0));
-    }
-
-    @Test
-    void testExtractDonorCount_missingDonorCount() {
-        assertThat(extractDonorCount(reply("{ donor: { other: 1 } }")), is(0));
     }
 
     private void assertOrder(List<Reply> result, Reply... expectedResults) {
@@ -57,13 +52,9 @@ class ReplyUtilTest {
         assertThat(result, is(expectedOrder));
     }
 
-    private static Reply currentReply(int count) {
-        return reply("{ donor: { count: " + count + "}}");
-    }
 
-    private static Reply reply(String content) {
-        Reply reply = new Reply();
-        reply.setContent(content);
-        return reply;
+    @NotNull
+    private Reply reply(int i) {
+        return new Reply(i, null, null, null);
     }
 }
