@@ -27,8 +27,18 @@ public class DonorCountExtractorTest {
     }
 
     @Test
-    void testExtractDonorCount_invalidReply() {
-        assertThat(countExtractor.extractDonorCount(replyInvalid()), is(0));
+    void testExtractDonorCount_invalidReply_MissingDonor() {
+        assertThat(countExtractor.extractDonorCount(replyInvalid_MissingDonor()), is(0));
+    }
+
+    @Test
+    void testExtractDonorCount_invalidReply_MissingCount() {
+        assertThat(countExtractor.extractDonorCount(replyInvalid_MissingCount()), is(0));
+    }
+
+    @Test
+    void testExtractDonorCount_invalidReply_WrongDonorFormat() {
+        assertThat(countExtractor.extractDonorCount(replyInvalid_WrongDonorFormat()), is(0));
     }
 
     private static Reply reply(int count) {
@@ -39,8 +49,16 @@ public class DonorCountExtractorTest {
         return reply("{ donor: " + count + " }");
     }
 
-    private static Reply replyInvalid() {
-        return reply("{ other: 1 }");
+    private static Reply replyInvalid_MissingDonor() {
+        return reply("{ }");
+    }
+
+    private static Reply replyInvalid_MissingCount() {
+        return reply("{ donor: {} }");
+    }
+
+    private static Reply replyInvalid_WrongDonorFormat() {
+        return reply("{ donor: \"a\" }");
     }
 
     private static Reply reply(String content) {
