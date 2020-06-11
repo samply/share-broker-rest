@@ -28,7 +28,7 @@ public class DonorCountExtractorTest {
 
     @Test
     void testExtractDonorCount_invalidReply() {
-        assertThat(countExtractor.extractDonorCount(replyInvalid(1)), is(0));
+        assertThat(countExtractor.extractDonorCount(replyInvalid()), is(0));
     }
 
     private static Reply reply(int count) {
@@ -39,8 +39,8 @@ public class DonorCountExtractorTest {
         return reply("{ donor: " + count + " }");
     }
 
-    private static Reply replyInvalid(int count) {
-        return reply("{ other: " + count + " }");
+    private static Reply replyInvalid() {
+        return reply("{ other: 1 }");
     }
 
     private static Reply reply(String content) {
