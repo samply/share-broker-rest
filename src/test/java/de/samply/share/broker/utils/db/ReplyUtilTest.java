@@ -6,15 +6,15 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static de.samply.share.broker.utils.db.ReplyUtil.extractDonorCount;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
 class ReplyUtilTest {
 
-    private final Reply reply1 = createReply(1);
-    private final Reply reply2 = createReply(2);
-    private final Reply reply3 = createReply(3);
-    private final Reply replyInvalid = createInvalidReply();
+    private final Reply reply1 = currentReply(1);
+    private final Reply reply2 = currentReply(2);
+    private final Reply reply3 = currentReply(3);
 
     @Test
     void testGetReplyforInquriy_simpleCase() {
@@ -33,11 +33,23 @@ class ReplyUtilTest {
     }
 
     @Test
-    void testGetReplyforInquriy_invalidReply() {
-        ReplyUtil replyUtil = new ReplyUtilMock(reply1, replyInvalid, reply3);
-        List<Reply> result = replyUtil.getReplyforInquriy(0);
+    void testExtractDonorCount_currentReply() {
+        assertThat(extractDonorCount(currentReply(173055)), is(173055));
+    }
 
-        assertOrder(result, reply3, reply1, replyInvalid);
+    @Test
+    void testExtractDonorCount_legacyReply() {
+        assertThat(extractDonorCount(reply("{ donor: " + 173631 + "}")), is(173631));
+    }
+
+    @Test
+    void testExtractDonorCount_missingDonorKey() {
+        assertThat(extractDonorCount(reply("{ other: 1 }")), is(0));
+    }
+
+    @Test
+    void testExtractDonorCount_missingDonorCount() {
+        assertThat(extractDonorCount(reply("{ donor: { other: 1 } }")), is(0));
     }
 
     private void assertOrder(List<Reply> result, Reply... expectedResults) {
@@ -45,21 +57,13 @@ class ReplyUtilTest {
         assertThat(result, is(expectedOrder));
     }
 
-    private Reply createReply(int count) {
-        Reply reply = new Reply();
-
-        reply.setContent("{ donor: " + count + "}");
-        reply.setId(10 * count);
-
-        return reply;
+    private static Reply currentReply(int count) {
+        return reply("{ donor: { count: " + count + "}}");
     }
 
-    private Reply createInvalidReply() {
+    private static Reply reply(String content) {
         Reply reply = new Reply();
-
-        reply.setContent(" { XYZdonor: " + 2 + " }");
-        reply.setId(20);
-
+        reply.setContent(content);
         return reply;
     }
 }
