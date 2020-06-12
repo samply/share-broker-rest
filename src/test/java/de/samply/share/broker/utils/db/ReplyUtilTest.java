@@ -1,24 +1,39 @@
 package de.samply.share.broker.utils.db;
 
 import de.samply.share.broker.model.db.tables.pojos.Reply;
+import org.easymock.EasyMock;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.CoreMatchers.is;
 
 class ReplyUtilTest {
 
-    private final Reply reply1 = createReply(1);
-    private final Reply reply2 = createReply(2);
-    private final Reply reply3 = createReply(3);
-    private final Reply replyInvalid = createInvalidReply();
+    private final Reply reply1 = reply(1);
+    private final Reply reply2 = reply(2);
+    private final Reply reply3 = reply(3);
+
+    private DonorCountExtractor countExtractor;
+
+    @BeforeEach
+    void setUp() {
+        countExtractor = EasyMock.createNiceMock(DonorCountExtractor.class);
+
+        EasyMock.expect(countExtractor.extractDonorCount(reply1)).andStubReturn(1);
+        EasyMock.expect(countExtractor.extractDonorCount(reply2)).andStubReturn(2);
+        EasyMock.expect(countExtractor.extractDonorCount(reply3)).andStubReturn(3);
+
+        EasyMock.replay(countExtractor);
+    }
 
     @Test
     void testGetReplyforInquriy_simpleCase() {
-        ReplyUtil replyUtil = new ReplyUtilMock(reply1, reply2, reply3);
+        ReplyUtil replyUtil = new ReplyUtilMock(countExtractor, reply1, reply2, reply3);
         List<Reply> result = replyUtil.getReplyforInquriy(0);
 
         assertOrder(result, reply3, reply2, reply1);
@@ -26,18 +41,10 @@ class ReplyUtilTest {
 
     @Test
     void testGetReplyforInquriy_permutatedOrder() {
-        ReplyUtil replyUtil = new ReplyUtilMock(reply2, reply3, reply1);
+        ReplyUtil replyUtil = new ReplyUtilMock(countExtractor, reply2, reply3, reply1);
         List<Reply> result = replyUtil.getReplyforInquriy(0);
 
         assertOrder(result, reply3, reply2, reply1);
-    }
-
-    @Test
-    void testGetReplyforInquriy_invalidReply() {
-        ReplyUtil replyUtil = new ReplyUtilMock(reply1, replyInvalid, reply3);
-        List<Reply> result = replyUtil.getReplyforInquriy(0);
-
-        assertOrder(result, reply3, reply1, replyInvalid);
     }
 
     private void assertOrder(List<Reply> result, Reply... expectedResults) {
@@ -45,21 +52,9 @@ class ReplyUtilTest {
         assertThat(result, is(expectedOrder));
     }
 
-    private Reply createReply(int count) {
-        Reply reply = new Reply();
 
-        reply.setContent("{ donor: " + count + "}");
-        reply.setId(10 * count);
-
-        return reply;
-    }
-
-    private Reply createInvalidReply() {
-        Reply reply = new Reply();
-
-        reply.setContent(" { XYZdonor: " + 2 + " }");
-        reply.setId(20);
-
-        return reply;
+    @NotNull
+    private Reply reply(int i) {
+        return new Reply(i, null, null, null);
     }
 }
