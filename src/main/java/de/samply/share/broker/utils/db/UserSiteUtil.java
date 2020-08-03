@@ -123,10 +123,6 @@ public final class UserSiteUtil {
             newUserSite.setSiteId(site.getId());
             newUserSite.setUserId(user.getId());
             userSiteDao.insert(newUserSite);
-            
-            if (oldUserSite != null && !oldUserSite.getSiteId().equals(newUserSite.getSiteId()) && !approved) {
-                MailUtils.sendUserSiteMail(user, site);
-            }
         } catch (SQLException e) {
             logger.error("SQL Exception caught", e);
         }
