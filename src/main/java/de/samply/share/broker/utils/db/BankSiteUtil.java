@@ -104,10 +104,6 @@ public final class BankSiteUtil {
         } catch (SQLException e) {
             logger.error("SQL Exception caught", e);
         }
-        
-        if (oldBankSite != null && !oldBankSite.getSiteId().equals(newBankSite.getSiteId()) && !approved) {
-            MailUtils.sendBankSiteMail(bank, site);
-        }
     }
 
 
