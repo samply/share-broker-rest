@@ -72,7 +72,7 @@ public class ResourceManager  {
      * @throws SQLException
      *             the SQL exception
      */
-    public static synchronized DSLContext getDSLContext(Connection connection) {
+    public static DSLContext getDSLContext(Connection connection) {
         Configuration configuration = new DefaultConfiguration().set(connection).set(SQLDialect.POSTGRES);
         return DSL.using(configuration);
     }
@@ -84,7 +84,7 @@ public class ResourceManager  {
      * @throws SQLException
      *             the SQL exception
      */
-    public static synchronized Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws SQLException {
         return dataSource.getConnection();
     }
 
