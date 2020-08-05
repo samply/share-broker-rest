@@ -16,6 +16,7 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -42,6 +43,13 @@ public class IcingaConnector {
     private static final String CFG_ICINGA_SITE_SUFFIX = "icinga.site_suffix";
 
     private static final String ICINGA_PREFIX = "BK ";
+
+    private static final RequestConfig DEFAULT_REQUEST_CONFIG = RequestConfig
+            .custom()
+            .setSocketTimeout(10000)
+            .setConnectTimeout(10000)
+            .setConnectionRequestTimeout(10000)
+            .build();
 
     private static CloseableHttpClient httpClient;
     private static HttpHost httpHost;
@@ -229,6 +237,7 @@ public class IcingaConnector {
                 .setCustomQuery("service=" + service);
         HttpPost httpPost = new HttpPost(uriBuilder.build().toString());
         httpPost.setHeader(HttpHeaders.ACCEPT, javax.ws.rs.core.MediaType.APPLICATION_JSON);
+        httpPost.setConfig(DEFAULT_REQUEST_CONFIG);
         return httpPost;
     }
 
@@ -242,6 +251,7 @@ public class IcingaConnector {
                 .setCustomQuery("host=" + service);
         HttpPost httpPost = new HttpPost(uriBuilder.build().toString());
         httpPost.setHeader(HttpHeaders.ACCEPT, javax.ws.rs.core.MediaType.APPLICATION_JSON);
+        httpPost.setConfig(DEFAULT_REQUEST_CONFIG);
         return httpPost;
     }
 
