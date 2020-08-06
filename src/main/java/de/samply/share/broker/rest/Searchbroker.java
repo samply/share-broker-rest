@@ -90,7 +90,7 @@ public class Searchbroker {
 
     private final InquiryHandler inquiryHandler = new InquiryHandler();
 
-    private final static Map<Integer, Instant> LAST_BANK_SEND_INSTS = new ConcurrentHashMap<>();
+    private final static Map<Integer, Instant> LAST_BANK_SEND_INSTANTS = new ConcurrentHashMap<>();
 
     private static final int VERSION_REPORT_SEND_QUEUE_CAPACITY = 100;
 
@@ -787,7 +787,7 @@ public class Searchbroker {
 
         LOGGER.debug("GET /inquiries called from: " + Utils.userAgentAndBankToJson(userAgent, bankId));
 
-        sendVersionReport(userAgent, bankId);
+        asyncSendVersionReportEveryMinute(userAgent, bankId, Instant.now());
 
         String inquiryList = inquiryHandler.list(bankId);
 
@@ -798,17 +798,25 @@ public class Searchbroker {
         return Response.ok().entity(inquiryList).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
     }
 
-    private static void sendVersionReport(String userAgent, int bankId) {
-        if (shouldSendVersionReport(bankId, Instant.now())) {
+    private static void asyncSendVersionReportEveryMinute(String userAgent, int bankId, Instant now) {
+        if (updateBankLastSendInstantIfExpired(bankId, now).equals(now)) {
             LOGGER.debug("Schedule sending of version report to bank with ID: " + bankId);
             VERSION_REPORT_SENDER.execute(() -> Utils.sendVersionReportsToIcinga(bankId, userAgent));
         }
     }
 
-    private static boolean shouldSendVersionReport(int bankId, Instant now) {
-        return LAST_BANK_SEND_INSTS.merge(bankId, now,
-                (old, __) -> ChronoUnit.HOURS.between(old, now) > 1 ? now : old
-        ).equals(now);
+    /**
+     * Updates the instant at which the last version report of a bank was send to {@code now} if either no instant is
+     * recorded or the already recorded instant is older than one minute.
+     *
+     * @param bankId the ID of the bank to update the instant
+     * @param now the current instant
+     * @return the updated instant, which is either the last send instant if not expired or {@code now} if expired
+     */
+    private static Instant updateBankLastSendInstantIfExpired(int bankId, Instant now) {
+        return LAST_BANK_SEND_INSTANTS.merge(bankId, now,
+                (old, unused) -> ChronoUnit.MINUTES.between(old, now) > 1 ? now : old
+        );
     }
 
     /**
