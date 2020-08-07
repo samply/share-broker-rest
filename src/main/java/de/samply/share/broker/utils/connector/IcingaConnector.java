@@ -14,13 +14,17 @@ import org.apache.http.NoHttpResponseException;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
@@ -57,6 +61,7 @@ public class IcingaConnector {
     private static String targetPath;
     private static String siteSuffix;
     private static CredentialsProvider credentialsProvider;
+    private static HttpClientContext context;
 
     static {
         try {
@@ -70,6 +75,11 @@ public class IcingaConnector {
             credentialsProvider = prepareCredentialsProvider(httpHost, username, password);
             httpConnector.setCp(credentialsProvider);
             httpClient = httpConnector.getHttpClient(targetHost);
+            AuthCache authCache = new BasicAuthCache();
+            BasicScheme basicAuth = new BasicScheme();
+            authCache.put(httpHost, basicAuth);
+            context = HttpClientContext.create();
+            context.setAuthCache(authCache);
             gson = new Gson();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -136,7 +146,7 @@ public class IcingaConnector {
             icingaReportItem.setPlugin_output(statusReportItem.getStatus_text());
             httpPost.setEntity(new StringEntity(gson.toJson(icingaReportItem), Consts.UTF_8));
 
-            CloseableHttpResponse response = httpClient.execute(httpPost);
+            CloseableHttpResponse response = httpClient.execute(httpPost, context);
             EntityUtils.consume(response.getEntity());
         } catch (NoHttpResponseException nhre) {
             if (!isRetry) {
@@ -189,7 +199,7 @@ public class IcingaConnector {
 
             httpPost.setEntity(new StringEntity(gson.toJson(icingaReportItem), Consts.UTF_8));
 
-            CloseableHttpResponse response = httpClient.execute(httpPost);
+            CloseableHttpResponse response = httpClient.execute(httpPost, context);
             EntityUtils.consume(response.getEntity());
         } catch (NoHttpResponseException nhre) {
             if (!isRetry) {

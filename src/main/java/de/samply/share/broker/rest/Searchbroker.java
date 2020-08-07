@@ -35,6 +35,7 @@ import de.samply.share.broker.filter.AuthenticatedUser;
 import de.samply.share.broker.filter.Secured;
 import de.samply.share.broker.model.db.tables.daos.InquiryDao;
 import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.monitoring.IcingaController;
 import de.samply.share.broker.statistics.NTokenHandler;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.broker.utils.db.*;
@@ -64,7 +65,6 @@ import javax.ws.rs.core.*;
 import javax.xml.bind.JAXBException;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -90,23 +90,17 @@ public class Searchbroker {
 
     private final InquiryHandler inquiryHandler = new InquiryHandler();
 
-    private final static Map<Integer, Instant> LAST_BANK_SEND_INSTANTS = new ConcurrentHashMap<>();
-
-    private static final int VERSION_REPORT_SEND_QUEUE_CAPACITY = 100;
-
-    private final static Executor VERSION_REPORT_SENDER = new ThreadPoolExecutor(
-            1, 1, 0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(VERSION_REPORT_SEND_QUEUE_CAPACITY),
-            new ThreadPoolExecutor.DiscardOldestPolicy());
-
     private Gson gson = new Gson();
 
     @Context
-    UriInfo uriInfo;
+    private UriInfo uriInfo;
 
     @Inject
     @AuthenticatedUser
-    User authenticatedUser;
+    private User authenticatedUser;
+
+    @Inject
+    private IcingaController icingaController;
 
     @Path("/version")
     @Produces(MediaType.TEXT_PLAIN)
@@ -787,7 +781,7 @@ public class Searchbroker {
 
         LOGGER.debug("GET /inquiries called from: " + Utils.userAgentAndBankToJson(userAgent, bankId));
 
-        asyncSendVersionReportEveryMinute(userAgent, bankId, Instant.now());
+        icingaController.asyncSendVersionReportEveryMinute(userAgent, bankId);
 
         String inquiryList = inquiryHandler.list(bankId);
 
@@ -796,27 +790,6 @@ public class Searchbroker {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.ok().entity(inquiryList).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
-    }
-
-    private static void asyncSendVersionReportEveryMinute(String userAgent, int bankId, Instant now) {
-        if (updateBankLastSendInstantIfExpired(bankId, now).equals(now)) {
-            LOGGER.debug("Schedule sending of version report to bank with ID: " + bankId);
-            VERSION_REPORT_SENDER.execute(() -> Utils.sendVersionReportsToIcinga(bankId, userAgent));
-        }
-    }
-
-    /**
-     * Updates the instant at which the last version report of a bank was send to {@code now} if either no instant is
-     * recorded or the already recorded instant is older than one minute.
-     *
-     * @param bankId the ID of the bank to update the instant
-     * @param now the current instant
-     * @return the updated instant, which is either the last send instant if not expired or {@code now} if expired
-     */
-    private static Instant updateBankLastSendInstantIfExpired(int bankId, Instant now) {
-        return LAST_BANK_SEND_INSTANTS.merge(bankId, now,
-                (old, unused) -> ChronoUnit.MINUTES.between(old, now) > 1 ? now : old
-        );
     }
 
     /**
