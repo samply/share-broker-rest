@@ -334,10 +334,10 @@ public class Utils {
     /**
      * Use IcingaConnector to send version information
      *
-     * @param userAgentHeader the user agent header as received via http request
      * @param bankId          the id of the bank that reported it
+     * @param userAgentHeader the user agent header as received via http request
      */
-    public static void sendVersionReportsToIcinga(String userAgentHeader, int bankId) {
+    public static void sendVersionReportsToIcinga(int bankId, String userAgentHeader) {
         // {"id":12,"name":"Teststandort","versions""samply.share.client": "1.1.4-SNAPSHOT"}}
         Site site = BankUtil.getSiteForBankId(bankId);
         if (site == null) {
