@@ -33,6 +33,8 @@ import de.samply.share.broker.utils.Utils;
 import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.model.common.*;
+import de.samply.share.model.cql.CqlQuery;
+import de.samply.share.model.cql.CqlQueryList;
 import de.samply.share.utils.QueryConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,6 +58,8 @@ public class Test {
     private Logger logger = LogManager.getLogger(this.getClass().getName());
 
     final String SERVER_HEADER_VALUE = Constants.SERVER_HEADER_VALUE_PREFIX + ProjectInfo.INSTANCE.getVersionString();
+    private static final String QUERYLANGUAGE_QUERY = "QUERY";
+    private static final String QUERYLANGUAGE_CQL = "CQL";
 
     @Context
     UriInfo uriInfo;
@@ -64,12 +68,12 @@ public class Test {
      * Gets the example inquiry, no matter which id is provided.
      *
      * @return <CODE>200</CODE> and the serialized example inquiry on success
-     *         <CODE>500</CODE> on any error
+     * <CODE>500</CODE> on any error
      */
     @Path("/inquiries/{inquiryid}")
     @GET
     @Produces(MediaType.APPLICATION_XML)
-    public Response getInquiry(@HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader) {
+    public Response getInquiry(@HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader, @HeaderParam(Constants.QUERY_LANGUAGE) String queryLanguage) {
         try {
             Inquiry inquiry = new Inquiry();
             inquiry.setAuthor(getDummyContact());
@@ -81,7 +85,14 @@ public class Test {
 
             inquiry.setId("0");
             inquiry.setLabel(getDummyInfo().getLabel());
-            inquiry.setQuery(getExampleQuery());
+            if (queryLanguage.equals(QUERYLANGUAGE_QUERY)) {
+                inquiry.setQuery(getExampleQuery());
+            }
+            if (queryLanguage.equals(QUERYLANGUAGE_CQL)) {
+                CqlQueryList cqlQueryList = new CqlQueryList();
+                cqlQueryList.getQueries().add(getExampleCqlQuery());
+                inquiry.setCqlQueryList(cqlQueryList);
+            }
             inquiry.setRevision("1");
             inquiry.getSearchFor().add("patienten");
 
@@ -107,16 +118,22 @@ public class Test {
      * Gets the query part of the inquiry with the given id.
      *
      * @return <CODE>200</CODE> and the serialized query part of the example inquiry on success
-     *         <CODE>500</CODE> on any error
+     * <CODE>500</CODE> on any error
      */
     @Path("/inquiries/{inquiryid}/query")
     @GET
     @Produces(MediaType.APPLICATION_XML)
-    public Response getQuery(@HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader) {
+    public Response getQuery(@HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader, @HeaderParam(Constants.QUERY_LANGUAGE) String queryLanguage) {
         try {
-            Query query = getExampleQuery();
-            String ret = QueryConverter.queryToXml(query);
-            ret = Utils.fixNamespaces(ret, xmlNamespaceHeader);
+            String ret = "";
+            if (queryLanguage.equals(QUERYLANGUAGE_CQL)) {
+                CqlQuery cqlQuery = getExampleCqlQuery();
+                ret = cqlQuery.getCql();
+            } else if (queryLanguage.equals(QUERYLANGUAGE_QUERY)) {
+                Query query = getExampleQuery();
+                ret = QueryConverter.queryToXml(query);
+                ret = Utils.fixNamespaces(ret, xmlNamespaceHeader);
+            }
             return Response.status(Response.Status.OK).entity(ret).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
         } catch (JAXBException e) {
             logger.error("Caught JAXB Exception while trying to provide example query", e);
@@ -128,7 +145,7 @@ public class Test {
      * Gets a dummy contact for the example inquiry
      *
      * @return <CODE>200</CODE> and the serialized dummy contact on success
-     *         <CODE>500</CODE> on any error
+     * <CODE>500</CODE> on any error
      */
     @Path("/inquiries/{inquiryid}/contact")
     @GET
@@ -158,7 +175,7 @@ public class Test {
      * Gets a dummy description for the example inquiry
      *
      * @return <CODE>200</CODE> and the serialized dummy info on success
-     *         <CODE>500</CODE> on any error
+     * <CODE>500</CODE> on any error
      */
     @Path("/inquiries/{inquiryid}/info")
     @GET
@@ -190,7 +207,6 @@ public class Test {
      * Always return that no expose is available here
      *
      * @param inquiryId an irrelevant id that is accepted but ignored in order to fit the requests
-     *
      * @return <CODE>404</CODE> in any case
      */
     @Path("/inquiries/{inquiryid}/hasexpose")
@@ -225,7 +241,7 @@ public class Test {
         Where where = new Where();
         And and = new And();
         Eq eq = new Eq();
-        Or or= new Or();
+        Or or = new Or();
         Attribute attribute = new Attribute();
         if (ProjectInfo.INSTANCE.getProjectName().toLowerCase().equals("samply")) {
             attribute.setMdrKey("urn:mdr16:dataelement:23:1");
@@ -242,6 +258,18 @@ public class Test {
         query.setWhere(where);
 
         return query;
+    }
+
+    private static CqlQuery getExampleCqlQuery() {
+        CqlQuery cqlQuery = new CqlQuery();
+        cqlQuery.setCql("library Retrieve\n" +
+                "using FHIR version '4.0.0'\n" +
+                "include FHIRHelpers version '4.0.0'\n" +
+                "context Patient\n" +
+                "define InInitialPopulation:\n" +
+                "    Patient.gender = 'male'");
+        cqlQuery.setEntityType("Patient");
+        return cqlQuery;
     }
 
     /**
