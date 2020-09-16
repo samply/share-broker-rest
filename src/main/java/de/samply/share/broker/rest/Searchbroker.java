@@ -35,6 +35,7 @@ import de.samply.share.broker.filter.AuthenticatedUser;
 import de.samply.share.broker.filter.Secured;
 import de.samply.share.broker.model.db.tables.daos.InquiryDao;
 import de.samply.share.broker.model.db.tables.pojos.*;
+import de.samply.share.broker.monitoring.IcingaController;
 import de.samply.share.broker.statistics.NTokenHandler;
 import de.samply.share.broker.utils.Utils;
 import de.samply.share.broker.utils.db.*;
@@ -63,9 +64,14 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.xml.bind.JAXBException;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The Class Searchbroker provides the REST resources for samply.share.client (and other similar products) to use the decentral search.
@@ -76,7 +82,7 @@ public class Searchbroker {
     private static final String CONFIG_PROPERTY_BROKER_NAME = "broker.name";
     private static final String CONTENT_TYPE_PDF = "application/pdf";
 
-    private final Logger logger = LoggerFactory.getLogger(Searchbroker.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Searchbroker.class);
 
     private final String SERVER_HEADER_VALUE = Constants.SERVER_HEADER_VALUE_PREFIX + ProjectInfo.INSTANCE.getVersionString();
 
@@ -84,16 +90,17 @@ public class Searchbroker {
 
     private final InquiryHandler inquiryHandler = new InquiryHandler();
 
-    private static Map<Integer, Integer> tickMap = new HashMap<>();
-
     private Gson gson = new Gson();
 
     @Context
-    UriInfo uriInfo;
+    private UriInfo uriInfo;
 
     @Inject
     @AuthenticatedUser
-    User authenticatedUser;
+    private User authenticatedUser;
+
+    @Inject
+    private IcingaController icingaController;
 
     @Path("/version")
     @Produces(MediaType.TEXT_PLAIN)
@@ -361,11 +368,11 @@ public class Searchbroker {
                     example = "4b30d418-d1a0-4915-9f3c-b6d83b75c68a__search_890536a1-7cd5-470f-960d-18afd47499da",
                     schema = @Schema(implementation = String.class))
             @QueryParam("ntoken") String ntoken) {
-        this.logger.info("sendQuery called");
+        LOGGER.info("sendQuery called");
 
         SearchController.releaseQuery(json, ntoken, authenticatedUser);
 
-        this.logger.info("sendQuery with ntoken '" + ntoken + "'is sent");
+        LOGGER.info("sendQuery with ntoken '" + ntoken + "'is sent");
         Response.ResponseBuilder responseBuilder = Response.accepted(ntoken);
         return addCorsHeaders(responseBuilder);
     }
@@ -384,7 +391,7 @@ public class Searchbroker {
     })
     @Operation(summary = "Save query in searchbroker database (OPTIONS for CORS)")
     public Response sendQuery_OPTIONS() {
-        this.logger.info("sendQuery called (OPTIONS)");
+        LOGGER.info("sendQuery called (OPTIONS)");
         return createPreflightCorsResponse(HttpMethod.POST, "origin, accept, content-type");
     }
 
@@ -409,7 +416,7 @@ public class Searchbroker {
                     schema = @Schema(implementation = String.class))
             @QueryParam("ntoken")
             @DefaultValue("") String nToken) {
-        this.logger.info("getQuery called");
+        LOGGER.info("getQuery called");
         String query = new NTokenHandler().findLatestQuery(nToken);
 
         return addCorsHeaders(Response.ok(query));
@@ -424,7 +431,7 @@ public class Searchbroker {
     })
     @Operation(summary = "Retrieve query from searchbroker backend (OPTIONS for CORS)")
     public Response getQuery_OPTIONS(@QueryParam("ntoken") @DefaultValue("") String nToken) {
-        this.logger.info("getQuery called (OPTIONS)");
+        LOGGER.info("getQuery called (OPTIONS)");
         return createPreflightCorsResponse(HttpMethod.GET, "origin, accept");
     }
 
@@ -627,20 +634,20 @@ public class Searchbroker {
         String authCode = SamplyShareUtils.getAuthCodeFromHeader(authCodeHeader, Constants.REGISTRATION_HEADER_VALUE);
 
         if (!SamplyShareUtils.isEmail(email)) {
-            this.logger.warn("Registration attempted with invalid email: " + email);
+            LOGGER.warn("Registration attempted with invalid email: " + email);
             responseStatus = Response.Status.BAD_REQUEST;
         } else if (authCode != null && authCode.length() > 0) {
             String locationId = null;
             if (accessToken != null && accessToken.length() > 0) {
                 locationId = Utils.getLocationIdFromAccessToken(accessToken);
-                this.logger.debug("location id = " + locationId);
+                LOGGER.debug("location id = " + locationId);
             }
             tokenId = bankRegistration.activate(email, authCode, locationId);
             if ("error".equals(tokenId)) {
-                this.logger.warn("Activation attempted with invalid credentials from: " + email);
+                LOGGER.warn("Activation attempted with invalid credentials from: " + email);
                 responseStatus = Response.Status.UNAUTHORIZED;
             } else {
-                this.logger.info("Bank activated: " + email);
+                LOGGER.info("Bank activated: " + email);
                 responseStatus = Response.Status.CREATED;
             }
         } else {
@@ -709,7 +716,7 @@ public class Searchbroker {
     @Operation(summary = "Possibly unused")
     public Response getRegistrationstatus(@PathParam("email") String email,
                                           @HeaderParam(HttpHeaders.AUTHORIZATION) String authCodeHeader) {
-        this.logger.debug("Get Status is called for " + email);
+        LOGGER.debug("Get Status is called for " + email);
         Response response;
         String authCode = SamplyShareUtils.getAuthCodeFromHeader(authCodeHeader, "Samply ");
 
@@ -729,7 +736,7 @@ public class Searchbroker {
             siteString = gson.toJson(siteInfo);
             response = Response.status(responseStatus).entity(siteString).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
         } catch (Exception e) {
-            this.logger.warn("Could not get site...no need to worry though." + e);
+            LOGGER.warn("Could not get site...no need to worry though." + e);
             response = Response.status(responseStatus).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
         }
 
@@ -762,39 +769,27 @@ public class Searchbroker {
             @APIResponse(responseCode = "500", description = "Internal Server Error")
     })
     public Response getInquiries(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-                                 @HeaderParam(HttpHeaders.USER_AGENT) String userAgent,
+                                 @HeaderParam(HttpHeaders.USER_AGENT) @DefaultValue("") String userAgent,
                                  @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader) {
 
-        if (isBankUnauthorized(authorizationHeader)) {
-            this.logger.warn("Unauthorized attempt to retrieve inquiry list");
+        int bankId = Utils.getBankId(authorizationHeader);
+
+        if (isBankUnauthorized(bankId)) {
+            LOGGER.warn("Unauthorized attempt to retrieve inquiry list");
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
-        int bankId = Utils.getBankId(authorizationHeader);
-        sendVersionReport(userAgent, bankId);
+        LOGGER.debug("GET /inquiries called from: " + Utils.userAgentAndBankToJson(userAgent, bankId));
+
+        icingaController.asyncSendVersionReportEveryMinute(userAgent, bankId);
 
         String inquiryList = inquiryHandler.list(bankId);
 
         if (StringUtils.isEmpty(inquiryList) || inquiryList.equalsIgnoreCase("error")) {
-            this.logger.warn("There was an error while retrieving the list of inquiries");
+            LOGGER.warn("There was an error while retrieving the list of inquiries");
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.ok().entity(inquiryList).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
-    }
-
-    private void sendVersionReport(String userAgent, int bankId) {
-        if (userAgent != null) {
-            this.logger.info("GET /inquiries called from: " + Utils.userAgentAndBankToJson(userAgent, bankId));
-
-            int bankTick = tickMap.getOrDefault(bankId, 1);
-
-            // Only report each 12th call to icinga (~1 minute interval)
-            if (bankTick % 12 == 0) {
-                Utils.sendVersionReportsToIcinga(userAgent, bankId);
-            }
-
-            tickMap.put(bankId, bankTick + 1);
-        }
     }
 
     /**
@@ -826,8 +821,10 @@ public class Searchbroker {
                                @HeaderParam(Constants.HEADER_KEY_QUERY_LANGUAGE) @DefaultValue("QUERY") String queryLanguage,
                                @PathParam("inquiryid") int inquiryId) {
 
-        if (isBankUnauthorized(authorizationHeader)) {
-            this.logger.warn("Unauthorized attempt to retrieve an inquiry");
+        int bankId = Utils.getBankId(authorizationHeader);
+
+        if (isBankUnauthorized(bankId)) {
+            LOGGER.warn("Unauthorized attempt to retrieve an inquiry");
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
@@ -837,7 +834,6 @@ public class Searchbroker {
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             try {
                 List<InquirySite> inquirySites = InquirySiteUtil.fetchInquirySitesForInquiryId(inquiryId);
-                int bankId = Utils.getBankId(authorizationHeader);
                 for (InquirySite is : inquirySites) {
                     if (is.getSiteId().equals(BankUtil.getSiteIdForBankId(bankId))) {
                         is.setRetrievedAt(SamplyShareUtils.getCurrentSqlTimestamp());
@@ -846,7 +842,7 @@ public class Searchbroker {
                 }
             } catch (Exception e) {
                 // Just catch everything for now
-                this.logger.warn("Could not update InquirySite");
+                LOGGER.warn("Could not update InquirySite");
             }
         }
 
@@ -879,8 +875,10 @@ public class Searchbroker {
                              @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
                              @PathParam("inquiryid") int inquiryId) {
 
-        if (isBankUnauthorized(authorizationHeader)) {
-            this.logger.warn("Unauthorized attempt to retrieve an inquiry");
+        int bankId = Utils.getBankId(authorizationHeader);
+
+        if (isBankUnauthorized(bankId)) {
+            LOGGER.warn("Unauthorized attempt to retrieve an inquiry");
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
@@ -915,14 +913,16 @@ public class Searchbroker {
                                   @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
                                   @PathParam("inquiryid") int inquiryId) {
 
-        if (isBankUnauthorized(authorizationHeader)) {
-            this.logger.warn("Unauthorized attempt to retrieve an inquiry");
+        int bankId = Utils.getBankId(authorizationHeader);
+
+        if (isBankUnauthorized(bankId)) {
+            LOGGER.warn("Unauthorized attempt to retrieve an inquiry");
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
         String ret = inquiryHandler.getViewFields(inquiryId);
         if (StringUtils.isEmpty(ret)) {
-            this.logger.debug("No ViewFields were set for inquiry with id " + inquiryId);
+            LOGGER.debug("No ViewFields were set for inquiry with id " + inquiryId);
             return Response.status(Response.Status.OK).build();
         }
         return buildResponse(xmlNamespaceHeader, inquiryId, ret);
@@ -954,8 +954,10 @@ public class Searchbroker {
                                @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
                                @PathParam("inquiryid") int inquiryId) {
 
-        if (isBankUnauthorized(authorizationHeader)) {
-            this.logger.warn("Unauthorized attempt to retrieve a contact");
+        int bankId = Utils.getBankId(authorizationHeader);
+
+        if (isBankUnauthorized(bankId)) {
+            LOGGER.warn("Unauthorized attempt to retrieve a contact");
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
@@ -963,7 +965,7 @@ public class Searchbroker {
         try {
             ret = inquiryHandler.getContact(inquiryId);
         } catch (JAXBException e) {
-            this.logger.error("Error getting contact for inquiry id " + inquiryId);
+            LOGGER.error("Error getting contact for inquiry id " + inquiryId);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
@@ -997,8 +999,10 @@ public class Searchbroker {
                             @HeaderParam(Constants.HEADER_XML_NAMESPACE) String xmlNamespaceHeader,
                             @PathParam("inquiryid") int inquiryId) {
 
-        if (isBankUnauthorized(authorizationHeader)) {
-            this.logger.warn("Unauthorized attempt to retrieve a contact");
+        int bankId = Utils.getBankId(authorizationHeader);
+
+        if (isBankUnauthorized(bankId)) {
+            LOGGER.warn("Unauthorized attempt to retrieve a contact");
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
@@ -1006,7 +1010,7 @@ public class Searchbroker {
         try {
             ret = inquiryHandler.getInfo(inquiryId);
         } catch (JAXBException e) {
-            this.logger.error("Error getting info for inquiry id " + inquiryId);
+            LOGGER.error("Error getting info for inquiry id " + inquiryId);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
@@ -1071,21 +1075,21 @@ public class Searchbroker {
         int bankId = Utils.getBankId(authorizationHeader, bankEmail);
 
         if (bankId < 0) {
-            this.logger.warn("Unauthorized attempt to answer to an inquiry from " + bankEmail);
+            LOGGER.warn("Unauthorized attempt to answer to an inquiry from " + bankEmail);
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
         if (reply == null || reply.length() < 1) {
-            this.logger.warn("Rejecting empty reply to inquiry from " + bankEmail);
+            LOGGER.warn("Rejecting empty reply to inquiry from " + bankEmail);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
         if (!inquiryHandler.saveReply(inquiryId, bankId, reply)) {
-            this.logger.warn("An error occurred while trying to store a reply to inquiry " + inquiryId + " by " + bankEmail);
+            LOGGER.warn("An error occurred while trying to store a reply to inquiry " + inquiryId + " by " + bankEmail);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
-        this.logger.info("Stored reply to inquiry " + inquiryId + " from " + bankEmail);
+        LOGGER.info("Stored reply to inquiry " + inquiryId + " from " + bankEmail);
         return Response.ok().header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
     }
 
@@ -1166,8 +1170,10 @@ public class Searchbroker {
                              @HeaderParam(HttpHeaders.USER_AGENT) String userAgent,
                              @Context HttpServletRequest request) {
 
-        if (isBankUnauthorized(authorizationHeader)) {
-            this.logger.warn("Unauthorized attempt to retrieve list of sites from " + request.getRemoteAddr());
+        int bankId = Utils.getBankId(authorizationHeader);
+
+        if (isBankUnauthorized(bankId)) {
+            LOGGER.warn("Unauthorized attempt to retrieve list of sites from " + request.getRemoteAddr());
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
@@ -1179,7 +1185,7 @@ public class Searchbroker {
         try {
             returnValue = gson.toJson(sites);
         } catch (Exception e) {
-            this.logger.warn("Error trying to return site list: " + e);
+            LOGGER.warn("Error trying to return site list: " + e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -1210,12 +1216,14 @@ public class Searchbroker {
                             @HeaderParam(HttpHeaders.USER_AGENT) String userAgent,
                             @Context HttpServletRequest request,
                             @PathParam("siteid") int siteId) {
-        if (isBankUnauthorized(authorizationHeader)) {
-            this.logger.warn("Unauthorized attempt to set a site from " + request.getRemoteAddr());
+
+        int bankId = Utils.getBankId(authorizationHeader);
+
+        if (isBankUnauthorized(bankId)) {
+            LOGGER.warn("Unauthorized attempt to set a site from " + request.getRemoteAddr());
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
-        int bankId = Utils.getBankId(authorizationHeader);
         BankSiteUtil.setSiteIdForBankId(bankId, siteId, false);
 
         return Response.ok().header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
@@ -1231,10 +1239,10 @@ public class Searchbroker {
      */
     private Response buildResponse(String xmlNamespace, int inquiryId, String ret) {
         if (ret.equalsIgnoreCase("error")) {
-            this.logger.warn("Could not get inquiry");
+            LOGGER.warn("Could not get inquiry");
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         } else if (ret.equalsIgnoreCase("notFound")) {
-            this.logger.warn("Inquiry with id " + inquiryId + " not found");
+            LOGGER.warn("Inquiry with id " + inquiryId + " not found");
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
@@ -1242,9 +1250,7 @@ public class Searchbroker {
         return Response.ok().entity(ret).header(Constants.SERVER_HEADER_KEY, SERVER_HEADER_VALUE).build();
     }
 
-    private boolean isBankUnauthorized(String authorizationHeader) {
-        int bankId = Utils.getBankId(authorizationHeader);
-
+    private boolean isBankUnauthorized(int bankId) {
         return bankId < 0;
     }
 

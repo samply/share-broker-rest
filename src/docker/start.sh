@@ -23,11 +23,15 @@ sed -i "s%{auth-client-id}%${AUTH_CLIENT_ID}%"          /usr/local/tomcat/conf/O
 sed -i "s/{proxy-host}/${PROXY_HOST}/"                  /usr/local/tomcat/conf/samply_common_config.xml
 sed -i "s/{proxy-port}/${PROXY_PORT}/"                  /usr/local/tomcat/conf/samply_common_config.xml
 
-sed -i "s/{icinga-host}/${ICINGA_HOST}/"                /usr/local/tomcat/conf/samply.share.broker.conf
-sed -i "s/{icinga-path}/${ICINGA_PATH}/"                /usr/local/tomcat/conf/samply.share.broker.conf
+sed -i "s/{broker-name}/${BROKER_NAME}/"                /usr/local/tomcat/conf/samply.share.broker.conf
+sed -i "s#{mdr-url}#${MDR_URL}#"                        /usr/local/tomcat/conf/samply.share.broker.conf
+sed -i "s#{icinga-host}#${ICINGA_HOST}#"                /usr/local/tomcat/conf/samply.share.broker.conf
+sed -i "s#{icinga-path}#${ICINGA_PATH}#"                /usr/local/tomcat/conf/samply.share.broker.conf
 sed -i "s/{icinga-username}/${ICINGA_USERNAME}/"        /usr/local/tomcat/conf/samply.share.broker.conf
 sed -i "s/{icinga-password}/${ICINGA_PASSWORD}/"        /usr/local/tomcat/conf/samply.share.broker.conf
 sed -i "s/{icinga-site-suffix}/${ICINGA_SITE_SUFFIX}/"  /usr/local/tomcat/conf/samply.share.broker.conf
+
+sed -i "s/{level}/${LOG_LEVEL:-info}/"                  /usr/local/tomcat/conf/log4j2.xml
 
 export CATALINA_OPTS="${CATALINA_OPTS} -javaagent:/samply/jmx_prometheus_javaagent-0.3.1.jar=9100:/samply/jmx-exporter.yml"
 

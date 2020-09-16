@@ -676,11 +676,11 @@ define InInitialPopulation:
         <extensionUrl/>
         <entityType>
             <entityTypeName>Patient</entityTypeName>
-            <pathCqlExpression>
-    exists(
-      from [Condition] C
-      where {0} )
-            </pathCqlExpression>
+            <pathCqlExpression>{0}</pathCqlExpression>
+            <atomicExpression>
+                <operator>&lt;&gt;</operator>
+                <atomicCqlExpression>(not exists([Condition: Code ''{2}'' from icd10]) and not exists([Condition: Code ''{2}'' from icd10gm]))</atomicCqlExpression>
+            </atomicExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>(exists([Condition: Code ''{2}'' from icd10]) or exists([Condition: Code ''{2}'' from icd10gm]))</atomicCqlExpression>
@@ -692,6 +692,10 @@ define InInitialPopulation:
                 <name>Patient</name>
             </singleton>
             <pathCqlExpression>{0}</pathCqlExpression>
+            <atomicExpression>
+                <operator>&lt;&gt;</operator>
+                <atomicCqlExpression>(not exists([Patient -&gt; Condition: Code ''{2}'' from icd10]) and not exists([Patient -&gt; Condition: Code ''{2}'' from icd10gm]))</atomicCqlExpression>
+            </atomicExpression>
             <atomicExpression>
                 <operator>DEFAULT</operator>
                 <atomicCqlExpression>(exists([Patient -&gt; Condition: Code ''{2}'' from icd10]) or exists([Patient -&gt; Condition: Code ''{2}'' from icd10gm]))</atomicCqlExpression>
@@ -941,7 +945,7 @@ define InInitialPopulation:
         <permittedValue>
             <mdrKey>smoking_habit_uncharted</mdrKey>
             <cqlValue>LA18980-5</cqlValue>
-    </permittedValue>
+        </permittedValue>
     </uiField>
 
     <!-- Fasting status -->
