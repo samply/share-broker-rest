@@ -101,7 +101,9 @@ public class IcingaConnector {
                 StatusReportItem.PARAMETER_PATIENTS_DKTKFLAGGED_COUNT,
                 StatusReportItem.PARAMETER_PATIENTS_TOTAL_COUNT,
                 StatusReportItem.PARAMETER_REFERENCE_QUERY_RESULTCOUNT,
-                StatusReportItem.PARAMETER_REFERENCE_QUERY_RUNTIME
+                StatusReportItem.PARAMETER_REFERENCE_QUERY_RUNTIME,
+                StatusReportItem.PARAMETER_JOB_CONFIG,
+                StatusReportItem.PARAMETER_INQUIRY_INFO
         }) != -1);
 
         if (performanceReport) {
