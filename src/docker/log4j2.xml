@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration>
-    <Properties>
-        <Property name="layout">%d [%t] %-5p %c- %m%n</Property>
-    </Properties>
-    <Appenders>
-        <Console name="CONSOLE" target="SYSTEM_OUT">
-            <PatternLayout pattern="${layout}"/>
-        </Console>
-    </Appenders>
-    <Loggers>
-        <Root level="{level}">
-            <AppenderRef ref="CONSOLE"/>
-        </Root>
-    </Loggers>
+  <Appenders>
+    <Console name="CONSOLE" target="SYSTEM_OUT">
+      <PatternLayout pattern="${layout}"/>
+    </Console>
+  </Appenders>
+  <Loggers>
+    <Root level="{level}">
+      <AppenderRef ref="CONSOLE"/>
+    </Root>
+  </Loggers>
+  <Properties>
+    <Property name="layout">%d [%t] %-5p %c- %m%n</Property>
+  </Properties>
 </Configuration>

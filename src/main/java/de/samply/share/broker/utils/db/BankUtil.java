@@ -1,116 +1,89 @@
-/**
- * Copyright (C) 2015 Working Group on Joint Research, University Medical Center Mainz
- * Contact: info@osse-register.de
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by the Free
- * Software Foundation; either version 3 of the License, or (at your option) any
- * later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program; if not, see <http://www.gnu.org/licenses>.
- *
- * Additional permission under GNU GPL version 3 section 7:
- *
- * If you modify this Program, or any covered work, by linking or combining it
- * with Jersey (https://jersey.java.net) (or a modified version of that
- * library), containing parts covered by the terms of the General Public
- * License, version 2.0, the licensors of this Program grant you additional
- * permission to convey the resulting work.
- */
-
 package de.samply.share.broker.utils.db;
 
 import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
 import de.samply.share.broker.model.db.tables.pojos.Bank;
 import de.samply.share.broker.model.db.tables.pojos.Site;
+import java.sql.Connection;
+import java.sql.SQLException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.DSLContext;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
 /**
- *  This class provides static methods for CRUD operations for Bank Objects
- *  
- *  @see Bank
+ * This class provides static methods for CRUD operations for Bank Objects.
+ *
+ * @see Bank
  */
 public final class BankUtil {
-    
-    private static final Logger logger = LogManager.getLogger(BankUtil.class);
-    
-    // Prevent instantiation
-    private BankUtil() {
+
+  private static final Logger logger = LogManager.getLogger(BankUtil.class);
+
+  // Prevent instantiation
+  private BankUtil() {
+  }
+
+  /**
+   * Get the site for a bank.
+   *
+   * @param bank the bank for which to get the site
+   * @return the site the bank is assigned to
+   */
+  public static Site getSiteForBank(Bank bank) {
+    Site site = null;
+
+    try (Connection conn = ResourceManager.getConnection()) {
+      DSLContext dslContext = ResourceManager.getDslContext(conn);
+
+      site = dslContext.select()
+          .from(Tables.BANK.join(Tables.BANK_SITE).onKey().join(Tables.SITE).onKey())
+          .where(Tables.BANK.ID.equal(bank.getId()))
+          .fetchOneInto(Site.class);
+
+    } catch (SQLException e) {
+      logger.error("SQL Exception caught", e);
     }
+    return site;
+  }
 
-    /**
-     * Get the site for a bank
-     *
-     * @param bank the bank for which to get the site
-     * @return the site the bank is assigned to
-     */
-    public static Site getSiteForBank(Bank bank) {
-        Site site = null;
+  /**
+   * Get the site for a bank.
+   *
+   * @param bankId the id of the bank for which to get the site
+   * @return the site the bank is assigned to
+   */
+  public static Site getSiteForBankId(int bankId) {
+    Site site;
 
-        try (Connection conn = ResourceManager.getConnection() ) {
-            DSLContext dslContext = ResourceManager.getDSLContext(conn);
-            
-            site = dslContext.select()
-                  .from(Tables.BANK.join(Tables.BANK_SITE).onKey().join(Tables.SITE).onKey())
-                  .where(Tables.BANK.ID.equal(bank.getId()))
-                  .fetchOneInto(Site.class);
-            
-        } catch (SQLException e) {
-            logger.error("SQL Exception caught", e);
-        }
-        return site;
+    try (Connection conn = ResourceManager.getConnection()) {
+      DSLContext dslContext = ResourceManager.getDslContext(conn);
+
+      site = dslContext.select()
+          .from(Tables.BANK.join(Tables.BANK_SITE).onKey().join(Tables.SITE).onKey())
+          .where(Tables.BANK.ID.equal(bankId))
+          .fetchOneInto(Site.class);
+
+      return site;
+
+    } catch (SQLException e) {
+      logger.error("SQL Exception caught", e);
     }
+    return null;
+  }
 
-    /**
-     * Get the site for a bank
-     *
-     * @param bankId the id of the bank for which to get the site
-     * @return the site the bank is assigned to
-     */
-    public static Site getSiteForBankId(int bankId) {
-        Site site;
-
-        try (Connection conn = ResourceManager.getConnection() ) {
-            DSLContext dslContext = ResourceManager.getDSLContext(conn);
-            
-            site = dslContext.select()
-                  .from(Tables.BANK.join(Tables.BANK_SITE).onKey().join(Tables.SITE).onKey())
-                  .where(Tables.BANK.ID.equal(bankId))
-                  .fetchOneInto(Site.class);
-            
-            return site;
-            
-        } catch (SQLException e) {
-            logger.error("SQL Exception caught", e);
-        }
-        return null;
+  /**
+   * Get the site id for a bank.
+   *
+   * @param bankId the id of the bank for which to get the site
+   * @return the id of the site the bank is assigned to
+   */
+  public static Integer getSiteIdForBankId(int bankId) {
+    Site site = getSiteForBankId(bankId);
+    if (site == null) {
+      return null;
+    } else {
+      return site.getId();
     }
-
-    /**
-     * Get the site id for a bank
-     *
-     * @param bankId the id of the bank for which to get the site
-     * @return the id of the site the bank is assigned to
-     */
-    public static Integer getSiteIdForBankId(int bankId) {
-        Site site = getSiteForBankId(bankId);
-        if (site == null) {
-            return null;
-        } else {
-            return site.getId();
-        }
-    }
+  }
 
 }

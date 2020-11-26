@@ -1,184 +1,188 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <cqlConfig>
-    <template>library Retrieve
-using FHIR version ''4.0.0''
-include FHIRHelpers version ''4.0.0''
+  <template>library Retrieve
+    using FHIR version ''4.0.0''
+    include FHIRHelpers version ''4.0.0''
 
-{1}
+    {1}
 
-context {0}
+    context {0}
 
-{2}
+    {2}
 
-define InInitialPopulation:
-  {3}
+    define InInitialPopulation:
+    {3}
 
-{4}
-    </template>
+    {4}
+  </template>
 
-    <!-- Artifical MDR field -->
-    <uiField>
-        <mdrUrn>urn:mdr16:dataelement:08:15</mdrUrn>
-        <codesystems/>
-        <extensionUrl/>
-        <entityType>
-            <entityTypeName>Patient</entityTypeName>
-            <pathCqlExpression>{0}</pathCqlExpression>
-            <atomicExpression>
-                <operator>DEFAULT</operator>
-                <atomicCqlExpression>some-cql-expression {0} ''{2}''</atomicCqlExpression>
-            </atomicExpression>
-            <atomicExpression>
-                <operator>...</operator>
-                <atomicCqlExpression>(other-cql-expression &lt; ''{3}'' and other-cql-expression &gt; ''{2}'')</atomicCqlExpression>
-            </atomicExpression>
-        </entityType>
-        <entityType>
-            <entityTypeName>Specimen</entityTypeName>
-            <pathCqlExpression>
-                exists(from [Patient] P where {0})
-            </pathCqlExpression>
-            <atomicExpression>
-                <operator>DEFAULT</operator>
-                <atomicCqlExpression>some-cql-expression {0} ''{2}''</atomicCqlExpression>
-            </atomicExpression>
-            <atomicExpression>
-                <operator>...</operator>
-                <atomicCqlExpression>(other-cql-expression &lt; ''{3}'' and other-cql-expression &gt; ''{2}'')</atomicCqlExpression>
-            </atomicExpression>
-        </entityType>
-    </uiField>
+  <!-- Artifical MDR field -->
+  <uiField>
+    <codesystems/>
+    <entityType>
+      <atomicExpression>
+        <atomicCqlExpression>some-cql-expression {0} ''{2}''</atomicCqlExpression>
+        <operator>DEFAULT</operator>
+      </atomicExpression>
+      <atomicExpression>
+        <atomicCqlExpression>(other-cql-expression &lt; ''{3}'' and other-cql-expression &gt;
+          ''{2}'')
+        </atomicCqlExpression>
+        <operator>...</operator>
+      </atomicExpression>
+      <entityTypeName>Patient</entityTypeName>
+      <pathCqlExpression>{0}</pathCqlExpression>
+    </entityType>
+    <entityType>
+      <atomicExpression>
+        <atomicCqlExpression>some-cql-expression {0} ''{2}''</atomicCqlExpression>
+        <operator>DEFAULT</operator>
+      </atomicExpression>
+      <atomicExpression>
+        <atomicCqlExpression>(other-cql-expression &lt; ''{3}'' and other-cql-expression &gt;
+          ''{2}'')
+        </atomicCqlExpression>
+        <operator>...</operator>
+      </atomicExpression>
+      <entityTypeName>Specimen</entityTypeName>
+      <pathCqlExpression>
+        exists(from [Patient] P where {0})
+      </pathCqlExpression>
+    </entityType>
+    <extensionUrl/>
+    <mdrUrn>urn:mdr16:dataelement:08:15</mdrUrn>
+  </uiField>
 
-    <!-- Artifical MDR field / MDR-FHIR-Mapping of values -->
-    <uiField>
-        <mdrUrn>urn:mdr16:dataelement:08:16</mdrUrn>
-        <codesystemName>SomeCodeSystem</codesystemName>
-        <codesystem>
-            <name>SomeCodeSystem</name>
-            <url>https://fhir.bbmri.de/CodeSystem/url</url>
-        </codesystem>
-        <extensionUrl>https://fhir.bbmri.de/StructureDefinition/url</extensionUrl>
-        <entityType>
-            <entityTypeName>Patient</entityTypeName>
-            <pathCqlExpression>
-    exists(
-    from [Specimen] S where {0})
-            </pathCqlExpression>
-            <atomicExpression>
-                <operator>DEFAULT</operator>
-                <atomicCqlExpression>
-    exists(
-    from S.extension E
-    where E.url = ''{1}''
-    and E.value.coding contains Code ''{2}'' from SomeCodeSystem)
-                </atomicCqlExpression>
-            </atomicExpression>
-        </entityType>
-        <entityType>
-            <entityTypeName>Specimen</entityTypeName>
-            <pathCqlExpression>{0}</pathCqlExpression>
-            <atomicExpression>
-                <operator>DEFAULT</operator>
-                <atomicCqlExpression>
-    exists(
-    from Specimen.extension E
-    where E.url = ''{1}''
-    and E.value.coding contains Code ''{2}'' from SomeCodeSystem)
-                </atomicCqlExpression>
-            </atomicExpression>
-        </entityType>
-        <permittedValue>
-            <mdrKey>mdrKey1</mdrKey>
-            <cqlValue>cqlCoding1</cqlValue>
-        </permittedValue>
-        <permittedValue>
-            <mdrKey>mdrKey2</mdrKey>
-            <cqlValue>cqlCoding2</cqlValue>
-        </permittedValue>
-    </uiField>
+  <!-- Artifical MDR field / MDR-FHIR-Mapping of values -->
+  <uiField>
+    <codesystem>
+      <name>SomeCodeSystem</name>
+      <url>https://fhir.bbmri.de/CodeSystem/url</url>
+    </codesystem>
+    <codesystemName>SomeCodeSystem</codesystemName>
+    <entityType>
+      <atomicExpression>
+        <atomicCqlExpression>
+          exists(
+          from S.extension E
+          where E.url = ''{1}''
+          and E.value.coding contains Code ''{2}'' from SomeCodeSystem)
+        </atomicCqlExpression>
+        <operator>DEFAULT</operator>
+      </atomicExpression>
+      <entityTypeName>Patient</entityTypeName>
+      <pathCqlExpression>
+        exists(
+        from [Specimen] S where {0})
+      </pathCqlExpression>
+    </entityType>
+    <entityType>
+      <atomicExpression>
+        <atomicCqlExpression>
+          exists(
+          from Specimen.extension E
+          where E.url = ''{1}''
+          and E.value.coding contains Code ''{2}'' from SomeCodeSystem)
+        </atomicCqlExpression>
+        <operator>DEFAULT</operator>
+      </atomicExpression>
+      <entityTypeName>Specimen</entityTypeName>
+      <pathCqlExpression>{0}</pathCqlExpression>
+    </entityType>
+    <extensionUrl>https://fhir.bbmri.de/StructureDefinition/url</extensionUrl>
+    <mdrUrn>urn:mdr16:dataelement:08:16</mdrUrn>
+    <permittedValue>
+      <cqlValue>cqlCoding1</cqlValue>
+      <mdrKey>mdrKey1</mdrKey>
+    </permittedValue>
+    <permittedValue>
+      <cqlValue>cqlCoding2</cqlValue>
+      <mdrKey>mdrKey2</mdrKey>
+    </permittedValue>
+  </uiField>
 
-    <!-- Artifical MDR field / two codesystems -->
-    <uiField>
-        <mdrUrn>urn:mdr16:dataelement:08:17</mdrUrn>
-        <codesystem>
-            <name>loinc</name>
-            <url>http://loinc.org</url>
-        </codesystem>
-        <codesystem>
-            <name>loinc2</name>
-            <url>http://loinc2.org</url>
-        </codesystem>
-    </uiField>
+  <!-- Artifical MDR field / two codesystems -->
+  <uiField>
+    <codesystem>
+      <name>loinc</name>
+      <url>http://loinc.org</url>
+    </codesystem>
+    <codesystem>
+      <name>loinc2</name>
+      <url>http://loinc2.org</url>
+    </codesystem>
+    <mdrUrn>urn:mdr16:dataelement:08:17</mdrUrn>
+  </uiField>
 
-    <!-- Artifical MDR field / with singleton 'Patient' -->
-    <uiField>
-        <mdrUrn>urn:mdr16:dataelement:08:18</mdrUrn>
-        <codesystem/>
-        <entityType>
-            <entityTypeName>Patient</entityTypeName>
-        </entityType>
-        <entityType>
-            <entityTypeName>Specimen</entityTypeName>
-            <singleton>
-                <name>Patient</name>
-            </singleton>
-        </entityType>
-    </uiField>
+  <!-- Artifical MDR field / with singleton 'Patient' -->
+  <uiField>
+    <codesystem/>
+    <entityType>
+      <entityTypeName>Patient</entityTypeName>
+    </entityType>
+    <entityType>
+      <entityTypeName>Specimen</entityTypeName>
+      <singleton>
+        <name>Patient</name>
+      </singleton>
+    </entityType>
+    <mdrUrn>urn:mdr16:dataelement:08:18</mdrUrn>
+  </uiField>
 
-    <!-- Artifical MDR field / with two singletons 'Patient' & 'Observation' -->
-    <uiField>
-        <mdrUrn>urn:mdr16:dataelement:08:19</mdrUrn>
-        <codesystem/>
-        <entityType>
-            <entityTypeName>Patient</entityTypeName>
-        </entityType>
-        <entityType>
-            <entityTypeName>Specimen</entityTypeName>
-            <singleton>
-                <name>Patient</name>
-            </singleton>
-            <singleton>
-                <name>Observation</name>
-            </singleton>
-        </entityType>
-    </uiField>
+  <!-- Artifical MDR field / with two singletons 'Patient' & 'Observation' -->
+  <uiField>
+    <codesystem/>
+    <entityType>
+      <entityTypeName>Patient</entityTypeName>
+    </entityType>
+    <entityType>
+      <entityTypeName>Specimen</entityTypeName>
+      <singleton>
+        <name>Patient</name>
+      </singleton>
+      <singleton>
+        <name>Observation</name>
+      </singleton>
+    </entityType>
+    <mdrUrn>urn:mdr16:dataelement:08:19</mdrUrn>
+  </uiField>
 
-    <!-- Artifical MDR field / with two singletons 'Patient' & 'Patient' -->
-    <uiField>
-        <mdrUrn>urn:mdr16:dataelement:08:20</mdrUrn>
-        <codesystem/>
-        <entityType>
-            <entityTypeName>Patient</entityTypeName>
-        </entityType>
-        <entityType>
-            <entityTypeName>Specimen</entityTypeName>
-            <singleton>
-                <name>Patient</name>
-            </singleton>
-            <singleton>
-                <name>Patient</name>
-            </singleton>
-        </entityType>
-    </uiField>
+  <!-- Artifical MDR field / with two singletons 'Patient' & 'Patient' -->
+  <uiField>
+    <codesystem/>
+    <entityType>
+      <entityTypeName>Patient</entityTypeName>
+    </entityType>
+    <entityType>
+      <entityTypeName>Specimen</entityTypeName>
+      <singleton>
+        <name>Patient</name>
+      </singleton>
+      <singleton>
+        <name>Patient</name>
+      </singleton>
+    </entityType>
+    <mdrUrn>urn:mdr16:dataelement:08:20</mdrUrn>
+  </uiField>
 
-    <!-- Artifical MDR field / with two permitted values for the same mdr key -->
-    <uiField>
-        <mdrUrn>urn:mdr16:dataelement:08:21</mdrUrn>
-        <codesystem/>
-        <permittedValue>
-            <mdrKey>SMOKER</mdrKey>
-            <cqlValue>SMOKER_1</cqlValue>
-        </permittedValue>
-        <permittedValue>
-            <mdrKey>SMOKER</mdrKey>
-            <cqlValue>SMOKER_2</cqlValue>
-        </permittedValue>
-        <entityType>
-            <entityTypeName>Patient</entityTypeName>
-        </entityType>
-        <entityType>
-            <entityTypeName>Specimen</entityTypeName>
-        </entityType>
-    </uiField>
+  <!-- Artifical MDR field / with two permitted values for the same mdr key -->
+  <uiField>
+    <codesystem/>
+    <entityType>
+      <entityTypeName>Patient</entityTypeName>
+    </entityType>
+    <entityType>
+      <entityTypeName>Specimen</entityTypeName>
+    </entityType>
+    <mdrUrn>urn:mdr16:dataelement:08:21</mdrUrn>
+    <permittedValue>
+      <cqlValue>SMOKER_1</cqlValue>
+      <mdrKey>SMOKER</mdrKey>
+    </permittedValue>
+    <permittedValue>
+      <cqlValue>SMOKER_2</cqlValue>
+      <mdrKey>SMOKER</mdrKey>
+    </permittedValue>
+  </uiField>
 
 </cqlConfig>

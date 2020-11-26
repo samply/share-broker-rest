@@ -3,50 +3,65 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <packaging>war</packaging>
-    <artifactId>share.broker.rest</artifactId>
-    <version>7.2.0</version>
-    <name>Searchbroker</name>
 
     <parent>
         <groupId>de.samply</groupId>
         <artifactId>parent</artifactId>
-        <version>10.1.2</version>
+        <version>11.1.0</version>
     </parent>
 
-    <profiles>
-        <!-- ${project.context} also defines the folder where flyway looks for sql files -->
-        <profile>
-            <id>samply</id>
-            <properties>
-                <project.context>samply</project.context>
-                <database.username>${project.context}</database.username>
-                <database.password>${project.context}</database.password>
-                <database.url>jdbc:postgresql://localhost:5432/${project.context}.searchbroker</database.url>
-                <database.schema>${project.context}</database.schema>
-            </properties>
-        </profile>
-        <profile>
-            <id>dktk</id>
-            <properties>
-                <project.context>dktk</project.context>
-                <database.username>samplyweb</database.username>
-                <database.password>samplyweb</database.password>
-                <database.url>jdbc:postgresql://localhost:5432/broker</database.url>
-                <database.schema>samply</database.schema>
-            </properties>
-        </profile>
-    </profiles>
+    <artifactId>share.broker.rest</artifactId>
+    <version>8.0.0</version>
+    <packaging>war</packaging>
+
+    <name>Searchbroker</name>
+    <description>Samply Share Broker Rest is a part of the Sample Locator where the queries of the Sample Locator are stored and made available for the bridgeheads.</description>
+    <url>https://github.com/samply/share-broker-rest</url>
+    <organization>
+        <name>Samply Community</name>
+    </organization>
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Deniz Tas</name>
+            <email>d.tas@dkfz-heidelberg.de</email>
+            <organization>German Cancer Research Center</organization>
+            <organizationUrl>https://www.dkfz.de/en/</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/samply/share-broker-rest.git</connection>
+        <developerConnection>scm:git:https://github.com/samply/share-broker-rest.git</developerConnection>
+        <url>https://github.com/samply/share-broker-rest</url>
+    </scm>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
 
     <properties>
         <!-- Samply dependencies -->
-        <version.samply.common.config>3.1.0</version.samply.common.config>
-        <common-mailing.version>2.3.0</common-mailing.version>
-        <common-http.version>5.0.0</common-http.version>
+        <version.samply.common.config>5.1.0</version.samply.common.config>
+        <common-mailing.version>3.0.0</common-mailing.version>
+        <common-http.version>7.1.0</common-http.version>
         <jsf-renderer.version>2.0.0</jsf-renderer.version>
-        <share-common.version>3.7.0</share-common.version>
-        <share-dto.version>4.8.0</share-dto.version>
-        <bbmri-auth-dto.version>1.2.0</bbmri-auth-dto.version>
+        <share-common.version>4.0.0</share-common.version>
+        <share-dto.version>5.0.0</share-dto.version>
+        <bbmri-auth-dto.version>2.0.0</bbmri-auth-dto.version>
         <!-- general dependencies -->
         <!-- We must keep the older mojarra version as the opening of elements
              in the search_query.xhtml is not working, otherwise. -->
@@ -73,153 +88,20 @@
         <microprofile-openapi-api.version>2.0-MR1</microprofile-openapi-api.version>
         <geronimo-openapi-maven-plugin.version>1.0.12</geronimo-openapi-maven-plugin.version>
         <commons-lang3.version>3.7</commons-lang3.version>
+        <jsf-api.version>2.2.15</jsf-api.version>
+        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+        <postgresql.version>42.2.0</postgresql.version>
+        <commons-io.version>2.6</commons-io.version>
+        <guava.version>24.0-jre</guava.version>
+        <swagger-ui.version>3.25.0</swagger-ui.version>
+        <poi-ooxml.version>3.17</poi-ooxml.version>
+        <easymock.version>4.0.2</easymock.version>
+        <java-hamcrest.version>2.0.0.0</java-hamcrest.version>
+        <version.jersey>2.26</version.jersey>
+        <junit-jupiter.version>5.1.0</junit-jupiter.version>
+        <junit-platform-launcher.version>1.1.0</junit-platform-launcher.version>
     </properties>
 
-    <build>
-        <finalName>searchbroker</finalName>
-        <resources>
-            <resource>
-                <directory>src/main/java</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-        </resources>
-        <plugins>
-            <!-- Flyway Plugin - Create Database from SQL files - Always place here before JOOQ -->
-            <plugin>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-                <version>${version.flyway}</version>
-                <!-- The Flyway plugin is executed in the generate-sources phase, prior to compilation -->
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>migrate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <url>${database.url}</url>
-                    <user>${database.username}</user>
-                    <password>${database.password}</password>
-                    <schemas>
-                        <schema>${database.schema}</schema>
-                    </schemas>
-                    <locations>
-                        <location>filesystem:src/main/resources/db/migration</location>
-                    </locations>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <webResources>
-                        <resource>
-                            <directory>src/main/webapp/META-INF</directory>
-                            <filtering>true</filtering>
-                            <targetPath>META-INF</targetPath>
-                        </resource>
-                    </webResources>
-                    <archive>
-                        <manifestEntries>
-                            <Samply-Project-Context>${project.context}</Samply-Project-Context>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-            <!-- JOOQ Plugin - Generate Java Classes from Database - Always place here after Flyway -->
-            <plugin>
-                <groupId>org.jooq</groupId>
-                <artifactId>jooq-codegen-maven</artifactId>
-                <version>${version.jooq}</version>
-                <!-- The jOOQ code generation plugin is executed in the generate-sources phase, prior to compilation -->
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.postgresql</groupId>
-                        <artifactId>postgresql</artifactId>
-                        <version>${version.postgres}</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <jdbc>
-                        <driver>org.postgresql.Driver</driver>
-                        <url>${database.url}</url>
-                        <user>${database.username}</user>
-                        <password>${database.password}</password>
-                    </jdbc>
-                    <generator>
-                        <database>
-                            <name>org.jooq.util.postgres.PostgresDatabase</name>
-                            <includes>.*</includes>
-                            <excludes>samply.schema_version</excludes>
-                            <inputSchema>${database.schema}</inputSchema>
-                        </database>
-                        <generate>
-                            <relations>true</relations>
-                            <deprecated>true</deprecated>
-                            <instanceFields>true</instanceFields>
-                            <generatedAnnotation>true</generatedAnnotation>
-                            <records>true</records>
-                            <pojos>true</pojos>
-                            <immutablePojos>false</immutablePojos>
-                            <interfaces>false</interfaces>
-                            <daos>true</daos>
-                            <jpaAnnotations>false</jpaAnnotations>
-                            <validationAnnotations>false</validationAnnotations>
-                        </generate>
-                        <target>
-                            <packageName>de.samply.share.broker.model.db</packageName>
-                            <directory>target/generated-sources/jooq</directory>
-                        </target>
-                    </generator>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.geronimo</groupId>
-                <artifactId>geronimo-openapi-maven-plugin</artifactId>
-                <version>${geronimo-openapi-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>generate-openapi.json</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>openapi.json</goal>
-                        </goals>
-                        <configuration>
-                            <output>target/searchbroker/openapi.json</output>
-                            <application>de.samply.share.broker.rest.SearchbrokerRestActivator</application>
-                            <endpointClasses>
-                                <endpointClass>de.samply.share.broker.rest.Searchbroker</endpointClass>
-                            </endpointClasses>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Skip tests because of jenkins error-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skipTests>false</skipTests>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     <dependencies>
         <dependency>
             <groupId>de.samply</groupId>
@@ -245,15 +127,18 @@
         <dependency>
             <groupId>com.sun.faces</groupId>
             <artifactId>jsf-api</artifactId>
+            <version>${jsf-api.version}</version>
         </dependency>
         <dependency>
             <groupId>com.sun.faces</groupId>
             <artifactId>jsf-impl</artifactId>
+            <version>${jsf-api.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
+            <version>${javax.servlet-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.web</groupId>
@@ -274,6 +159,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
         </dependency>
 
         <dependency>
@@ -294,6 +180,7 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -328,6 +215,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>org.omnifaces</groupId>
@@ -449,25 +337,25 @@
             <version>${version.jersey}</version>
             <scope>runtime</scope>
         </dependency><dependency>
-            <groupId>org.eclipse.microprofile.openapi</groupId>
-            <artifactId>microprofile-openapi-api</artifactId>
-            <version>${microprofile-openapi-api.version}</version>
-        </dependency>
+        <groupId>org.eclipse.microprofile.openapi</groupId>
+        <artifactId>microprofile-openapi-api</artifactId>
+        <version>${microprofile-openapi-api.version}</version>
+    </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>swagger-ui</artifactId>
-            <version>3.25.0</version>
+            <version>${swagger-ui.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>3.17</version>
+            <version>${poi-ooxml.version}</version>
         </dependency>
         <!-- Tests -->
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
-            <version>4.0.2</version>
+            <version>${easymock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -483,27 +371,200 @@
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-launcher</artifactId>
-            <version>${junit-platform.version}</version>
+            <version>${junit-platform-launcher.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>java-hamcrest</artifactId>
+            <version>${java-hamcrest.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-junit</artifactId>
+            <version>${java-hamcrest.version}</version>
         </dependency>
     </dependencies>
-    <repositories>
-        <repository>
-            <id>samply-maven-oss-releases</id>
-            <name>Samply Maven Builds</name>
-            <url>https://maven.samply.de/nexus/content/repositories/oss-releases</url>
-        </repository>
-        <repository>
-            <id>samply-maven-oss-snapshots</id>
-            <name>Samply Maven Builds</name>
-            <url>https://maven.samply.de/nexus/content/repositories/oss-snapshots</url>
-        </repository>
-    </repositories>
+
+    <build>
+        <finalName>searchbroker</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+        <plugins>
+            <!-- Flyway Plugin - Create Database from SQL files - Always place here before JOOQ -->
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${version.flyway}</version>
+                <!-- The Flyway plugin is executed in the generate-sources phase, prior to compilation -->
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>migrate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <url>${database.url}</url>
+                    <user>${database.username}</user>
+                    <password>${database.password}</password>
+                    <schemas>
+                        <schema>${database.schema}</schema>
+                    </schemas>
+                    <locations>
+                        <location>filesystem:src/main/resources/db/migration</location>
+                    </locations>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <directory>src/main/webapp/META-INF</directory>
+                            <filtering>true</filtering>
+                            <targetPath>META-INF</targetPath>
+                        </resource>
+                    </webResources>
+                    <archive>
+                        <manifestEntries>
+                            <Samply-Project-Context>${project.context}</Samply-Project-Context>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <!-- JOOQ Plugin - Generate Java Classes from Database - Always place here after Flyway -->
+            <plugin>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-codegen-maven</artifactId>
+                <version>${version.jooq}</version>
+                <!-- The jOOQ code generation plugin is executed in the generate-sources phase, prior to compilation -->
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>${postgresql.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <jdbc>
+                        <driver>org.postgresql.Driver</driver>
+                        <url>${database.url}</url>
+                        <user>${database.username}</user>
+                        <password>${database.password}</password>
+                    </jdbc>
+                    <generator>
+                        <database>
+                            <name>org.jooq.util.postgres.PostgresDatabase</name>
+                            <includes>.*</includes>
+                            <excludes>samply.schema_version</excludes>
+                            <inputSchema>${database.schema}</inputSchema>
+                        </database>
+                        <generate>
+                            <relations>true</relations>
+                            <deprecated>true</deprecated>
+                            <instanceFields>true</instanceFields>
+                            <generatedAnnotation>true</generatedAnnotation>
+                            <records>true</records>
+                            <pojos>true</pojos>
+                            <immutablePojos>false</immutablePojos>
+                            <interfaces>false</interfaces>
+                            <daos>true</daos>
+                            <jpaAnnotations>false</jpaAnnotations>
+                            <validationAnnotations>false</validationAnnotations>
+                        </generate>
+                        <target>
+                            <packageName>de.samply.share.broker.model.db</packageName>
+                            <directory>target/generated-sources/jooq</directory>
+                        </target>
+                    </generator>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.geronimo</groupId>
+                <artifactId>geronimo-openapi-maven-plugin</artifactId>
+                <version>${geronimo-openapi-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-openapi.json</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>openapi.json</goal>
+                        </goals>
+                        <configuration>
+                            <output>target/searchbroker/openapi.json</output>
+                            <application>de.samply.share.broker.rest.SearchbrokerRestActivator</application>
+                            <endpointClasses>
+                                <endpointClass>de.samply.share.broker.rest.Searchbroker</endpointClass>
+                            </endpointClasses>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Skip tests because of jenkins error-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>false</skipTests>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- ${project.context} also defines the folder where flyway looks for sql files -->
+        <profile>
+            <id>samply</id>
+            <properties>
+                <project.context>samply</project.context>
+                <database.username>${project.context}</database.username>
+                <database.password>${project.context}</database.password>
+                <database.url>jdbc:postgresql://localhost:5432/${project.context}.searchbroker</database.url>
+                <database.schema>${project.context}</database.schema>
+            </properties>
+        </profile>
+        <profile>
+            <id>dktk</id>
+            <properties>
+                <project.context>dktk</project.context>
+                <database.username>samplyweb</database.username>
+                <database.password>samplyweb</database.password>
+                <database.url>jdbc:postgresql://localhost:5432/broker</database.url>
+                <database.schema>samply</database.schema>
+            </properties>
+        </profile>
+    </profiles>
+
 </project>

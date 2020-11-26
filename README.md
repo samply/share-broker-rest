@@ -1,3 +1,4 @@
+UNMERGED BRANCH -CHANGES FROM OTHER SAMPLY TEAMS MISSING
 # Searchbroker
 
 To make samples easily accessible for researcher to help [making new treatments possible.](http://www.bbmri-eric.eu/)
@@ -257,3 +258,16 @@ WantedBy=multi-user.target
 ​		Follow installer: http://ftp.fau.de/apache/tomcat/tomcat-8/v8.5.38/bin/apache-tomcat-8.5.38.exe
 
 ​		And check service (one per app/tomcat): http://www.ansoncheunghk.info/article/5-steps-install-multiple-apache-tomcat-instance-windows
+
+
+## License
+        
+ Copyright 2020 The Samply Development Community
+        
+ Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+        
+ http://www.apache.org/licenses/LICENSE-2.0
+        
+ Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ 
+

@@ -1,69 +1,69 @@
 package de.samply.share.broker.utils.db;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import de.samply.share.broker.model.db.tables.pojos.Reply;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.CoreMatchers.is;
-
 public class DonorCountExtractorTest {
 
-    private DonorCountExtractor countExtractor;
+  private DonorCountExtractor countExtractor;
 
-    @BeforeEach
-    void init() {
-        this.countExtractor = new DonorCountExtractor();
-    }
+  private static Reply reply(int count) {
+    return reply("{ donor: { count: " + count + "}}");
+  }
 
-    @Test
-    void testExtractDonorCount_currentReply() {
-        assertThat(countExtractor.extractDonorCount(reply(173055)), is(173055));
-    }
+  private static Reply replyLegacy(int count) {
+    return reply("{ donor: " + count + " }");
+  }
 
-    @Test
-    void testExtractDonorCount_legacyReply() {
-        assertThat(countExtractor.extractDonorCount(replyLegacy(173631)), is(173631));
-    }
+  private static Reply replyInvalid_MissingDonor() {
+    return reply("{ }");
+  }
 
-    @Test
-    void testExtractDonorCount_invalidReply_MissingDonor() {
-        assertThat(countExtractor.extractDonorCount(replyInvalid_MissingDonor()), is(0));
-    }
+  private static Reply replyInvalid_MissingCount() {
+    return reply("{ donor: {} }");
+  }
 
-    @Test
-    void testExtractDonorCount_invalidReply_MissingCount() {
-        assertThat(countExtractor.extractDonorCount(replyInvalid_MissingCount()), is(0));
-    }
+  private static Reply replyInvalid_WrongDonorFormat() {
+    return reply("{ donor: \"a\" }");
+  }
 
-    @Test
-    void testExtractDonorCount_invalidReply_WrongDonorFormat() {
-        assertThat(countExtractor.extractDonorCount(replyInvalid_WrongDonorFormat()), is(0));
-    }
+  private static Reply reply(String content) {
+    Reply reply = new Reply();
+    reply.setContent(content);
+    return reply;
+  }
 
-    private static Reply reply(int count) {
-        return reply("{ donor: { count: " + count + "}}");
-    }
+  @BeforeEach
+  void init() {
+    this.countExtractor = new DonorCountExtractor();
+  }
 
-    private static Reply replyLegacy(int count) {
-        return reply("{ donor: " + count + " }");
-    }
+  @Test
+  void testExtractDonorCount_currentReply() {
+    assertThat(countExtractor.extractDonorCount(reply(173055)), is(173055));
+  }
 
-    private static Reply replyInvalid_MissingDonor() {
-        return reply("{ }");
-    }
+  @Test
+  void testExtractDonorCount_legacyReply() {
+    assertThat(countExtractor.extractDonorCount(replyLegacy(173631)), is(173631));
+  }
 
-    private static Reply replyInvalid_MissingCount() {
-        return reply("{ donor: {} }");
-    }
+  @Test
+  void testExtractDonorCount_invalidReply_MissingDonor() {
+    assertThat(countExtractor.extractDonorCount(replyInvalid_MissingDonor()), is(0));
+  }
 
-    private static Reply replyInvalid_WrongDonorFormat() {
-        return reply("{ donor: \"a\" }");
-    }
+  @Test
+  void testExtractDonorCount_invalidReply_MissingCount() {
+    assertThat(countExtractor.extractDonorCount(replyInvalid_MissingCount()), is(0));
+  }
 
-    private static Reply reply(String content) {
-        Reply reply = new Reply();
-        reply.setContent(content);
-        return reply;
-    }
+  @Test
+  void testExtractDonorCount_invalidReply_WrongDonorFormat() {
+    assertThat(countExtractor.extractDonorCount(replyInvalid_WrongDonorFormat()), is(0));
+  }
 }

@@ -1,23 +1,23 @@
 package de.samply.share.broker.control;
 
+import java.util.Locale;
 import javax.annotation.PostConstruct;
 import javax.faces.context.FacesContext;
-import java.util.Locale;
 
 /**
- * internationalization
+ * internationalization.
  */
 public class LocaleController {
 
-    private Locale locale;
+  private Locale locale;
 
-    @PostConstruct
-    public void init() {
-        locale = FacesContext.getCurrentInstance().getExternalContext().getRequestLocale();
-    }
+  @PostConstruct
+  public void init() {
+    locale = FacesContext.getCurrentInstance().getExternalContext().getRequestLocale();
+  }
 
-    public String getLanguage() {
-        return locale.getLanguage();
-    }
+  public String getLanguage() {
+    return locale.getLanguage();
+  }
 
 }

@@ -4,24 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class IcingaReportItem {
-    private String exit_status;
-    private String plugin_output;
-    private List<IcingaPerformanceData> performance_data;
 
-    public IcingaReportItem() {
-        performance_data = new ArrayList<>();
-    }
+  private String exitStatus;
+  private String pluginOutput;
+  private List<IcingaPerformanceData> performanceData;
 
-    public void setExit_status(String exit_status) {
-        this.exit_status = exit_status;
-    }
+  public IcingaReportItem() {
+    performanceData = new ArrayList<>();
+  }
 
-    public void setPlugin_output(String plugin_output) {
-        this.plugin_output = plugin_output;
-    }
+  public void setExitStatus(String exitStatus) {
+    this.exitStatus = exitStatus;
+  }
 
-    public List<IcingaPerformanceData> getPerformance_data() {
-        return performance_data;
-    }
+  public void setPluginOutput(String pluginOutput) {
+    this.pluginOutput = pluginOutput;
+  }
+
+  public List<IcingaPerformanceData> getPerformanceData() {
+    return performanceData;
+  }
 
 }
