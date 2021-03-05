@@ -4,9 +4,11 @@ import de.samply.share.broker.jdbc.ResourceManager;
 import de.samply.share.broker.model.db.Tables;
 import de.samply.share.broker.model.db.tables.daos.AuthtokenDao;
 import de.samply.share.broker.model.db.tables.daos.BankDao;
+import de.samply.share.broker.model.db.tables.daos.BankSiteDao;
 import de.samply.share.broker.model.db.tables.daos.TokenrequestDao;
 import de.samply.share.broker.model.db.tables.pojos.Authtoken;
 import de.samply.share.broker.model.db.tables.pojos.Bank;
+import de.samply.share.broker.model.db.tables.pojos.BankSite;
 import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.model.db.tables.pojos.Tokenrequest;
 import de.samply.share.broker.model.db.tables.records.TokenrequestRecord;
@@ -126,6 +128,8 @@ public class BankRegistration {
     AuthtokenDao authtokenDao;
     Bank bank;
     Authtoken authToken;
+    BankSite bankSite;
+    BankSiteDao bankSiteDao;
 
     try (Connection connection = ResourceManager.getConnection()) {
       Configuration configuration = new DefaultConfiguration().set(connection)
@@ -145,7 +149,12 @@ public class BankRegistration {
           responseStatus = Response.Status.UNAUTHORIZED;
         } else { // everything correct
           logger.info("Deleting " + email);
-
+          bankSiteDao = new BankSiteDao(configuration);
+          List<BankSite> bankSiteList = bankSiteDao.fetchByBankId(bank.getId());
+          if (bankSiteList.size() > 0) {
+            bankSite = bankSiteList.get(0);
+            bankSiteDao.delete(bankSite);
+          }
           authtokenDao.delete(authToken);
           bankDao.delete(bank);
 
