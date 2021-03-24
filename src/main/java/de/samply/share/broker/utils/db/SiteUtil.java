@@ -194,4 +194,19 @@ public final class SiteUtil {
     }
     return siteNames;
   }
+
+  /**
+   * Insert new site.
+   * @param site the new site
+   */
+  public static void insertNewSite(Site site) {
+    try (Connection conn = ResourceManager.getConnection()) {
+      Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
+      SiteDao siteDao = new SiteDao(configuration);
+      siteDao.insert(site);
+    } catch (SQLException throwables) {
+      throwables.printStackTrace();
+    }
+  }
+
 }

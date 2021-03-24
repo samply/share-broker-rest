@@ -3,7 +3,9 @@ package de.samply.share.broker.rest;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.mchange.util.AlreadyExistsException;
 import de.samply.share.broker.control.SearchController;
+import de.samply.share.broker.control.SiteController;
 import de.samply.share.broker.filter.AuthenticatedUser;
 import de.samply.share.broker.filter.Secured;
 import de.samply.share.broker.model.db.tables.pojos.BankSite;
@@ -36,6 +38,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.NotAllowedException;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -1199,10 +1202,19 @@ public class Searchbroker {
       LOGGER.warn("Unauthorized attempt to set a site from " + request.getRemoteAddr());
       return Response.status(Response.Status.UNAUTHORIZED).build();
     }
-    Integer siteId = SiteUtil.fetchSiteByName(siteName).getId();
-    BankSiteUtil.setSiteIdForBankId(bankId, siteId, false);
-    return Response.ok().header(Constants.SERVER_HEADER_KEY, serverHeaderValue).build();
+    try {
+      SiteController.setSiteForBank(siteName, bankId);
+      return Response.ok().header(Constants.SERVER_HEADER_KEY, serverHeaderValue).build();
+    } catch (NotAllowedException e) {
+      return Response.status(405, e.getMessage()).header(Constants.SERVER_HEADER_KEY,
+          serverHeaderValue).build();
+    } catch (AlreadyExistsException e) {
+      return Response.status(409, e.getMessage()).header(Constants.SERVER_HEADER_KEY,
+          serverHeaderValue).build();
+    }
   }
+
+
 
   /**
    * Build a Response object depending on the given value.
