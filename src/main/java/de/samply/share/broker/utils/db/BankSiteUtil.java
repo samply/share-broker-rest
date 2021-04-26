@@ -202,6 +202,30 @@ public final class BankSiteUtil {
   }
 
   /**
+   * Get a bank with the searching site.
+   * @param siteId the site id
+   * @return the bank site of the matching site id
+   */
+  public static BankSite fetchBankSiteBySiteId(Integer siteId) {
+    BankSiteDao bankSiteDao;
+    List<BankSite> bankSites;
+
+    try (Connection conn = ResourceManager.getConnection()) {
+      Configuration configuration = new DefaultConfiguration().set(conn).set(SQLDialect.POSTGRES);
+      bankSiteDao = new BankSiteDao(configuration);
+
+      bankSites = bankSiteDao.fetchBySiteId(siteId);
+      // There shall be but one assignment
+      if (bankSites != null && bankSites.size() == 1) {
+        return bankSites.get(0);
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
    * Delete the site assignment of a bank.
    *
    * @param bank the bank for which to clear the assignment to a site

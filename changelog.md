@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [8.1.0 - 2021-03-04]
+### Added
+- Bridgehead can set their site via rest api
+- Bridgehead can insert new site
+- Feature toggle
+### Changed
+- Postgres plugin version 42.2.19
+- Jooq plugin version 3.11.12
+- Parent pom 11.1.1
+### Fixed
+- Bridgehead can delete their registration via rest api
+
 ## [8.0.0 - 2020-11-26]
 - Github release
 ### Changed

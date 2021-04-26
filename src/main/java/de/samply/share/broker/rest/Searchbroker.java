@@ -1,10 +1,13 @@
 package de.samply.share.broker.rest;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.mchange.util.AlreadyExistsException;
 import de.samply.share.broker.control.SearchController;
+import de.samply.share.broker.control.SiteController;
 import de.samply.share.broker.filter.AuthenticatedUser;
 import de.samply.share.broker.filter.Secured;
-import de.samply.share.broker.model.db.tables.daos.InquiryDao;
 import de.samply.share.broker.model.db.tables.pojos.BankSite;
 import de.samply.share.broker.model.db.tables.pojos.Document;
 import de.samply.share.broker.model.db.tables.pojos.Inquiry;
@@ -20,14 +23,12 @@ import de.samply.share.broker.utils.db.BankUtil;
 import de.samply.share.broker.utils.db.DocumentUtil;
 import de.samply.share.broker.utils.db.InquirySiteUtil;
 import de.samply.share.broker.utils.db.InquiryUtil;
-import de.samply.share.broker.utils.db.ProjectUtil;
 import de.samply.share.broker.utils.db.SiteUtil;
 import de.samply.share.common.model.dto.SiteInfo;
 import de.samply.share.common.utils.Constants;
 import de.samply.share.common.utils.ProjectInfo;
 import de.samply.share.common.utils.SamplyShareUtils;
 import de.samply.share.essentialquery.EssentialSimpleQueryDto;
-import java.sql.SQLException;
 import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -37,6 +38,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.NotAllowedException;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -60,7 +62,6 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.jooq.tools.json.JSONArray;
 import org.jooq.tools.json.JSONObject;
-import org.jooq.tools.json.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,6 +116,7 @@ public class Searchbroker {
 
   /**
    * Return the directory id of the desired biobanks.
+   *
    * @param biobankNameList name of the biobanks
    * @return list of biobank name and their directory ids
    */
@@ -160,6 +162,7 @@ public class Searchbroker {
 
   /**
    * Get OPTIONS-Call for the path "getDirectoryID".
+   *
    * @return OPTIONS response.
    */
   @Produces(MediaType.APPLICATION_JSON)
@@ -182,6 +185,7 @@ public class Searchbroker {
 
   /**
    * Return the inquiry by id.
+   *
    * @param id the id of the inquiry
    * @return the inquiry
    */
@@ -354,6 +358,7 @@ public class Searchbroker {
 
   /**
    * Get the query by the nToken.
+   *
    * @param ntoken the nToken
    * @return the query.
    */
@@ -628,8 +633,8 @@ public class Searchbroker {
    * @param email          the email of the new bank
    * @param authCodeHeader the auth code header
    * @return <CODE>201</CODE> if a new bank was registered
-   * <CODE>400</CODE> if an invalid email was entered
-   * <CODE>401</CODE> if an invalid request token was provided
+   *        <CODE>400</CODE> if an invalid email was entered
+   *        <CODE>401</CODE> if an invalid request token was provided
    */
   @Path("/banks/{email}")
   @PUT
@@ -690,8 +695,8 @@ public class Searchbroker {
    * @param email          the email of the bank to delete
    * @param authCodeHeader the auth code header
    * @return <CODE>204</CODE> on success
-   * <CODE>401</CODE> if the credentials don't belong to this bank
-   * <CODE>404</CODE> if no bank was found for this email address
+   *        <CODE>401</CODE> if the credentials don't belong to this bank
+   *        <CODE>404</CODE> if no bank was found for this email address
    */
   @Path("/banks/{email}")
   @DELETE
@@ -766,9 +771,9 @@ public class Searchbroker {
   }
 
   /**
-   * Gets the list of inquiries.
-   * Only get inquiries that are linked with the requesting bank (site) and are not expired, yet.
-   * Also send client version information to icinga on every 12th call (~each minute).
+   * Gets the list of inquiries. Only get inquiries that are linked with the requesting bank (site)
+   * and are not expired, yet. Also send client version information to icinga on every 12th call
+   * (~each minute).
    *
    * @param authorizationHeader the authorization header
    * @param userAgent           user agent of the requesting client
@@ -1079,8 +1084,8 @@ public class Searchbroker {
   }
 
   /**
-   * Gets the list of sites available.
-   * This does not guarantee that each site has a registered bank.
+   * Gets the list of sites available. This does not guarantee that each site has a registered
+   * bank.
    *
    * @param authorizationHeader the authorization header
    * @return <CODE>200</CODE> and the list of sites on success
@@ -1124,17 +1129,62 @@ public class Searchbroker {
   }
 
   /**
+   * Gets the list of site names available. This does not guarantee that each site has a registered
+   * bank.
+   *
+   * @param authorizationHeader the authorization header
+   * @return <CODE>200</CODE> and the list of site names on success
+   *        <CODE>401</CODE> on authorization error
+   *        <CODE>500</CODE> on any other error
+   */
+  @Path("/siteNames")
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @APIResponses({
+      @APIResponse(
+          responseCode = "200",
+          description = "ok"),
+      @APIResponse(responseCode = "500", description = "Internal Server Error")
+  })
+  public Response getSitesName(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+      @HeaderParam(HttpHeaders.USER_AGENT) String userAgent,
+      @Context HttpServletRequest request) {
+
+    int bankId = Utils.getBankId(authorizationHeader);
+
+    if (isBankUnauthorized(bankId)) {
+      LOGGER.warn("Unauthorized attempt to retrieve list of sites from " + request.getRemoteAddr());
+      return Response.status(Response.Status.UNAUTHORIZED).build();
+    }
+    try {
+      List<Site> sitesList = SiteUtil.fetchSites();
+      JsonArray sitesJsonArray = new JsonArray();
+      for (Site site : sitesList) {
+        JsonObject siteJson = new JsonObject();
+        siteJson.addProperty("name", site.getName());
+        sitesJsonArray.add(siteJson);
+      }
+      String array = sitesJsonArray.toString();
+      return Response.ok().entity(array)
+          .header(Constants.SERVER_HEADER_KEY, serverHeaderValue).build();
+    } catch (Exception e) {
+      LOGGER.warn("Error trying to return site list: " + e);
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+
+  /**
    * Set the site for a bank.
    *
    * @param authorizationHeader the authorization header
    * @param userAgent           the user agent of the client
    * @param request             the http request
-   * @param siteId              the id of the site to set
+   * @param siteName            the name of the site to set
    * @return <CODE>200</CODE> on success
    *        <CODE>401</CODE> on authorization error
    *        <CODE>404</CODE> if the site or bank could not be found
    */
-  @Path("/banks/{email}/site/{siteid}")
+  @Path("/banks/{email}/site/{siteName}")
   @PUT
   @APIResponses({
       @APIResponse(
@@ -1143,22 +1193,28 @@ public class Searchbroker {
       @APIResponse(responseCode = "500", description = "Internal Server Error")
   })
   @Operation(description = "Possibly unused")
-  public Response setSite(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+  public Response setSiteByName(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader,
       @HeaderParam(HttpHeaders.USER_AGENT) String userAgent,
       @Context HttpServletRequest request,
-      @PathParam("siteid") int siteId) {
-
+      @PathParam("siteName") String siteName) {
     int bankId = Utils.getBankId(authorizationHeader);
-
     if (isBankUnauthorized(bankId)) {
       LOGGER.warn("Unauthorized attempt to set a site from " + request.getRemoteAddr());
       return Response.status(Response.Status.UNAUTHORIZED).build();
     }
-
-    BankSiteUtil.setSiteIdForBankId(bankId, siteId, false);
-
-    return Response.ok().header(Constants.SERVER_HEADER_KEY, serverHeaderValue).build();
+    try {
+      SiteController.setSiteForBank(siteName, bankId);
+      return Response.ok().header(Constants.SERVER_HEADER_KEY, serverHeaderValue).build();
+    } catch (NotAllowedException e) {
+      return Response.status(405, e.getMessage()).header(Constants.SERVER_HEADER_KEY,
+          serverHeaderValue).build();
+    } catch (AlreadyExistsException e) {
+      return Response.status(409, e.getMessage()).header(Constants.SERVER_HEADER_KEY,
+          serverHeaderValue).build();
+    }
   }
+
+
 
   /**
    * Build a Response object depending on the given value.
