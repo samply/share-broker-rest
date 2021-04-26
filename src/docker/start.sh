@@ -31,6 +31,9 @@ sed -i "s/{icinga-username}/${ICINGA_USERNAME}/"        /usr/local/tomcat/conf/s
 sed -i "s/{icinga-password}/${ICINGA_PASSWORD}/"        /usr/local/tomcat/conf/samply.share.broker.conf
 sed -i "s/{icinga-site-suffix}/${ICINGA_SITE_SUFFIX}/"  /usr/local/tomcat/conf/samply.share.broker.conf
 
+file=${CATALINA_HOME}/conf/features.properties
+sed -i "s/{FEATURE_CREATE_NEW_SITE}/${FEATURE_CREATE_NEW_SITE:-false}/" "$file"
+
 sed -i "s/{level}/${LOG_LEVEL:-info}/"                  /usr/local/tomcat/conf/log4j2.xml
 
 export CATALINA_OPTS="${CATALINA_OPTS} -javaagent:/samply/jmx_prometheus_javaagent-0.3.1.jar=9100:/samply/jmx-exporter.yml"
