@@ -11,6 +11,7 @@ ADD src/docker/mailSending.xml                  /usr/local/tomcat/conf/
 ADD src/docker/log4j2.xml                       /usr/local/tomcat/conf/
 ADD src/docker/statistic_notification.txt       /usr/local/tomcat/conf/statistic_notification.txt
 ADD src/docker/samply.share.broker.conf         /usr/local/tomcat/conf/samply.share.broker.conf
+ADD src/docker/features.properties              /usr/local/tomcat/conf/features.properties
 
 # JMX Exporter
 ENV JMX_EXPORTER_VERSION 0.3.1

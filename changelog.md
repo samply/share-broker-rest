@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [8.1.1 - 2021-05-03]
+### Fixed
+- Add feature.properties to dockerfile
+
 ## [8.1.0 - 2021-03-04]
 ### Added
 - Bridgehead can set their site via rest api
