@@ -5,6 +5,7 @@ import de.samply.share.broker.feature.ClientFeature;
 import de.samply.share.broker.model.db.tables.pojos.Site;
 import de.samply.share.broker.utils.db.BankSiteUtil;
 import de.samply.share.broker.utils.db.SiteUtil;
+import java.util.List;
 import javax.ws.rs.NotAllowedException;
 import javax.ws.rs.core.Response;
 
@@ -44,6 +45,10 @@ public class SiteController {
       }
       BankSiteUtil.setSiteIdForBankId(bankId, siteId, true);
     }
+  }
+
+  public static List<Site> getAllSites() {
+    return SiteUtil.fetchSites();
   }
 
 }
