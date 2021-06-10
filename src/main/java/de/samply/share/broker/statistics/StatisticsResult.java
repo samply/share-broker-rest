@@ -38,6 +38,11 @@ public class StatisticsResult {
     mdrMap.put("urn:mdr16:dataelement:18:1", "Analyse");
     mdrMap.put("urn:mdr16:dataelement:23:1", "Geschlecht");
     mdrMap.put("urn:mdr16:dataelement:24:1", "Todesdat.");
+
+
+    mdrMap.put("urn:mdr16:dataelement:36:1", "Genotype");
+    mdrMap.put("urn:mdr16:dataelement:46:1", "Diag. patient Orpha");
+    mdrMap.put("urn:mdr16:dataelement:43:1", "Diag. relative Orpha");
   }
 
   public HashMap<Integer, Integer> getSelectedFieldsPerQuery() {

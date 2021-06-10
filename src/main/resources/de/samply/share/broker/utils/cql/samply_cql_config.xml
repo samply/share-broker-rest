@@ -727,6 +727,90 @@
     <mdrUrn>urn:mdr16:dataelement:27:1</mdrUrn>
   </uiField>
 
+  <!-- Diagnosis Orphanet -->
+  <uiField>
+    <mdrUrn>urn:mdr16:dataelement:46:1</mdrUrn>
+    <codesystem>
+      <name>orpha</name>
+      <url>http://www.orpha.net</url>
+    </codesystem>
+    <extensionUrl/>
+    <entityType>
+      <entityTypeName>Patient</entityTypeName>
+      <pathCqlExpression>{0}</pathCqlExpression>
+      <atomicExpression>
+        <operator>&lt;&gt;</operator>
+        <atomicCqlExpression>(not exists([Condition: Code ''{2}'' from orpha]))</atomicCqlExpression>
+      </atomicExpression>
+      <atomicExpression>
+        <operator>DEFAULT</operator>
+        <atomicCqlExpression>(exists([Condition: Code ''{2}'' from orpha]))</atomicCqlExpression>
+      </atomicExpression>
+    </entityType>
+    <entityType>
+      <entityTypeName>Specimen</entityTypeName>
+      <singleton>
+        <name>Patient</name>
+      </singleton>
+      <pathCqlExpression>{0}</pathCqlExpression>
+      <atomicExpression>
+        <operator>&lt;&gt;</operator>
+        <atomicCqlExpression>(not exists([Patient -&gt; Condition: Code ''{2}'' from orpha]))</atomicCqlExpression>
+      </atomicExpression>
+      <atomicExpression>
+        <operator>DEFAULT</operator>
+        <atomicCqlExpression>(exists([Patient -&gt; Condition: Code ''{2}'' from orpha]))</atomicCqlExpression>
+      </atomicExpression>
+    </entityType>
+  </uiField>
+
+  <!-- Genotype -->
+  <uiField>
+    <mdrUrn>urn:mdr16:dataelement:36:1</mdrUrn>
+    <codesystem>
+      <name>hgvs</name>
+      <url>https://varnomen.hgvs.org/</url>
+    </codesystem>
+    <extensionUrl>https://varnomen.hgvs.org/</extensionUrl>
+    <entityType>
+      <entityTypeName>Patient</entityTypeName>
+      <pathCqlExpression>
+        exists(
+        from [Observation] O
+        where {0} )
+      </pathCqlExpression>
+      <atomicExpression>
+        <operator>DEFAULT</operator>
+        <atomicCqlExpression>
+          ( exists(
+          from O.extension E
+          where E.url = ''{1}''
+          and E.value.coding contains Code ''{2}'' from hgvs ) )
+        </atomicCqlExpression>
+      </atomicExpression>
+    </entityType>
+    <entityType>
+      <entityTypeName>Specimen</entityTypeName>
+      <singleton>
+        <name>Patient</name>
+      </singleton>
+      <pathCqlExpression>
+        exists(
+        from [Patient -&gt; Observation] O
+        where {0} )
+      </pathCqlExpression>
+      <atomicExpression>
+        <operator>DEFAULT</operator>
+        <atomicCqlExpression>
+          ( exists(
+          from O.extension E
+          where E.url = ''{1}''
+          and E.value.coding contains Code ''{2}'' from hgvs ) )
+        </atomicCqlExpression>
+      </atomicExpression>
+    </entityType>
+  </uiField>
+
   <!-- Diagnosis age donor -->
   <uiField>
     <codesystem/>
@@ -1039,5 +1123,36 @@
       <cqlValue>NG</cqlValue>
       <mdrKey>fasting_status_uncharted</mdrKey>
     </permittedValue>
+  </uiField>
+
+  <!-- Relative with same condition -->
+  <!-- Alex' code, without orpha checking, i.e. simply asks the question: "does a patient have any recorded relatives?" -->
+  <uiField>
+    <mdrUrn>urn:mdr16:dataelement:43:1</mdrUrn>
+    <codesystem/>
+    <extensionUrl/>
+    <entityType>
+      <entityTypeName>Patient</entityTypeName>
+      <pathCqlExpression>
+        exists(
+        from [FamilyMemberHistory] F
+        where {0} )
+      </pathCqlExpression>
+      <atomicExpression>
+        <operator>DEFAULT</operator>
+        <atomicCqlExpression>true</atomicCqlExpression>
+      </atomicExpression>
+    </entityType>
+    <entityType>
+      <entityTypeName>Specimen</entityTypeName>
+      <singleton>
+        <name>Patient</name>
+      </singleton>
+      <pathCqlExpression>{0}</pathCqlExpression>
+      <atomicExpression>
+        <operator>DEFAULT</operator>
+        <atomicCqlExpression>exists([Patient -> FamilyMemberHistory])</atomicCqlExpression>
+      </atomicExpression>
+    </entityType>
   </uiField>
 </cqlConfig>
